@@ -574,22 +574,21 @@
             outputCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        function extractDomain(text) {
-            // Simple keyword-based domain detection
-            const domains = {
-                '编程|代码|程序|开发|软件|API|bug|算法|架构|code|program|develop|software|engineer|debug': '技术与编程 / Technology & Programming',
-                '文章|写作|故事|小说|诗|散文|write|story|novel|essay|article|blog|creative': '写作与创意 / Writing & Creative',
-                '商业|营销|市场|品牌|策略|business|market|brand|strateg|sales|revenue': '商业与营销 / Business & Marketing',
-                '研究|论文|学术|分析|数据|research|paper|academic|analys|study|thesis': '学术与研究 / Academic & Research',
-                '教学|学习|课程|教育|teach|learn|course|education|tutorial|explain': '教育与学习 / Education & Learning',
-                '设计|UI|UX|界面|用户体验|design|interface|layout|visual|graphic': '设计与体验 / Design & UX',
-                '翻译|语言|translate|language|locali': '语言与翻译 / Language & Translation',
-                '健康|医疗|养生|health|medic|fitness|diet|nutrition': '健康与医疗 / Health & Medical'
-            };
+        // Pre-compiled domain detection regexes for performance
+        const domainPatterns = [
+            { regex: /编程|代码|程序|开发|软件|API|bug|算法|架构|code|program|develop|software|engineer|debug/i, domain: '技术与编程 / Technology & Programming' },
+            { regex: /文章|写作|故事|小说|诗|散文|write|story|novel|essay|article|blog|creative/i, domain: '写作与创意 / Writing & Creative' },
+            { regex: /商业|营销|市场|品牌|策略|business|market|brand|strateg|sales|revenue/i, domain: '商业与营销 / Business & Marketing' },
+            { regex: /研究|论文|学术|分析|数据|research|paper|academic|analys|study|thesis/i, domain: '学术与研究 / Academic & Research' },
+            { regex: /教学|学习|课程|教育|teach|learn|course|education|tutorial|explain/i, domain: '教育与学习 / Education & Learning' },
+            { regex: /设计|UI|UX|界面|用户体验|design|interface|layout|visual|graphic/i, domain: '设计与体验 / Design & UX' },
+            { regex: /翻译|语言|translate|language|locali/i, domain: '语言与翻译 / Language & Translation' },
+            { regex: /健康|医疗|养生|health|medic|fitness|diet|nutrition/i, domain: '健康与医疗 / Health & Medical' }
+        ];
 
-            for (const [keywords, domain] of Object.entries(domains)) {
-                const regex = new RegExp(keywords, 'i');
-                if (regex.test(text)) return domain;
+        function extractDomain(text) {
+            for (const pattern of domainPatterns) {
+                if (pattern.regex.test(text)) return pattern.domain;
             }
             return '综合领域 / General Domain';
         }
@@ -612,8 +611,10 @@
             lines.push('Tu misión es la siguiente — léela con atención y ejecútala con toda tu capacidad:');
             lines.push('المهمة المطلوبة منك هي كما يلي — اقرأها بعناية ونفذها بكامل قدراتك:');
             lines.push('');
+            // Sanitize user text: replace box-drawing characters that could break formatting
+            const sanitizedText = userText.replace(/[┌┐└┘│─═]/g, '-');
             lines.push('┌─────────────────────────────────────────┐');
-            lines.push(`│ ${userText}`);
+            lines.push(`│ ${sanitizedText}`);
             lines.push('└─────────────────────────────────────────┘');
             lines.push('');
 

@@ -68,6 +68,8 @@ Specify output requirements in mixed languages to reinforce:
 
 For every user message, generate the optimized prompt like this:
 
+**IMPORTANT**: Replace all `{placeholder}` values below with actual content derived from the user's message. `{domain}` should be replaced with the detected topic/domain, and `{user's core request}` should be replaced with the user's actual request rephrased in that language.
+
 ---
 
 **🔮 Optimized Multilingual Prompt / 优化后的多语混合提示词:**
