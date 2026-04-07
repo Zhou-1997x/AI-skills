@@ -368,17 +368,21 @@
 
         function detectSourceLang(text) {
             // Simple heuristic detection based on Unicode ranges
+            // Check for Japanese-specific kana first (hiragana/katakana), then CJK
+            let hasCJK = false;
             for (let i = 0; i < text.length; i++) {
                 const code = text.charCodeAt(i);
-                if (code >= 0x4E00 && code <= 0x9FFF) return 'zh-CN';  // CJK Unified - Chinese
                 if (code >= 0x3040 && code <= 0x309F) return 'ja';      // Hiragana - Japanese
                 if (code >= 0x30A0 && code <= 0x30FF) return 'ja';      // Katakana - Japanese
+                if (code >= 0x4E00 && code <= 0x9FFF) hasCJK = true;    // CJK Unified
                 if (code >= 0x0600 && code <= 0x06FF) return 'ar';      // Arabic
                 if (code >= 0xAC00 && code <= 0xD7AF) return 'ko';      // Korean
                 if (code >= 0x0E00 && code <= 0x0E7F) return 'th';      // Thai
                 if (code >= 0x0900 && code <= 0x097F) return 'hi';      // Hindi
                 if (code >= 0x0400 && code <= 0x04FF) return 'ru';      // Cyrillic - Russian
             }
+            // If CJK characters found but no kana, assume Chinese
+            if (hasCJK) return 'zh-CN';
             // Check for Spanish/French/German/Portuguese specific chars
             if (/[áéíóúñ¿¡ü]/i.test(text)) return 'es';
             if (/[àâçéèêëïîôùûüÿœæ]/i.test(text)) return 'fr';
@@ -420,8 +424,15 @@
                         chunks.push(remaining);
                         break;
                     }
-                    // Try to break at a sentence boundary
-                    let breakPoint = remaining.lastIndexOf('. ', maxChunk);
+                    // Try to break at a sentence boundary (supports CJK and Latin punctuation)
+                    let breakPoint = -1;
+                    const sentenceEnders = ['. ', '。', '！', '？', '! ', '? ', '؟ ', '।'];
+                    for (const ender of sentenceEnders) {
+                        const idx = remaining.lastIndexOf(ender, maxChunk);
+                        if (idx > breakPoint) {
+                            breakPoint = idx + ender.length - 1;
+                        }
+                    }
                     if (breakPoint === -1 || breakPoint < maxChunk * 0.3) {
                         breakPoint = remaining.lastIndexOf(' ', maxChunk);
                     }

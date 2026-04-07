@@ -132,7 +132,7 @@ The prompts above were used to generate the translation web app included in this
 
 ### Features
 - 📝 Input any text content
-- 🌍 Translate to 10+ languages (Chinese, Japanese, English, Arabic, Spanish, French, German, Korean, Portuguese, Russian)
+- 🌍 Translate to 17 languages (Chinese Simplified/Traditional, Japanese, English, Arabic, Spanish, French, German, Korean, Portuguese, Russian, Italian, Hindi, Thai, Vietnamese, Dutch, Turkish)
 - 📋 One-click copy of translated text
 - 🎨 Clean, modern, responsive UI
 - ⚡ Powered by the free MyMemory Translation API
