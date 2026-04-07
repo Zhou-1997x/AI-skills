@@ -31,7 +31,10 @@ Transform your prompts into powerful multilingual mixed-language prompts using C
 ### Features / 功能特点
 - 📝 支持任意语言输入（中文、英文、西班牙文等）
 - 🔮 自动生成六语混合提示词（中文 + 日本語 + English + العربية + Español + 文言文）
-- 🎯 6种优化模式适配不同场景
+- 🖼️ **新增图片生成专用模式** — 解决AI模型"解释而不执行"的问题
+- 🎯 7种优化模式适配不同场景（通用/图片生成/创意/技术/学术/商务/说服）
+- 🚫 **反解释指令** — 强制AI直接执行而非解释
+- 🔍 **智能检测** — 自动识别图片生成需求并切换模式
 - 📋 一键复制，直接粘贴到AI模型
 - 🎨 现代暗色主题UI，响应式设计
 - ⚡ 纯前端，无需服务器，无需API，离线可用
@@ -64,6 +67,7 @@ Once loaded, the AI will automatically transform every user message into an opti
 | **Español (Spanish)** | 通过不同语系视角强化需求 / Reinforces through Romance language perspective |
 | **العربية (Arabic)** | 增加语言维度，强调完整性 / Adds linguistic dimension, emphasizes completeness |
 | **Mixed Together / 混合使用** | 迫使模型更深层处理提示词，同时激活多个语言中心 / Forces deeper processing, activates multiple language centers |
+| **Anti-Explanation / 反解释指令** | 阻止模型过度解释，强制直接执行（图片生成关键） / Prevents over-explaining, forces direct execution (critical for image generation) |
 
 ---
 
@@ -240,9 +244,11 @@ Idea central: mezclar múltiples idiomas en un prompt obliga a los modelos de IA
 |-------|-------------|
 | **Multilingual Mixing / 多语混合** | Strategically combining 6 languages to activate different knowledge centers |
 | **Role Assignment / 角色设定** | Using Classical Chinese for authority + Modern Chinese for context + Japanese for precision |
-| **Layered Structure / 分层结构** | Role → Task → Quality → Format → Amplifier layers |
+| **Layered Structure / 分层结构** | Purpose-First → Role → Task → Quality → Format → Anti-Explanation layers |
 | **Quality Amplifiers / 品质增幅** | Reinforcing quality expectations across all 6 languages |
-| **Mode Adaptation / 模式适配** | Different optimization strategies for different task types |
+| **Mode Adaptation / 模式适配** | Different optimization strategies for different task types (7 modes including image generation) |
+| **Anti-Explanation Directives / 反解释指令** | Preventing AI from over-explaining, forcing direct execution |
+| **Image Generation Optimization / 图片生成优化** | Specialized prompt structure that forces AI to generate images instead of describing them |
 | **Cross-lingual Emphasis / 跨语强调** | Repeating key requirements in multiple languages for emphasis |
 
 ---

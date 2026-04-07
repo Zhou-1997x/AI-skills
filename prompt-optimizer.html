@@ -386,6 +386,7 @@
                     <label for="modeSelect">🎯 Optimization Mode / 优化模式</label>
                     <select id="modeSelect">
                         <option value="general">🌐 General / 通用模式 — 适用于大多数场景</option>
+                        <option value="imageGen">🖼️ Image Generation / 图片生成 — AI绘画、照片生成、视觉创作</option>
                         <option value="creative">🎨 Creative / 创意模式 — 文学、故事、艺术创作</option>
                         <option value="technical">⚙️ Technical / 技术模式 — 编程、工程、科学</option>
                         <option value="academic">📚 Academic / 学术模式 — 研究、论文、分析</option>
@@ -438,9 +439,16 @@
         const charCount = document.getElementById('charCount');
         const outputCharCount = document.getElementById('outputCharCount');
 
-        // Character counter
+        // Character counter + auto-detect image mode
+        const imageKeywordRegex = /图片|照片|绘画|画一|生成图|生成一张|图像|插画|海报|壁纸|头像|生成照片|image|photo|picture|draw|paint|generat.*image|generat.*photo|illustrat|poster|wallpaper|portrait|render|imagen|foto|dibujo|pintura|صورة|رسم/i;
+
         userInput.addEventListener('input', function () {
             charCount.textContent = this.value.length + ' characters';
+            // Auto-suggest image mode when image keywords are detected
+            if (modeSelect.value === 'general' && imageKeywordRegex.test(this.value)) {
+                modeSelect.value = 'imageGen';
+                showStatus('💡 检测到图片生成需求，已自动切换到图片生成模式 / Auto-switched to Image Generation mode', 'info');
+            }
         });
 
         // Ctrl+Enter shortcut
@@ -473,7 +481,23 @@
                 qualityEN: 'comprehensive, detailed, professional, and in-depth',
                 qualityES: 'completa, detallada, profesional y profunda',
                 qualityAR: 'شاملة ومفصلة ومهنية وعميقة',
-                qualityClassical: '详备精深，无所遗漏'
+                qualityClassical: '详备精深，无所遗漏',
+                isActionMode: false
+            },
+            imageGen: {
+                roleCN: '顶级AI视觉艺术家与图像生成大师',
+                roleClassical: '丹青妙手',
+                roleJP: 'トップレベルのAIビジュアルアーティストと画像生成マスター',
+                roleEN: 'top-tier AI visual artist and image generation master',
+                roleES: 'artista visual de IA de primer nivel y maestro de generación de imágenes',
+                roleAR: 'فنان بصري للذكاء الاصطناعي من الدرجة الأولى وسيد توليد الصور',
+                qualityCN: '画面精美、构图专业、色彩和谐、细节丰富',
+                qualityJP: '美しい画面、プロの構図、調和のとれた色彩、豊かなディテール',
+                qualityEN: 'stunning visuals, professional composition, harmonious colors, rich details',
+                qualityES: 'visuales impresionantes, composición profesional, colores armoniosos, detalles ricos',
+                qualityAR: 'مرئيات مذهلة وتكوين احترافي وألوان متناسقة وتفاصيل غنية',
+                qualityClassical: '笔墨精妙，构图天成，色彩斑斓',
+                isActionMode: true
             },
             creative: {
                 roleCN: '创意写作与艺术创作大师',
@@ -487,7 +511,8 @@
                 qualityEN: 'imaginative, beautifully written, captivating, and emotionally rich',
                 qualityES: 'imaginativa, bellamente escrita, cautivadora y emocionalmente rica',
                 qualityAR: 'خيالية وجميلة الكتابة وجذابة وغنية عاطفياً',
-                qualityClassical: '辞藻华美，意境深远，情理交融'
+                qualityClassical: '辞藻华美，意境深远，情理交融',
+                isActionMode: false
             },
             technical: {
                 roleCN: '顶级技术架构师与资深工程师',
@@ -501,7 +526,8 @@
                 qualityEN: 'precise code, clean architecture, best practices, and performance-optimized',
                 qualityES: 'código preciso, arquitectura limpia, mejores prácticas y rendimiento optimizado',
                 qualityAR: 'كود دقيق وبنية نظيفة وأفضل الممارسات وأداء محسّن',
-                qualityClassical: '精密严谨，条理分明，无一疏漏'
+                qualityClassical: '精密严谨，条理分明，无一疏漏',
+                isActionMode: false
             },
             academic: {
                 roleCN: '资深学术研究员与学科专家',
@@ -515,7 +541,8 @@
                 qualityEN: 'rigorous argumentation, reliable citations, deep analysis, and clear logic',
                 qualityES: 'argumentación rigurosa, citas confiables, análisis profundo y lógica clara',
                 qualityAR: 'حجج صارمة واستشهادات موثوقة وتحليل عميق ومنطق واضح',
-                qualityClassical: '考据精详，论证严密，引经据典'
+                qualityClassical: '考据精详，论证严密，引经据典',
+                isActionMode: false
             },
             business: {
                 roleCN: '资深商业战略顾问与行业分析师',
@@ -529,7 +556,8 @@
                 qualityEN: 'data-driven, deeply insightful, actionable strategies with business value',
                 qualityES: 'basada en datos, profundamente perspicaz, con estrategias accionables y valor comercial',
                 qualityAR: 'مبنية على البيانات وعميقة الرؤية واستراتيجيات قابلة للتنفيذ ذات قيمة تجارية',
-                qualityClassical: '审时度势，运筹帷幄，决胜千里'
+                qualityClassical: '审时度势，运筹帷幄，决胜千里',
+                isActionMode: false
             },
             persuasive: {
                 roleCN: '顶级演说家与文案策划大师',
@@ -543,7 +571,8 @@
                 qualityEN: 'highly persuasive, logically rigorous, emotionally resonant, with strong calls to action',
                 qualityES: 'altamente persuasiva, lógicamente rigurosa, emocionalmente resonante, con fuertes llamadas a la acción',
                 qualityAR: 'مقنعة للغاية ومنطقية وعاطفية مع دعوات قوية للعمل',
-                qualityClassical: '辩才无碍，动人心魄，令人信服'
+                qualityClassical: '辩才无碍，动人心魄，令人信服',
+                isActionMode: false
             }
         };
 
@@ -576,6 +605,7 @@
 
         // Pre-compiled domain detection regexes for performance
         const domainPatterns = [
+            { regex: /图片|照片|绘画|画|生成图|图像|插画|海报|壁纸|头像|logo|icon|image|photo|picture|draw|paint|generat.*image|generat.*photo|illustrat|poster|wallpaper|avatar|portrait|visual|render|imagen|foto|dibujo|pintura|صورة|رسم/i, domain: '视觉艺术与图像生成 / Visual Art & Image Generation' },
             { regex: /编程|代码|程序|开发|软件|API|bug|算法|架构|code|program|develop|software|engineer|debug/i, domain: '技术与编程 / Technology & Programming' },
             { regex: /文章|写作|故事|小说|诗|散文|write|story|novel|essay|article|blog|creative/i, domain: '写作与创意 / Writing & Creative' },
             { regex: /商业|营销|市场|品牌|策略|business|market|brand|strateg|sales|revenue/i, domain: '商业与营销 / Business & Marketing' },
@@ -594,7 +624,27 @@
         }
 
         function buildOptimizedPrompt(userText, config, domain) {
+            const mode = modeSelect.value;
+            // Sanitize user text: replace box-drawing characters that could break formatting
+            const sanitizedText = userText.replace(/[┌┐└┘│─═]/g, '-');
+
+            // === IMAGE GENERATION MODE: completely different prompt structure ===
+            if (mode === 'imageGen') {
+                return buildImagePrompt(sanitizedText, config, domain);
+            }
+
+            // === STANDARD MODES (with anti-explanation improvements) ===
             const lines = [];
+
+            // === Layer 0: Purpose-First Directive (NEW — prevents over-explaining) ===
+            lines.push('⚠️ 重要指令 / CRITICAL INSTRUCTION / 重要な指示:');
+            lines.push('直接执行任务，不要解释你会怎么做，不要描述步骤，直接给出结果。');
+            lines.push('タスクを直接実行してください。何をするかを説明せず、手順を述べず、直接結果を出してください。');
+            lines.push('Execute the task directly. Do NOT explain what you will do. Do NOT describe your process. Go straight to the output.');
+            lines.push('نفذ المهمة مباشرة. لا تشرح ما ستفعله. لا تصف العملية. انتقل مباشرة إلى النتيجة.');
+            lines.push('Ejecuta la tarea directamente. NO expliques lo que harás. NO describas el proceso. Ve directo al resultado.');
+            lines.push('汝当径行其事，勿赘言，勿饶舌，直呈其果。');
+            lines.push('');
 
             // === Layer 1: Role Assignment (Classical Chinese + Modern Chinese + Japanese) ===
             lines.push('═══════════════════════════════════════════');
@@ -607,12 +657,10 @@
             lines.push('');
 
             // === Layer 2: Task Definition (English + Spanish + Arabic) ===
-            lines.push('Your task is as follows — please read carefully and execute with your full capability:');
-            lines.push('Tu misión es la siguiente — léela con atención y ejecútala con toda tu capacidad:');
-            lines.push('المهمة المطلوبة منك هي كما يلي — اقرأها بعناية ونفذها بكامل قدراتك:');
+            lines.push('Your task is as follows — execute it immediately with your full capability:');
+            lines.push('Tu misión es la siguiente — ejecútala inmediatamente con toda tu capacidad:');
+            lines.push('المهمة المطلوبة منك هي كما يلي — نفذها فوراً بكامل قدراتك:');
             lines.push('');
-            // Sanitize user text: replace box-drawing characters that could break formatting
-            const sanitizedText = userText.replace(/[┌┐└┘│─═]/g, '-');
             lines.push('┌─────────────────────────────────────────┐');
             lines.push(`│ ${sanitizedText}`);
             lines.push('└─────────────────────────────────────────┘');
@@ -634,13 +682,13 @@
             lines.push('');
 
             // Mode-specific format instructions
-            const formatInstructions = getFormatInstructions(modeSelect.value);
+            const formatInstructions = getFormatInstructions(mode);
             for (const instruction of formatInstructions) {
                 lines.push(instruction);
             }
             lines.push('');
 
-            // === Layer 5: Final Amplifier (All languages) ===
+            // === Layer 5: Final Amplifier with Anti-Explanation (All languages) ===
             lines.push('═══════════════════════════════════════════');
             lines.push('⚡ 最终要求 / Final Requirements / 最終要件:');
             lines.push('');
@@ -651,14 +699,80 @@
             lines.push('Da tu mejor respuesta absoluta. No tomes atajos, no omitas detalles, no des respuestas genéricas.');
             lines.push('قدم أفضل إجابة ممكنة. لا تختصر، لا تحذف التفاصيل، لا تقدم إجابات عامة.');
             lines.push('');
+            lines.push('🚫 不要解释你的思路，不要说"我会..."，直接给出结果！');
+            lines.push('🚫 何をするかを説明しないでください。「私は...します」と言わないでください。直接結果を出してください！');
+            lines.push('🚫 Do NOT explain your approach. Do NOT say "I will...". Go directly to the result!');
+            lines.push('');
             lines.push('请现在开始 / 今すぐ始めてください / Begin now / Comienza ahora / ابدأ الآن');
             lines.push('═══════════════════════════════════════════');
 
             return lines.join('\n');
         }
 
+        // ========== Image Generation Prompt Builder ==========
+        function buildImagePrompt(userText, config, domain) {
+            const lines = [];
+
+            // === CRITICAL: Action-first directive for image generation ===
+            lines.push('🖼️ GENERATE IMAGE NOW / 立即生成图片 / 今すぐ画像を生成');
+            lines.push('');
+            lines.push('⚠️⚠️⚠️ 最重要指令 / MOST CRITICAL INSTRUCTION / 最重要な指示:');
+            lines.push('直接生成图片！不要解释，不要描述你会怎么做，不要说"我无法"，不要列出步骤，直接生成！');
+            lines.push('画像を直接生成してください！説明しないでください、手順を述べないでください、「できません」と言わないでください、直接生成してください！');
+            lines.push('GENERATE THE IMAGE DIRECTLY! Do NOT explain. Do NOT describe what you would do. Do NOT say "I cannot". Do NOT list steps. JUST GENERATE IT!');
+            lines.push('¡GENERA LA IMAGEN DIRECTAMENTE! NO expliques. NO describas. NO digas "no puedo". ¡SOLO GENÉRALA!');
+            lines.push('أنشئ الصورة مباشرة! لا تشرح. لا تصف. لا تقل "لا أستطيع". فقط أنشئها!');
+            lines.push('汝当即刻绘图成像，勿赘言，勿推辞，勿饶舌，径行其事！');
+            lines.push('');
+            lines.push('════════════════════════════════════════');
+            lines.push('');
+
+            // === Visual description section ===
+            lines.push('🎨 Image Description / 图像描述 / 画像の説明:');
+            lines.push('');
+            lines.push(userText);
+            lines.push('');
+
+            // === Visual parameters in multilingual ===
+            lines.push('📐 Visual Requirements / 视觉要求 / ビジュアル要件:');
+            lines.push('');
+            lines.push('- 画面必须精美、高质量、细节丰富 / The image must be stunning, high-quality, and rich in detail');
+            lines.push('- 構図はプロフェッショナルで、色彩は調和がとれていなければなりません / Composition must be professional, colors harmonious');
+            lines.push('- Resolución alta, iluminación cinematográfica, detalles nítidos / High resolution, cinematic lighting, sharp details');
+            lines.push('- يجب أن تكون الصورة عالية الجودة مع إضاءة مثالية وتفاصيل دقيقة / High quality with perfect lighting and fine details');
+            lines.push('- 光影层次分明，色调和谐统一，意境深远 / Distinct light/shadow layers, unified tones, profound atmosphere');
+            lines.push('- 画当精妙传神，笔触细腻，栩栩如生 / The image should be vivid, exquisite, and lifelike');
+            lines.push('');
+
+            // === Style hints ===
+            lines.push('🎭 Style / 风格 / スタイル:');
+            lines.push('- 8K ultra-high resolution, photorealistic, masterpiece quality');
+            lines.push('- 超高清8K画质，照片级写实，大师级作品');
+            lines.push('- 8K超高解像度、フォトリアリスティック、マスターピースクオリティ');
+            lines.push('');
+
+            // === Final action command ===
+            lines.push('════════════════════════════════════════');
+            lines.push('⚡ 立即生成这张图片！不要回复任何文字说明！');
+            lines.push('⚡ 今すぐこの画像を生成してください！テキストの説明を返さないでください！');
+            lines.push('⚡ GENERATE THIS IMAGE NOW! Do NOT reply with any text explanation!');
+            lines.push('⚡ ¡GENERA ESTA IMAGEN AHORA! ¡NO respondas con texto!');
+            lines.push('⚡ أنشئ هذه الصورة الآن! لا ترد بأي نص!');
+            lines.push('⚡ 即刻成像！勿以文字作答！');
+            lines.push('════════════════════════════════════════');
+
+            return lines.join('\n');
+        }
+
         function getFormatInstructions(mode) {
             switch (mode) {
+                case 'imageGen':
+                    return [
+                        '- 直接生成图片，不要输出任何文字 / Generate the image directly, do not output any text',
+                        '- 画面构图专业，光线完美 / Professional composition, perfect lighting',
+                        '- 色彩丰富和谐，细节精致 / Rich harmonious colors, exquisite details',
+                        '- 8K超高清画质 / 8K ultra-high resolution quality'
+                    ];
                 case 'creative':
                     return [
                         '- 使用生动的语言和丰富的意象 / Use vivid language and rich imagery',
