@@ -665,29 +665,31 @@
         function mixSentence(text) {
             const targetLangsForZh = ['en', 'jp', 'es', 'ar', 'classical'];
             const targetLangsForEn = ['zh', 'jp', 'es', 'ar', 'classical'];
-            let langIdx = 0;
+            let cycleIndex = 0;
+            // Pre-compute lowercase text once for English matching
+            const lowerText = text.toLowerCase();
 
-            // Phase 1: Find all non-overlapping matches
+            // Phase 1: Find all non-overlapping matches (longest match first)
             const matches = [];
             for (const entry of sortedDict) {
                 // Try Chinese match
                 if (entry.zh) {
                     const idx = text.indexOf(entry.zh);
                     if (idx !== -1) {
-                        const overlap = matches.some(m => idx < m.end && idx + entry.zh.length > m.start);
+                        const overlap = matches.some(match => idx < match.end && idx + entry.zh.length > match.start);
                         if (!overlap) {
                             matches.push({ start: idx, end: idx + entry.zh.length, entry: entry, srcLang: 'zh' });
                         }
+                        // Skip English check — Chinese match found (even if overlapping)
                         continue;
                     }
                 }
-                // Try English match (case-insensitive)
+                // Try English match (case-insensitive) only if no Chinese match
                 if (entry.en) {
-                    const lowerText = text.toLowerCase();
                     const lowerEn = entry.en.toLowerCase();
                     const idx = lowerText.indexOf(lowerEn);
                     if (idx !== -1) {
-                        const overlap = matches.some(m => idx < m.end && idx + entry.en.length > m.start);
+                        const overlap = matches.some(match => idx < match.end && idx + entry.en.length > match.start);
                         if (!overlap) {
                             matches.push({ start: idx, end: idx + entry.en.length, entry: entry, srcLang: 'en' });
                         }
@@ -695,17 +697,19 @@
                 }
             }
 
-            // Phase 2: Sort by position, assign target languages
+            // Phase 2: Sort by position, assign target languages (cycling)
             matches.sort((a, b) => a.start - b.start);
-            for (const m of matches) {
-                const langs = m.srcLang === 'zh' ? targetLangsForZh : targetLangsForEn;
-                const lang = langs[langIdx % langs.length];
-                m.replacement = m.entry[lang];
-                // Fallback if target language is missing
-                if (!m.replacement) {
-                    m.replacement = m.srcLang === 'zh' ? (m.entry.en || m.entry.zh) : (m.entry.zh || m.entry.en);
+            for (const match of matches) {
+                const langs = match.srcLang === 'zh' ? targetLangsForZh : targetLangsForEn;
+                const targetLang = langs[cycleIndex % langs.length];
+                match.replacement = match.entry[targetLang];
+                // Fallback: if target translation is missing, use the best available
+                if (!match.replacement) {
+                    match.replacement = match.srcLang === 'zh'
+                        ? (match.entry.en || match.entry.zh)
+                        : (match.entry.zh || match.entry.en);
                 }
-                langIdx++;
+                cycleIndex++;
             }
 
             // Phase 3: Apply replacements right-to-left to preserve positions
@@ -814,7 +818,7 @@
             const lines = [];
 
             // AGGRESSIVE action-first (mixed in ONE line)
-            lines.push('⚠️ GENERATE生成画像NOW！直接出图！今すぐ生成！Don\'t explain不要解释！¡Genera ya! أنشئ الآن! 即刻绘之！');
+            lines.push("⚠️ GENERATE生成画像NOW！直接出图！今すぐ生成！Don't explain不要解释！¡Genera ya! أنشئ الآن! 即刻绘之！");
             lines.push('');
 
             // User's request (word-level mixed)
