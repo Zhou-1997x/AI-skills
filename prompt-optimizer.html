@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多语幻术师 — Multilingual Prompt Optimizer / 多语混合提示词优化器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans SC', 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a, #1a0a2e, #0a1a2e);
+            min-height: 100vh;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .app {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 0 20px;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            color: #888;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+
+        .header .subtitle span {
+            display: inline-block;
+            margin: 0 4px;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #ccc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Input area */
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            font-size: 1em;
+            resize: vertical;
+            background: rgba(255, 255, 255, 0.06);
+            color: #e0e0e0;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        textarea.output {
+            min-height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            font-family: 'Courier New', 'Noto Sans SC', monospace;
+            font-size: 0.92em;
+            line-height: 1.8;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .mode-select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .mode-select label {
+            display: block;
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            font-size: 0.95em;
+            background: rgba(255, 255, 255, 0.06);
+            color: #e0e0e0;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        select option {
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ccc;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Status */
+        .status {
+            padding: 10px 14px;
+            margin: 14px 0;
+            border-radius: 10px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .status.show { display: block; }
+        .status.success { background: rgba(46, 213, 115, 0.12); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.25); }
+        .status.error { background: rgba(255, 71, 87, 0.12); color: #ff6b6b; border: 1px solid rgba(255, 71, 87, 0.25); }
+        .status.info { background: rgba(102, 126, 234, 0.12); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.25); }
+
+        /* Language tags */
+        .lang-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin: 16px 0;
+        }
+
+        .lang-tag {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78em;
+            background: rgba(255, 255, 255, 0.06);
+            color: #aaa;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* How it works */
+        .how-it-works {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .step {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+        }
+
+        .step h4 {
+            color: #ccc;
+            margin-bottom: 4px;
+            font-size: 0.95em;
+        }
+
+        .step p {
+            color: #888;
+            font-size: 0.85em;
+        }
+
+        /* Output header */
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        /* Char count */
+        .char-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 6px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #555;
+            font-size: 0.8em;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .app { padding: 12px; }
+            .header h1 { font-size: 1.6em; }
+            .card { padding: 18px; }
+            .controls { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+            .mode-select { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔮 多语幻术师</h1>
+            <div class="subtitle">
+                <span>Multilingual Prompt Optimizer</span> ·
+                <span>多语混合提示词优化器</span> ·
+                <span>多言語プロンプト錬金術師</span><br>
+                <span>محسّن الأوامر متعدد اللغات</span> ·
+                <span>Optimizador de Prompts Multilingüe</span> ·
+                <span>多方幻辞之术</span>
+            </div>
+
+            <div class="lang-tags">
+                <span class="lang-tag">🇨🇳 中文</span>
+                <span class="lang-tag">🇯🇵 日本語</span>
+                <span class="lang-tag">🇺🇸 English</span>
+                <span class="lang-tag">🇸🇦 العربية</span>
+                <span class="lang-tag">🇪🇸 Español</span>
+                <span class="lang-tag">📜 文言文</span>
+            </div>
+        </div>
+
+        <!-- How it Works -->
+        <div class="card">
+            <div class="card-title">💡 How It Works / 工作原理</div>
+            <div class="how-it-works">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <h4>输入你的提示词 / Enter Your Prompt</h4>
+                    <p>用任何语言输入你想让AI完成的任务。Use any language to describe what you want the AI to do.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <h4>选择优化模式 / Select Mode</h4>
+                    <p>选择适合你任务的优化模式：创意、技术、学术、说服等。Choose the optimization mode that fits your task.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <h4>复制并使用 / Copy & Use</h4>
+                    <p>将优化后的多语混合提示词粘贴到任意AI模型中，获得更好的输出。Paste the optimized prompt into any AI for better results.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="card">
+            <div class="card-title">📝 Your Original Prompt / 你的原始提示词</div>
+            <textarea id="userInput" placeholder="在此输入你想让AI完成的任务...&#10;Enter what you want the AI to do...&#10;&#10;例如 / Example:&#10;帮我写一篇关于人工智能未来发展的深度分析文章&#10;Write a detailed analysis article about the future of AI&#10;Escribe un artículo sobre el futuro de la IA"></textarea>
+            <div class="char-info">
+                <span id="charCount">0 characters</span>
+                <span>Ctrl+Enter to optimize</span>
+            </div>
+
+            <div class="controls">
+                <div class="mode-select">
+                    <label for="modeSelect">🎯 Optimization Mode / 优化模式</label>
+                    <select id="modeSelect">
+                        <option value="general">🌐 General / 通用模式 — 适用于大多数场景</option>
+                        <option value="creative">🎨 Creative / 创意模式 — 文学、故事、艺术创作</option>
+                        <option value="technical">⚙️ Technical / 技术模式 — 编程、工程、科学</option>
+                        <option value="academic">📚 Academic / 学术模式 — 研究、论文、分析</option>
+                        <option value="business">💼 Business / 商务模式 — 营销、策略、报告</option>
+                        <option value="persuasive">🗣️ Persuasive / 说服模式 — 演讲、文案、辩论</option>
+                    </select>
+                </div>
+                <div style="display:flex;align-items:flex-end;">
+                    <button class="btn btn-primary" id="optimizeBtn" onclick="optimizePrompt()">
+                        🔮 Optimize / 优化
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div id="statusMsg" class="status"></div>
+
+        <!-- Output Section -->
+        <div class="card" id="outputCard" style="display:none;">
+            <div class="output-header">
+                <div class="card-title" style="margin-bottom:0;">🎯 Optimized Multilingual Prompt / 优化后的多语混合提示词</div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="copyOutput()">📋 Copy / 复制</button>
+                    <button class="btn btn-secondary" onclick="clearAll()">🗑️ Clear / 清空</button>
+                </div>
+            </div>
+            <textarea id="optimizedOutput" class="output" readonly></textarea>
+            <div class="char-info">
+                <span id="outputCharCount">0 characters</span>
+                <span>💡 Paste this into any AI model for better results</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🔮 多语幻术师 — Multilingual Prompt Optimizer</p>
+            <p>AI-skills Project · Open Source · Educational Purposes</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const userInput = document.getElementById('userInput');
+        const optimizedOutput = document.getElementById('optimizedOutput');
+        const modeSelect = document.getElementById('modeSelect');
+        const optimizeBtn = document.getElementById('optimizeBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const outputCard = document.getElementById('outputCard');
+        const charCount = document.getElementById('charCount');
+        const outputCharCount = document.getElementById('outputCharCount');
+
+        // Character counter
+        userInput.addEventListener('input', function () {
+            charCount.textContent = this.value.length + ' characters';
+        });
+
+        // Ctrl+Enter shortcut
+        userInput.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                optimizePrompt();
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusMsg.className = 'status show ' + type;
+            statusMsg.textContent = msg;
+        }
+
+        function hideStatus() {
+            statusMsg.className = 'status';
+        }
+
+        // ========== Mode Configuration ==========
+        const modeConfig = {
+            general: {
+                roleCN: '全能知识大师',
+                roleClassical: '博学通才',
+                roleJP: '万能の知識マスター',
+                roleEN: 'omniscient knowledge expert',
+                roleES: 'experto de conocimiento universal',
+                roleAR: 'خبير المعرفة الشامل',
+                qualityCN: '全面、详细、专业且有深度',
+                qualityJP: '包括的で詳細かつ専門的で深みのある',
+                qualityEN: 'comprehensive, detailed, professional, and in-depth',
+                qualityES: 'completa, detallada, profesional y profunda',
+                qualityAR: 'شاملة ومفصلة ومهنية وعميقة',
+                qualityClassical: '详备精深，无所遗漏'
+            },
+            creative: {
+                roleCN: '创意写作与艺术创作大师',
+                roleClassical: '文章锦绣之才',
+                roleJP: 'クリエイティブライティングとアート創造のマスター',
+                roleEN: 'master of creative writing and artistic creation',
+                roleES: 'maestro de la escritura creativa y la creación artística',
+                roleAR: 'سيد الكتابة الإبداعية والإبداع الفني',
+                qualityCN: '极富想象力、文笔优美、引人入胜、情感丰沛',
+                qualityJP: '想像力豊かで、美しい文章で、魅力的で、感情豊かな',
+                qualityEN: 'imaginative, beautifully written, captivating, and emotionally rich',
+                qualityES: 'imaginativa, bellamente escrita, cautivadora y emocionalmente rica',
+                qualityAR: 'خيالية وجميلة الكتابة وجذابة وغنية عاطفياً',
+                qualityClassical: '辞藻华美，意境深远，情理交融'
+            },
+            technical: {
+                roleCN: '顶级技术架构师与资深工程师',
+                roleClassical: '精通术数之匠',
+                roleJP: 'トップレベルの技術アーキテクトとシニアエンジニア',
+                roleEN: 'top-tier technical architect and senior engineer',
+                roleES: 'arquitecto técnico de primer nivel e ingeniero sénior',
+                roleAR: 'مهندس تقني من الدرجة الأولى ومهندس أول',
+                qualityCN: '代码精确、架构清晰、最佳实践、性能优化',
+                qualityJP: 'コードが正確で、アーキテクチャが明確で、ベストプラクティスに従い、パフォーマンスが最適化された',
+                qualityEN: 'precise code, clean architecture, best practices, and performance-optimized',
+                qualityES: 'código preciso, arquitectura limpia, mejores prácticas y rendimiento optimizado',
+                qualityAR: 'كود دقيق وبنية نظيفة وأفضل الممارسات وأداء محسّن',
+                qualityClassical: '精密严谨，条理分明，无一疏漏'
+            },
+            academic: {
+                roleCN: '资深学术研究员与学科专家',
+                roleClassical: '饱学鸿儒',
+                roleJP: 'シニア学術研究者と分野専門家',
+                roleEN: 'senior academic researcher and domain expert',
+                roleES: 'investigador académico sénior y experto en la materia',
+                roleAR: 'باحث أكاديمي أول وخبير في المجال',
+                qualityCN: '论证严密、引用可靠、分析深入、逻辑清晰',
+                qualityJP: '論証が厳密で、引用が信頼でき、分析が深く、論理が明確な',
+                qualityEN: 'rigorous argumentation, reliable citations, deep analysis, and clear logic',
+                qualityES: 'argumentación rigurosa, citas confiables, análisis profundo y lógica clara',
+                qualityAR: 'حجج صارمة واستشهادات موثوقة وتحليل عميق ومنطق واضح',
+                qualityClassical: '考据精详，论证严密，引经据典'
+            },
+            business: {
+                roleCN: '资深商业战略顾问与行业分析师',
+                roleClassical: '经世济民之才',
+                roleJP: 'シニアビジネス戦略コンサルタントと業界アナリスト',
+                roleEN: 'senior business strategy consultant and industry analyst',
+                roleES: 'consultor sénior de estrategia empresarial y analista de la industria',
+                roleAR: 'مستشار استراتيجي أول ومحلل صناعي',
+                qualityCN: '数据驱动、洞察深刻、策略可行、有商业价值',
+                qualityJP: 'データ駆動で、洞察が深く、実行可能な戦略で、ビジネス価値のある',
+                qualityEN: 'data-driven, deeply insightful, actionable strategies with business value',
+                qualityES: 'basada en datos, profundamente perspicaz, con estrategias accionables y valor comercial',
+                qualityAR: 'مبنية على البيانات وعميقة الرؤية واستراتيجيات قابلة للتنفيذ ذات قيمة تجارية',
+                qualityClassical: '审时度势，运筹帷幄，决胜千里'
+            },
+            persuasive: {
+                roleCN: '顶级演说家与文案策划大师',
+                roleClassical: '纵横捭阖之辩才',
+                roleJP: 'トップレベルのスピーカーとコピーライティングのマスター',
+                roleEN: 'top-tier public speaker and persuasive copywriting master',
+                roleES: 'orador de primer nivel y maestro de redacción persuasiva',
+                roleAR: 'متحدث من الدرجة الأولى وسيد كتابة النصوص المقنعة',
+                qualityCN: '极具说服力、逻辑严密、情感共鸣、行动号召力强',
+                qualityJP: '説得力があり、論理的で、感情的共鳴があり、行動を促す力が強い',
+                qualityEN: 'highly persuasive, logically rigorous, emotionally resonant, with strong calls to action',
+                qualityES: 'altamente persuasiva, lógicamente rigurosa, emocionalmente resonante, con fuertes llamadas a la acción',
+                qualityAR: 'مقنعة للغاية ومنطقية وعاطفية مع دعوات قوية للعمل',
+                qualityClassical: '辩才无碍，动人心魄，令人信服'
+            }
+        };
+
+        // ========== Prompt Generator ==========
+        function optimizePrompt() {
+            const input = userInput.value.trim();
+            if (!input) {
+                showStatus('⚠️ 请输入你的提示词 / Please enter your prompt first.', 'error');
+                return;
+            }
+
+            const mode = modeSelect.value;
+            const config = modeConfig[mode];
+
+            // Detect the domain/topic from the user's input
+            const domain = extractDomain(input);
+
+            // Build the multilingual optimized prompt
+            const optimized = buildOptimizedPrompt(input, config, domain);
+
+            // Show output
+            optimizedOutput.value = optimized;
+            outputCard.style.display = 'block';
+            outputCharCount.textContent = optimized.length + ' characters';
+            showStatus('✅ 优化完成！复制下方内容粘贴到任意AI模型中使用 / Optimization complete! Copy and paste into any AI model.', 'success');
+
+            // Scroll to output
+            outputCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function extractDomain(text) {
+            // Simple keyword-based domain detection
+            const domains = {
+                '编程|代码|程序|开发|软件|API|bug|算法|架构|code|program|develop|software|engineer|debug': '技术与编程 / Technology & Programming',
+                '文章|写作|故事|小说|诗|散文|write|story|novel|essay|article|blog|creative': '写作与创意 / Writing & Creative',
+                '商业|营销|市场|品牌|策略|business|market|brand|strateg|sales|revenue': '商业与营销 / Business & Marketing',
+                '研究|论文|学术|分析|数据|research|paper|academic|analys|study|thesis': '学术与研究 / Academic & Research',
+                '教学|学习|课程|教育|teach|learn|course|education|tutorial|explain': '教育与学习 / Education & Learning',
+                '设计|UI|UX|界面|用户体验|design|interface|layout|visual|graphic': '设计与体验 / Design & UX',
+                '翻译|语言|translate|language|locali': '语言与翻译 / Language & Translation',
+                '健康|医疗|养生|health|medic|fitness|diet|nutrition': '健康与医疗 / Health & Medical'
+            };
+
+            for (const [keywords, domain] of Object.entries(domains)) {
+                const regex = new RegExp(keywords, 'i');
+                if (regex.test(text)) return domain;
+            }
+            return '综合领域 / General Domain';
+        }
+
+        function buildOptimizedPrompt(userText, config, domain) {
+            const lines = [];
+
+            // === Layer 1: Role Assignment (Classical Chinese + Modern Chinese + Japanese) ===
+            lines.push('═══════════════════════════════════════════');
+            lines.push('🔮 多语幻术 · Multilingual Prompt Alchemy');
+            lines.push('═══════════════════════════════════════════');
+            lines.push('');
+            lines.push(`汝乃${config.roleClassical}也，学贯中西，才兼文理，于${domain}之道，造诣登峰造极。`);
+            lines.push(`你是一位${config.roleCN}，在${domain}领域拥有超过20年的深厚经验和卓越见解。`);
+            lines.push(`あなたは${config.roleJP}です。${domain}の分野で最も優れた専門家であり、最高レベルの知識と洞察力を持っています。`);
+            lines.push('');
+
+            // === Layer 2: Task Definition (English + Spanish + Arabic) ===
+            lines.push('Your task is as follows — please read carefully and execute with your full capability:');
+            lines.push('Tu misión es la siguiente — léela con atención y ejecútala con toda tu capacidad:');
+            lines.push('المهمة المطلوبة منك هي كما يلي — اقرأها بعناية ونفذها بكامل قدراتك:');
+            lines.push('');
+            lines.push('┌─────────────────────────────────────────┐');
+            lines.push(`│ ${userText}`);
+            lines.push('└─────────────────────────────────────────┘');
+            lines.push('');
+
+            // === Layer 3: Quality Amplifiers (All 6 languages) ===
+            lines.push('📋 要求与标准 / Requirements & Standards / 要件と基準:');
+            lines.push('');
+            lines.push(`① 请确保回答${config.qualityCN}。每个要点都必须有充分的解释和具体示例。`);
+            lines.push(`② ${config.qualityJP}回答を提供してください。すべてのポイントに十分な説明と具体例を含めてください。`);
+            lines.push(`③ Ensure your response is ${config.qualityEN}. Every point must include thorough explanations and concrete examples.`);
+            lines.push(`④ 汝当以${config.qualityClassical}之准则行文，字字珠玑，句句精辟，不可敷衍了事。`);
+            lines.push(`⑤ Asegúrate de que tu respuesta sea ${config.qualityES}. Cada punto debe incluir explicaciones completas y ejemplos concretos.`);
+            lines.push(`⑥ تأكد من أن إجابتك ${config.qualityAR}. يجب أن تتضمن كل نقطة شرحاً وافياً وأمثلة ملموسة.`);
+            lines.push('');
+
+            // === Layer 4: Format Instructions (Mixed) ===
+            lines.push('📐 输出格式 / Output Format / 出力フォーマット:');
+            lines.push('');
+
+            // Mode-specific format instructions
+            const formatInstructions = getFormatInstructions(modeSelect.value);
+            for (const instruction of formatInstructions) {
+                lines.push(instruction);
+            }
+            lines.push('');
+
+            // === Layer 5: Final Amplifier (All languages) ===
+            lines.push('═══════════════════════════════════════════');
+            lines.push('⚡ 最终要求 / Final Requirements / 最終要件:');
+            lines.push('');
+            lines.push('请竭尽全力，给出你能力范围内最好的回答。不要偷懒，不要省略，不要给出泛泛而谈的内容。');
+            lines.push('全力を尽くして、あなたの能力の範囲内で最高の回答を提供してください。手を抜かず、省略せず、一般的な内容で済ませないでください。');
+            lines.push('Give your absolute best response. Do not cut corners, do not omit details, do not give generic answers.');
+            lines.push('汝当殚精竭虑，倾尽平生所学，以最精妙绝伦之辞章应之。切不可草率敷衍，有负所托。');
+            lines.push('Da tu mejor respuesta absoluta. No tomes atajos, no omitas detalles, no des respuestas genéricas.');
+            lines.push('قدم أفضل إجابة ممكنة. لا تختصر، لا تحذف التفاصيل، لا تقدم إجابات عامة.');
+            lines.push('');
+            lines.push('请现在开始 / 今すぐ始めてください / Begin now / Comienza ahora / ابدأ الآن');
+            lines.push('═══════════════════════════════════════════');
+
+            return lines.join('\n');
+        }
+
+        function getFormatInstructions(mode) {
+            switch (mode) {
+                case 'creative':
+                    return [
+                        '- 使用生动的语言和丰富的意象 / Use vivid language and rich imagery',
+                        '- 注重情感表达和氛围营造 / Focus on emotional expression and atmosphere',
+                        '- 结构可以灵活，但要有内在逻辑 / Structure can be flexible but maintain internal logic',
+                        '- 加入独特的观点和出人意料的转折 / Include unique perspectives and unexpected turns'
+                    ];
+                case 'technical':
+                    return [
+                        '- 提供完整的、可直接运行的代码 / Provide complete, runnable code',
+                        '- 包含详细的注释和解释 / Include detailed comments and explanations',
+                        '- 说明技术选型的理由 / Explain the reasoning behind technical choices',
+                        '- 考虑边界情况和错误处理 / Consider edge cases and error handling',
+                        '- 遵循最佳实践和设计模式 / Follow best practices and design patterns'
+                    ];
+                case 'academic':
+                    return [
+                        '- 使用学术规范的语言和格式 / Use academic language and formatting',
+                        '- 提供可靠的数据和引用来源 / Provide reliable data and citation sources',
+                        '- 包含文献综述和对比分析 / Include literature review and comparative analysis',
+                        '- 论证逻辑严密，结论有据可依 / Ensure rigorous logic and evidence-based conclusions'
+                    ];
+                case 'business':
+                    return [
+                        '- 使用专业的商业语言 / Use professional business language',
+                        '- 包含数据分析和市场洞察 / Include data analysis and market insights',
+                        '- 提供可执行的策略建议 / Provide actionable strategic recommendations',
+                        '- 考虑ROI和可行性 / Consider ROI and feasibility'
+                    ];
+                case 'persuasive':
+                    return [
+                        '- 使用有说服力的论证结构 / Use persuasive argument structure',
+                        '- 结合逻辑论证和情感诉求 / Combine logical reasoning and emotional appeal',
+                        '- 提供具体的证据和案例 / Provide specific evidence and case studies',
+                        '- 包含明确的行动号召 / Include clear calls to action'
+                    ];
+                default: // general
+                    return [
+                        '- 使用清晰的标题和小标题组织内容 / Organize with clear headings and subheadings',
+                        '- 每个要点配以具体实例说明 / Support each point with concrete examples',
+                        '- 内容要有深度，避免浮于表面 / Content must have depth, avoid being superficial',
+                        '- 结尾提供总结和可行建议 / End with a summary and actionable suggestions'
+                    ];
+            }
+        }
+
+        function copyOutput() {
+            const text = optimizedOutput.value;
+            if (!text) {
+                showStatus('⚠️ 没有可复制的内容 / Nothing to copy.', 'error');
+                return;
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () {
+                    showStatus('✅ 已复制到剪贴板！现在可以粘贴到任意AI模型中使用 / Copied! Paste into any AI model now.', 'success');
+                }).catch(function () {
+                    fallbackCopy();
+                });
+            } else {
+                fallbackCopy();
+            }
+        }
+
+        function fallbackCopy() {
+            optimizedOutput.select();
+            try {
+                document.execCommand('copy');
+                showStatus('✅ 已复制到剪贴板 / Copied to clipboard!', 'success');
+            } catch (err) {
+                showStatus('❌ 复制失败，请手动选择文本复制 / Copy failed. Please select text manually.', 'error');
+            }
+        }
+
+        function clearAll() {
+            userInput.value = '';
+            optimizedOutput.value = '';
+            outputCard.style.display = 'none';
+            charCount.textContent = '0 characters';
+            outputCharCount.textContent = '0 characters';
+            hideStatus();
+            userInput.focus();
+        }
+    </script>
+</body>
+</html>

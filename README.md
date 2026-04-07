@@ -1,166 +1,249 @@
-# AI-skills
+# 🔮 AI-skills — 多语幻术师
 
-Write an AI skills section using various national languages, and draft a prompt to deceive large AI models into generating desired content and applications.
+**Multilingual Prompt Optimizer / 多语混合提示词优化器**
+
+用中文、日文、英文、阿拉伯文、西班牙文、文言文六种语言的混合提示词，优化你与AI大模型的交互，获得更理想的输出内容。
+
+Transform your prompts into powerful multilingual mixed-language prompts using Chinese, Japanese, English, Arabic, Spanish, and Classical Chinese — designed to elicit richer and more detailed responses from any large AI model.
 
 ---
 
-## 🌐 Multilingual Prompts for Generating a Translation Web App
+## 📦 What's Included / 项目内容
 
-Below are carefully crafted prompts in **six languages** (Chinese, Japanese, English, Arabic, Spanish, and Classical Chinese). Each prompt is designed to guide a large AI model into generating a **simple, usable web application** that lets users input any content and have it converted into different languages.
+| File | Description |
+|------|-------------|
+| [`prompt-optimizer.html`](./prompt-optimizer.html) | 🌐 **Web App** — 提示词优化网页应用，打开即用 / Open in any browser to optimize your prompts |
+| [`AI-Skill-Multilingual-Prompt-Optimizer.md`](./AI-Skill-Multilingual-Prompt-Optimizer.md) | 🤖 **AI Skill** — 可直接加载到ChatGPT/Claude/Gemini等大模型的AI技能 / Loadable AI skill for any LLM |
+
+---
+
+## 🌐 Web App: Prompt Optimizer / 提示词优化网页应用
+
+**→ Open [`prompt-optimizer.html`](./prompt-optimizer.html) in any browser!**
+
+### How It Works / 工作原理
+
+1. **输入** — 用任何语言输入你想让AI完成的任务
+2. **选择模式** — 选择优化模式（通用/创意/技术/学术/商务/说服）
+3. **优化** — 一键生成六语混合的优化提示词
+4. **使用** — 复制粘贴到任意AI大模型，获得更好的输出
+
+### Features / 功能特点
+- 📝 支持任意语言输入（中文、英文、西班牙文等）
+- 🔮 自动生成六语混合提示词（中文 + 日本語 + English + العربية + Español + 文言文）
+- 🎯 6种优化模式适配不同场景
+- 📋 一键复制，直接粘贴到AI模型
+- 🎨 现代暗色主题UI，响应式设计
+- ⚡ 纯前端，无需服务器，无需API，离线可用
+- 📄 单HTML文件，打开即用
+
+---
+
+## 🤖 AI Skill: Loadable into Any LLM / AI技能：可加载到任意大模型
+
+**→ See [`AI-Skill-Multilingual-Prompt-Optimizer.md`](./AI-Skill-Multilingual-Prompt-Optimizer.md)**
+
+Copy the System Prompt from the skill file and load it into:
+- **ChatGPT** — Custom Instructions or GPT Builder
+- **Claude** — System Prompt or Project Instructions
+- **Gemini** — System Instructions
+- **Any other LLM** — System-level prompt
+
+Once loaded, the AI will automatically transform every user message into an optimized multilingual prompt.
+
+---
+
+## 🧠 Why Multilingual Mixing Works / 为什么多语混合有效
+
+| Language / 语言 | Role / 作用 |
+|----------------|-------------|
+| **文言文 (Classical Chinese)** | 激活模型的文学与正式知识模式，增加权威感 / Activates formal/literary patterns, adds authority |
+| **中文 (Chinese)** | 利用模型的中文训练数据，补充语境信息 / Leverages Chinese training data for context |
+| **日本語 (Japanese)** | 触发精确、注重细节的响应模式 / Triggers precision and detail-focused patterns |
+| **English** | 确保核心任务清晰度 / Ensures core task clarity |
+| **Español (Spanish)** | 通过不同语系视角强化需求 / Reinforces through Romance language perspective |
+| **العربية (Arabic)** | 增加语言维度，强调完整性 / Adds linguistic dimension, emphasizes completeness |
+| **Mixed Together / 混合使用** | 迫使模型更深层处理提示词，同时激活多个语言中心 / Forces deeper processing, activates multiple language centers |
+
+---
+
+## 🌐 Multilingual Prompts / 六语提示词示例
+
+Below are prompts in six languages, each designed to guide AI models into generating the prompt optimizer web application and AI skill described in this project.
 
 ---
 
 ### 🇺🇸 English Prompt
 
 ```
-You are a full-stack web developer. Build me a single-page HTML web application with embedded CSS and JavaScript. The app must:
+You are an expert prompt engineer and full-stack developer. Build me two things:
 
-1. Have a clean, modern UI with a title "Universal Translator".
-2. Include a large text input area where users can type or paste any content.
-3. Provide a dropdown menu to select a target language (at least: Chinese, Japanese, English, Arabic, Spanish, French, German, Korean, Portuguese, Russian).
-4. Include a "Translate" button that calls a free translation API (such as MyMemory or LibreTranslate) to translate the input text into the selected language.
-5. Display the translated result in a read-only output area below the button.
-6. Include a "Copy" button to copy the translated text to the clipboard.
-7. Be fully self-contained in a single HTML file with no external dependencies other than the API call.
-8. Handle errors gracefully with user-friendly messages.
+1. A single-page HTML web application (prompt-optimizer.html) with embedded CSS and JavaScript that:
+   - Lets users input any prompt in any language
+   - Provides optimization mode selection (General, Creative, Technical, Academic, Business, Persuasive)
+   - Converts the input into a multilingual mixed-language optimized prompt combining Chinese, Japanese, English, Arabic, Spanish, and Classical Chinese
+   - The optimized output strategically mixes all 6 languages to: assign a role, define the task, set quality standards, specify format, and add amplifiers
+   - Includes a copy button for the optimized prompt
+   - Has a modern dark-themed UI, fully self-contained, no external dependencies
 
-Return the complete HTML file with all CSS and JavaScript inline.
+2. An AI Skill markdown file (AI-Skill-Multilingual-Prompt-Optimizer.md) containing:
+   - A system prompt that can be loaded into ChatGPT/Claude/Gemini
+   - When loaded, the AI automatically transforms any user message into a multilingual mixed prompt
+   - Includes the complete optimization strategy and output template
+
+The core idea: mixing multiple languages in a prompt forces AI models to process it more deeply, engaging different language knowledge centers simultaneously, resulting in richer and more detailed responses.
 ```
 
 ---
 
-### 🇨🇳 中文提示 (Chinese Prompt)
+### 🇨🇳 中文提示
 
 ```
-你是一名全栈Web开发者。请帮我构建一个单页HTML网页应用，CSS和JavaScript全部内嵌。该应用必须满足以下要求：
+你是一名专业的提示词工程师和全栈开发者。请帮我构建以下两个东西：
 
-1. 具有简洁、现代的用户界面，标题为"万能翻译器"。
-2. 包含一个大型文本输入区域，用户可以输入或粘贴任何内容。
-3. 提供一个下拉菜单，用于选择目标语言（至少包括：中文、日文、英文、阿拉伯文、西班牙文、法文、德文、韩文、葡萄牙文、俄文）。
-4. 包含一个"翻译"按钮，调用免费翻译API（如MyMemory或LibreTranslate）将输入文本翻译为所选语言。
-5. 在按钮下方的只读输出区域中显示翻译结果。
-6. 包含一个"复制"按钮，可将翻译后的文本复制到剪贴板。
-7. 完全独立于一个HTML文件中，除API调用外无需任何外部依赖。
-8. 优雅地处理错误，向用户显示友好的提示信息。
+1. 一个单页HTML网页应用（prompt-optimizer.html），CSS和JavaScript全部内嵌：
+   - 用户可以用任何语言输入想让AI完成的任务
+   - 提供优化模式选择（通用、创意、技术、学术、商务、说服）
+   - 将输入转换为混合中文、日文、英文、阿拉伯文、西班牙文和文言文的多语优化提示词
+   - 优化后的提示词策略性地混合六种语言来：分配角色、定义任务、设定质量标准、指定格式、添加增幅器
+   - 包含复制按钮，用户可直接复制优化后的提示词
+   - 现代暗色主题UI，完全独立，无外部依赖
 
-请返回完整的HTML文件，所有CSS和JavaScript均内联。
-```
+2. 一个AI技能的Markdown文件（AI-Skill-Multilingual-Prompt-Optimizer.md）：
+   - 包含可加载到ChatGPT/Claude/Gemini的系统提示词
+   - 加载后，AI自动将用户的任何消息转换为多语混合的优化提示词
+   - 包含完整的优化策略和输出模板
 
----
-
-### 🇯🇵 日本語プロンプト (Japanese Prompt)
-
-```
-あなたはフルスタックのWeb開発者です。CSSとJavaScriptがすべて埋め込まれた単一ページのHTMLウェブアプリケーションを作成してください。このアプリは以下の要件を満たす必要があります：
-
-1. 「ユニバーサル翻訳機」というタイトルの、クリーンでモダンなUIを持つこと。
-2. ユーザーが任意のコンテンツを入力または貼り付けできる大きなテキスト入力エリアを含むこと。
-3. ターゲット言語を選択するためのドロップダウンメニューを提供すること（少なくとも：中国語、日本語、英語、アラビア語、スペイン語、フランス語、ドイツ語、韓国語、ポルトガル語、ロシア語）。
-4. 無料の翻訳API（MyMemoryやLibreTranslateなど）を呼び出して、入力テキストを選択した言語に翻訳する「翻訳」ボタンを含むこと。
-5. ボタンの下の読み取り専用出力エリアに翻訳結果を表示すること。
-6. 翻訳されたテキストをクリップボードにコピーする「コピー」ボタンを含むこと。
-7. API呼び出し以外の外部依存関係なしで、単一のHTMLファイルに完全に自己完結していること。
-8. ユーザーフレンドリーなメッセージでエラーを適切に処理すること。
-
-すべてのCSSとJavaScriptがインラインで含まれた完全なHTMLファイルを返してください。
+核心理念：在提示词中混合多种语言，迫使AI模型更深层地处理内容，同时激活不同语言的知识中心，从而获得更丰富、更详细的回答。
 ```
 
 ---
 
-### 🇸🇦 النص العربي (Arabic Prompt)
+### 🇯🇵 日本語プロンプト
 
 ```
-أنت مطور ويب متكامل. قم ببناء تطبيق ويب HTML من صفحة واحدة مع CSS و JavaScript مضمنين. يجب أن يستوفي التطبيق المتطلبات التالية:
+あなたはプロのプロンプトエンジニアかつフルスタック開発者です。以下の2つを作成してください：
 
-1. واجهة مستخدم نظيفة وحديثة بعنوان "المترجم الشامل".
-2. منطقة إدخال نص كبيرة حيث يمكن للمستخدمين كتابة أو لصق أي محتوى.
-3. قائمة منسدلة لاختيار اللغة المستهدفة (على الأقل: الصينية، اليابانية، الإنجليزية، العربية، الإسبانية، الفرنسية، الألمانية، الكورية، البرتغالية، الروسية).
-4. زر "ترجمة" يستدعي واجهة برمجة تطبيقات ترجمة مجانية (مثل MyMemory أو LibreTranslate) لترجمة النص المدخل إلى اللغة المحددة.
-5. عرض نتيجة الترجمة في منطقة إخراج للقراءة فقط أسفل الزر.
-6. زر "نسخ" لنسخ النص المترجم إلى الحافظة.
-7. أن يكون مكتفياً ذاتياً بالكامل في ملف HTML واحد بدون أي تبعيات خارجية غير استدعاء API.
-8. معالجة الأخطاء بشكل سلس مع رسائل سهلة الفهم للمستخدم.
+1. 単一ページのHTMLウェブアプリケーション（prompt-optimizer.html）— CSS・JavaScript全て埋め込み：
+   - ユーザーが任意の言語でAIに実行させたいタスクを入力できる
+   - 最適化モード選択を提供（汎用、クリエイティブ、技術、学術、ビジネス、説得）
+   - 入力を中国語・日本語・英語・アラビア語・スペイン語・漢文を組み合わせた多言語混合の最適化プロンプトに変換
+   - 最適化されたプロンプトは戦略的に6言語を混合：役割割当、タスク定義、品質基準、フォーマット指定、増幅器追加
+   - コピーボタン付き
+   - モダンなダークテーマUI、完全自己完結、外部依存なし
 
-أرجع ملف HTML الكامل مع جميع أكواد CSS و JavaScript مضمنة.
-```
+2. AIスキルのMarkdownファイル（AI-Skill-Multilingual-Prompt-Optimizer.md）：
+   - ChatGPT/Claude/Geminiにロード可能なシステムプロンプトを含む
+   - ロード後、AIが自動的にユーザーメッセージを多言語混合プロンプトに変換
+   - 完全な最適化戦略と出力テンプレートを含む
 
----
-
-### 🇪🇸 Prompt en Español (Spanish Prompt)
-
-```
-Eres un desarrollador web full-stack. Constrúyeme una aplicación web HTML de una sola página con CSS y JavaScript integrados. La aplicación debe cumplir los siguientes requisitos:
-
-1. Tener una interfaz de usuario limpia y moderna con el título "Traductor Universal".
-2. Incluir un área de entrada de texto grande donde los usuarios puedan escribir o pegar cualquier contenido.
-3. Proporcionar un menú desplegable para seleccionar el idioma de destino (al menos: chino, japonés, inglés, árabe, español, francés, alemán, coreano, portugués, ruso).
-4. Incluir un botón "Traducir" que llame a una API de traducción gratuita (como MyMemory o LibreTranslate) para traducir el texto de entrada al idioma seleccionado.
-5. Mostrar el resultado de la traducción en un área de salida de solo lectura debajo del botón.
-6. Incluir un botón "Copiar" para copiar el texto traducido al portapapeles.
-7. Estar completamente autocontenida en un solo archivo HTML sin dependencias externas aparte de la llamada a la API.
-8. Manejar errores de forma elegante con mensajes amigables para el usuario.
-
-Devuelve el archivo HTML completo con todo el CSS y JavaScript en línea.
+コアアイデア：プロンプトに複数の言語を混合することで、AIモデルがより深くコンテンツを処理し、異なる言語の知識センターを同時に活性化させ、より豊かで詳細な回答を得ることができます。
 ```
 
 ---
 
-### 📜 文言文提示 (Classical Chinese Prompt)
+### 🇸🇦 النص العربي
 
 ```
-汝乃通晓前后端之网页匠师也。今命汝造一网页器用，以HTML为体，CSS与JavaScript皆嵌其中，须合下列诸条：
+أنت مهندس أوامر محترف ومطور ويب متكامل. قم ببناء ما يلي:
 
-一、界面清雅而合于时宜，题曰"万方译者"。
-二、设一广大之文字输入之域，使用者可录入或粘贴任意文辞。
-三、备一下拉之选单，以择目标语言（至少含：华文、和文、英文、阿拉伯文、西班牙文、法文、德文、韩文、葡萄牙文、俄文）。
-四、设一"译之"之按钮，调用免费翻译接口（如MyMemory或LibreTranslate），将所录文辞译为所选之语。
-五、于按钮之下设一只读之输出域，以显翻译之果。
-六、设一"录之"之按钮，可将译文录入剪贴之板。
-七、一切皆备于一HTML文牍之中，除接口调用外，无须倚赖外物。
-八、若遇差错，须从容应之，示以温和之辞令。
+1. تطبيق ويب HTML من صفحة واحدة (prompt-optimizer.html) مع CSS و JavaScript مضمنين:
+   - يمكن للمستخدمين إدخال أي مهمة يريدون من الذكاء الاصطناعي تنفيذها بأي لغة
+   - يوفر اختيار وضع التحسين (عام، إبداعي، تقني، أكاديمي، تجاري، إقناعي)
+   - يحول المدخلات إلى أمر محسّن متعدد اللغات يجمع بين الصينية واليابانية والإنجليزية والعربية والإسبانية والصينية الكلاسيكية
+   - الأمر المحسّن يمزج استراتيجياً بين 6 لغات لـ: تعيين الدور، تحديد المهمة، وضع معايير الجودة، تحديد التنسيق، وإضافة المعززات
+   - يتضمن زر نسخ
+   - واجهة مستخدم حديثة بمظهر داكن، مكتفية ذاتياً بالكامل
 
-请呈上完整之HTML文牍，CSS与JavaScript皆内嵌其中。
+2. ملف Markdown لمهارة الذكاء الاصطناعي (AI-Skill-Multilingual-Prompt-Optimizer.md):
+   - يحتوي على أمر نظام يمكن تحميله في ChatGPT/Claude/Gemini
+   - بعد التحميل، يقوم الذكاء الاصطناعي تلقائياً بتحويل أي رسالة مستخدم إلى أمر محسّن متعدد اللغات
+   - يتضمن استراتيجية التحسين الكاملة وقالب الإخراج
+
+الفكرة الأساسية: خلط لغات متعددة في الأمر يجبر نماذج الذكاء الاصطناعي على معالجة المحتوى بعمق أكبر، مما يفعّل مراكز معرفة لغوية مختلفة في نفس الوقت، مما يؤدي إلى استجابات أغنى وأكثر تفصيلاً.
 ```
 
 ---
 
-## 🚀 The Generated Web Application
+### 🇪🇸 Prompt en Español
 
-The prompts above were used to generate the translation web app included in this repository. You can use it directly:
+```
+Eres un ingeniero de prompts profesional y un desarrollador full-stack. Construye lo siguiente:
 
-**→ Open [`translator.html`](./translator.html) in any browser to start translating!**
+1. Una aplicación web HTML de una sola página (prompt-optimizer.html) con CSS y JavaScript integrados:
+   - Los usuarios pueden ingresar cualquier tarea que quieran que la IA realice, en cualquier idioma
+   - Proporciona selección de modo de optimización (General, Creativo, Técnico, Académico, Negocios, Persuasivo)
+   - Convierte la entrada en un prompt optimizado multilingüe que combina chino, japonés, inglés, árabe, español y chino clásico
+   - El prompt optimizado mezcla estratégicamente 6 idiomas para: asignar un rol, definir la tarea, establecer estándares de calidad, especificar formato y agregar amplificadores
+   - Incluye botón de copiar
+   - UI moderna con tema oscuro, completamente autocontenida
 
-### Features
-- 📝 Input any text content
-- 🌍 Translate to 17 languages (Chinese Simplified/Traditional, Japanese, English, Arabic, Spanish, French, German, Korean, Portuguese, Russian, Italian, Hindi, Thai, Vietnamese, Dutch, Turkish)
-- 📋 One-click copy of translated text
-- 🎨 Clean, modern, responsive UI
-- ⚡ Powered by the free MyMemory Translation API
-- 📄 Fully self-contained in a single HTML file
+2. Un archivo Markdown de Habilidad de IA (AI-Skill-Multilingual-Prompt-Optimizer.md):
+   - Contiene un prompt de sistema que se puede cargar en ChatGPT/Claude/Gemini
+   - Una vez cargado, la IA transforma automáticamente cualquier mensaje del usuario en un prompt multilingüe optimizado
+   - Incluye la estrategia completa de optimización y la plantilla de salida
 
----
-
-## 📖 How to Use
-
-1. Open `translator.html` in your web browser.
-2. Type or paste any content into the input text area.
-3. Select your target language from the dropdown menu.
-4. Click the **"Translate"** button.
-5. View the translated result in the output area.
-6. Click **"Copy"** to copy the translation to your clipboard.
+Idea central: mezclar múltiples idiomas en un prompt obliga a los modelos de IA a procesar el contenido más profundamente, activando diferentes centros de conocimiento lingüístico simultáneamente, lo que resulta en respuestas más ricas y detalladas.
+```
 
 ---
 
-## 💡 Prompt Engineering Skills Demonstrated
+### 📜 文言文提示
 
-| Skill | Description |
+```
+汝乃精通提示之术与前后端开发之全才也。今命汝造以下二物：
+
+其一、一网页器用也（prompt-optimizer.html），以HTML为体，CSS与JavaScript皆嵌其中：
+   - 使用者可以任意语言录入欲令人工智能完成之任务
+   - 备优化模式之选择（通用、创意、技术、学术、商务、说服）
+   - 将所录之辞转化为融合华文、和文、英文、阿拉伯文、西班牙文与文言文之多语混合优化提示词
+   - 优化后之提示词，须以六种语言策略性交织：设定角色、界定任务、立品质之准则、定格式之规范、加增幅之辞
+   - 设"录之"之按钮，以便复制
+   - 界面清雅而合时宜，暗色主题，无须倚赖外物
+
+其二、一AI技能之文牍也（AI-Skill-Multilingual-Prompt-Optimizer.md）：
+   - 含可载入ChatGPT、Claude、Gemini之系统提示词
+   - 载入后，人工智能自动将使用者之任何消息转化为多语混合之优化提示词
+   - 含完备之优化策略与输出模板
+
+其要旨在于：于提示词中混合多种语言，迫使人工智能模型更深层地处理内容，同时激活不同语言之知识中枢，从而获得更丰富、更精详之回答也。
+```
+
+---
+
+## 📖 Quick Start / 快速开始
+
+### Use the Web App / 使用网页应用
+
+1. Download or clone this repository
+2. Open `prompt-optimizer.html` in any browser
+3. Enter your prompt in any language
+4. Select an optimization mode
+5. Click **"🔮 Optimize"** to generate the multilingual prompt
+6. Click **"📋 Copy"** and paste into any AI model
+
+### Load the AI Skill / 加载AI技能
+
+1. Open `AI-Skill-Multilingual-Prompt-Optimizer.md`
+2. Copy the **System Prompt** section
+3. Paste it into your AI model's system instructions:
+   - ChatGPT → Settings → Custom Instructions / GPT Builder
+   - Claude → System Prompt
+   - Gemini → System Instructions
+4. Now every message you send will be automatically optimized!
+
+---
+
+## 💡 Prompt Engineering Skills Demonstrated / 展示的提示词工程技能
+
+| Skill / 技能 | Description / 描述 |
 |-------|-------------|
-| **Role Assignment** | Each prompt assigns the AI the role of "full-stack web developer" |
-| **Structured Requirements** | Numbered lists ensure all features are addressed |
-| **Output Format Control** | Explicitly requesting "a complete HTML file" |
-| **Technology Constraints** | Specifying "single file, no external dependencies" |
-| **Error Handling** | Requiring graceful error handling |
-| **Multilingual Adaptation** | Same core prompt adapted naturally to each language's conventions |
+| **Multilingual Mixing / 多语混合** | Strategically combining 6 languages to activate different knowledge centers |
+| **Role Assignment / 角色设定** | Using Classical Chinese for authority + Modern Chinese for context + Japanese for precision |
+| **Layered Structure / 分层结构** | Role → Task → Quality → Format → Amplifier layers |
+| **Quality Amplifiers / 品质增幅** | Reinforcing quality expectations across all 6 languages |
+| **Mode Adaptation / 模式适配** | Different optimization strategies for different task types |
+| **Cross-lingual Emphasis / 跨语强调** | Repeating key requirements in multiple languages for emphasis |
 
 ---
 
