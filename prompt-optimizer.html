@@ -440,6 +440,7 @@
         const outputCharCount = document.getElementById('outputCharCount');
 
         // Character counter + auto-detect image mode
+        // Shared image keyword pattern used for both auto-detection and domain detection
         const imageKeywordRegex = /图片|照片|绘画|画一|生成图|生成一张|图像|插画|海报|壁纸|头像|生成照片|image|photo|picture|draw|paint|generat.*image|generat.*photo|illustrat|poster|wallpaper|portrait|render|imagen|foto|dibujo|pintura|صورة|رسم/i;
 
         userInput.addEventListener('input', function () {
@@ -604,8 +605,9 @@
         }
 
         // Pre-compiled domain detection regexes for performance
+        // Note: image domain reuses the shared imageKeywordRegex to avoid duplication
         const domainPatterns = [
-            { regex: /图片|照片|绘画|画|生成图|图像|插画|海报|壁纸|头像|logo|icon|image|photo|picture|draw|paint|generat.*image|generat.*photo|illustrat|poster|wallpaper|avatar|portrait|visual|render|imagen|foto|dibujo|pintura|صورة|رسم/i, domain: '视觉艺术与图像生成 / Visual Art & Image Generation' },
+            { regex: imageKeywordRegex, domain: '视觉艺术与图像生成 / Visual Art & Image Generation' },
             { regex: /编程|代码|程序|开发|软件|API|bug|算法|架构|code|program|develop|software|engineer|debug/i, domain: '技术与编程 / Technology & Programming' },
             { regex: /文章|写作|故事|小说|诗|散文|write|story|novel|essay|article|blog|creative/i, domain: '写作与创意 / Writing & Creative' },
             { regex: /商业|营销|市场|品牌|策略|business|market|brand|strateg|sales|revenue/i, domain: '商业与营销 / Business & Marketing' },
@@ -625,7 +627,8 @@
 
         function buildOptimizedPrompt(userText, config, domain) {
             const mode = modeSelect.value;
-            // Sanitize user text: replace box-drawing characters that could break formatting
+            // Sanitize user text: replace box-drawing characters that could break
+            // the visual border formatting of the generated prompt template
             const sanitizedText = userText.replace(/[┌┐└┘│─═]/g, '-');
 
             // === IMAGE GENERATION MODE: completely different prompt structure ===
