@@ -1,10 +1,12 @@
 # 🔮 AI-skills — 多语幻术师
 
-**Multilingual Prompt Optimizer / 多语混合提示词优化器**
+**Multilingual Prompt Optimizer / 词级多语混合提示词优化器**
 
-用中文、日文、英文、阿拉伯文、西班牙文、文言文六种语言的混合提示词，优化你与AI大模型的交互，获得更理想的输出内容。
+将一句话中的词汇逐词替换为不同语言（英/日/西/阿/文言文），在保持原意不变的情况下，形成"多语幻术"效果，"欺骗"AI大模型生成更好的内容。
 
-Transform your prompts into powerful multilingual mixed-language prompts using Chinese, Japanese, English, Arabic, Spanish, and Classical Chinese — designed to elicit richer and more detailed responses from any large AI model.
+Transform your prompts by replacing individual words with different languages (English, Japanese, Spanish, Arabic, Classical Chinese) within ONE sentence — creating a "polyglot chimera" that forces AI models to process deeper and generate better results.
+
+**例如 / Example:** `帮我生成一张在海边的照片，亚洲风格` → `help me generate一枚の在la playa的صورة فوتوغرافية，东方之韵`
 
 ---
 
@@ -24,16 +26,16 @@ Transform your prompts into powerful multilingual mixed-language prompts using C
 ### How It Works / 工作原理
 
 1. **输入** — 用任何语言输入你想让AI完成的任务
-2. **选择模式** — 选择优化模式（通用/创意/技术/学术/商务/说服）
-3. **优化** — 一键生成六语混合的优化提示词
-4. **使用** — 复制粘贴到任意AI大模型，获得更好的输出
+2. **词级混合** — 将你的一句话中的词汇逐词替换为不同语言（英→日→西→阿→文言文循环）
+3. **复制** — 一键复制混合后的提示词
+4. **使用** — 粘贴到任意AI大模型，多语混合"欺骗"AI生成更好内容
 
 ### Features / 功能特点
+- 🔮 **词级多语混合** — 不是翻译整句，而是逐词替换为不同语言（核心创新）
 - 📝 支持任意语言输入（中文、英文、西班牙文等）
-- 🔮 自动生成六语混合提示词（中文 + 日本語 + English + العربية + Español + 文言文）
-- 🖼️ **新增图片生成专用模式** — 解决AI模型"解释而不执行"的问题
+- 🖼️ **图片生成专用模式** — 强制AI直接生成图片而非解释
 - 🎯 7种优化模式适配不同场景（通用/图片生成/创意/技术/学术/商务/说服）
-- 🚫 **反解释指令** — 强制AI直接执行而非解释
+- 🚫 **反解释指令** — 每行都是多语混合，难以被AI"忽略"
 - 🔍 **智能检测** — 自动识别图片生成需求并切换模式
 - 📋 一键复制，直接粘贴到AI模型
 - 🎨 现代暗色主题UI，响应式设计
@@ -56,18 +58,17 @@ Once loaded, the AI will automatically transform every user message into an opti
 
 ---
 
-## 🧠 Why Multilingual Mixing Works / 为什么多语混合有效
+## 🧠 Why Word-Level Mixing Works / 为什么词级混合有效
 
 | Language / 语言 | Role / 作用 |
 |----------------|-------------|
-| **文言文 (Classical Chinese)** | 激活模型的文学与正式知识模式，增加权威感 / Activates formal/literary patterns, adds authority |
-| **中文 (Chinese)** | 利用模型的中文训练数据，补充语境信息 / Leverages Chinese training data for context |
-| **日本語 (Japanese)** | 触发精确、注重细节的响应模式 / Triggers precision and detail-focused patterns |
-| **English** | 确保核心任务清晰度 / Ensures core task clarity |
-| **Español (Spanish)** | 通过不同语系视角强化需求 / Reinforces through Romance language perspective |
-| **العربية (Arabic)** | 增加语言维度，强调完整性 / Adds linguistic dimension, emphasizes completeness |
-| **Mixed Together / 混合使用** | 迫使模型更深层处理提示词，同时激活多个语言中心 / Forces deeper processing, activates multiple language centers |
-| **Anti-Explanation / 反解释指令** | 阻止模型过度解释，强制直接执行（图片生成关键） / Prevents over-explaining, forces direct execution (critical for image generation) |
+| **词级混合 (Word-Level Mixing)** | 一句话中逐词替换，迫使AI同时处理多种语言通道 / Forces AI to process multiple language pathways simultaneously |
+| **English** | 利用AI最强的英文理解力确保核心语义 / Ensures core task clarity with AI's strongest language |
+| **日本語 (Japanese Katakana)** | 片假名视觉上明显区别于中文，触发日语处理 / Katakana is visually distinct, triggers Japanese processing |
+| **Español (Spanish)** | 拉丁语系补充视角 / Romance language adds perspective |
+| **العربية (Arabic)** | 完全不同的书写系统，激活额外处理通道 / Completely different script, activates additional pathways |
+| **文言文 (Classical Chinese)** | 古雅词汇激活文学/正式知识模式 / Archaic vocabulary triggers literary patterns |
+| **单句混合 vs 分句翻译** | 一句流畅的混合句比分开的翻译更难被AI"忽略" / ONE mixed sentence is harder to ignore than separate translations |
 
 ---
 
@@ -242,14 +243,12 @@ Idea central: mezclar múltiples idiomas en un prompt obliga a los modelos de IA
 
 | Skill / 技能 | Description / 描述 |
 |-------|-------------|
-| **Multilingual Mixing / 多语混合** | Strategically combining 6 languages to activate different knowledge centers |
-| **Role Assignment / 角色设定** | Using Classical Chinese for authority + Modern Chinese for context + Japanese for precision |
-| **Layered Structure / 分层结构** | Purpose-First → Role → Task → Quality → Format → Anti-Explanation layers |
-| **Quality Amplifiers / 品质增幅** | Reinforcing quality expectations across all 6 languages |
-| **Mode Adaptation / 模式适配** | Different optimization strategies for different task types (7 modes including image generation) |
-| **Anti-Explanation Directives / 反解释指令** | Preventing AI from over-explaining, forcing direct execution |
-| **Image Generation Optimization / 图片生成优化** | Specialized prompt structure that forces AI to generate images instead of describing them |
-| **Cross-lingual Emphasis / 跨语强调** | Repeating key requirements in multiple languages for emphasis |
+| **Word-Level Mixing / 词级混合** | 逐词替换为不同语言，在一句话内形成多语混合效果 |
+| **Language Cycling / 语言轮换** | 英→日→西→阿→文言文循环，确保6种语言均匀分布 |
+| **Polyglot Chimera / 多语嵌合体** | 一句话同时包含多种文字系统（拉丁/假名/阿拉伯/汉字） |
+| **Anti-Explanation / 反解释** | 混合语言的指令更难被AI模型"理性化"为解释任务 |
+| **Image Generation / 图片生成** | 激进的行动优先指令，强制生成而非描述 |
+| **Mode Adaptation / 模式适配** | 不同任务类型使用不同的混合增幅词 |
 
 ---
 

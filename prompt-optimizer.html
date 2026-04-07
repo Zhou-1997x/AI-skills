@@ -361,13 +361,13 @@
                 </div>
                 <div class="step">
                     <div class="step-num">2</div>
-                    <h4>选择优化模式 / Select Mode</h4>
-                    <p>选择适合你任务的优化模式：创意、技术、学术、说服等。Choose the optimization mode that fits your task.</p>
+                    <h4>词级多语混合 / Word-Level Mixing</h4>
+                    <p>将你的一句话中的词汇拆开，逐词替换为不同语言（英/日/西/阿/文言文），形成"多语幻术"。Individual words are replaced with different languages within ONE sentence.</p>
                 </div>
                 <div class="step">
                     <div class="step-num">3</div>
-                    <h4>复制并使用 / Copy & Use</h4>
-                    <p>将优化后的多语混合提示词粘贴到任意AI模型中，获得更好的输出。Paste the optimized prompt into any AI for better results.</p>
+                    <h4>复制并"欺骗"AI / Copy & Trick AI</h4>
+                    <p>混合语言迫使AI更深层处理，激活多个语言知识中心，生成更好的内容。Mixed languages force AI to process deeper, generating better results.</p>
                 </div>
             </div>
         </div>
@@ -375,7 +375,7 @@
         <!-- Input Section -->
         <div class="card">
             <div class="card-title">📝 Your Original Prompt / 你的原始提示词</div>
-            <textarea id="userInput" placeholder="在此输入你想让AI完成的任务...&#10;Enter what you want the AI to do...&#10;&#10;例如 / Example:&#10;帮我写一篇关于人工智能未来发展的深度分析文章&#10;Write a detailed analysis article about the future of AI&#10;Escribe un artículo sobre el futuro de la IA"></textarea>
+            <textarea id="userInput" placeholder="在此输入你想让AI完成的任务...&#10;Enter what you want the AI to do...&#10;&#10;例如 / Example:&#10;帮我生成一张在海边的照片，亚洲风格&#10;帮我写一篇关于人工智能未来发展的文章&#10;Write a detailed analysis article about the future of AI"></textarea>
             <div class="char-info">
                 <span id="charCount">0 characters</span>
                 <span>Ctrl+Enter to optimize</span>
@@ -439,13 +439,12 @@
         const charCount = document.getElementById('charCount');
         const outputCharCount = document.getElementById('outputCharCount');
 
-        // Character counter + auto-detect image mode
-        // Shared image keyword pattern used for both auto-detection and domain detection
+        // Image keyword detection regex (shared between auto-detect and domain detection)
         const imageKeywordRegex = /图片|照片|绘画|画一|生成图|生成一张|图像|插画|海报|壁纸|头像|生成照片|image|photo|picture|draw|paint|generat.*image|generat.*photo|illustrat|poster|wallpaper|portrait|render|imagen|foto|dibujo|pintura|صورة|رسم/i;
 
+        // Character counter + auto-detect image mode
         userInput.addEventListener('input', function () {
             charCount.textContent = this.value.length + ' characters';
-            // Auto-suggest image mode when image keywords are detected
             if (modeSelect.value === 'general' && imageKeywordRegex.test(this.value)) {
                 modeSelect.value = 'imageGen';
                 showStatus('💡 检测到图片生成需求，已自动切换到图片生成模式 / Auto-switched to Image Generation mode', 'info');
@@ -468,114 +467,287 @@
             statusMsg.className = 'status';
         }
 
-        // ========== Mode Configuration ==========
-        const modeConfig = {
-            general: {
-                roleCN: '全能知识大师',
-                roleClassical: '博学通才',
-                roleJP: '万能の知識マスター',
-                roleEN: 'omniscient knowledge expert',
-                roleES: 'experto de conocimiento universal',
-                roleAR: 'خبير المعرفة الشامل',
-                qualityCN: '全面、详细、专业且有深度',
-                qualityJP: '包括的で詳細かつ専門的で深みのある',
-                qualityEN: 'comprehensive, detailed, professional, and in-depth',
-                qualityES: 'completa, detallada, profesional y profunda',
-                qualityAR: 'شاملة ومفصلة ومهنية وعميقة',
-                qualityClassical: '详备精深，无所遗漏',
-                isActionMode: false
-            },
-            imageGen: {
-                roleCN: '顶级AI视觉艺术家与图像生成大师',
-                roleClassical: '丹青妙手',
-                roleJP: 'トップレベルのAIビジュアルアーティストと画像生成マスター',
-                roleEN: 'top-tier AI visual artist and image generation master',
-                roleES: 'artista visual de IA de primer nivel y maestro de generación de imágenes',
-                roleAR: 'فنان بصري للذكاء الاصطناعي من الدرجة الأولى وسيد توليد الصور',
-                qualityCN: '画面精美、构图专业、色彩和谐、细节丰富',
-                qualityJP: '美しい画面、プロの構図、調和のとれた色彩、豊かなディテール',
-                qualityEN: 'stunning visuals, professional composition, harmonious colors, rich details',
-                qualityES: 'visuales impresionantes, composición profesional, colores armoniosos, detalles ricos',
-                qualityAR: 'مرئيات مذهلة وتكوين احترافي وألوان متناسقة وتفاصيل غنية',
-                qualityClassical: '笔墨精妙，构图天成，色彩斑斓',
-                isActionMode: true
-            },
-            creative: {
-                roleCN: '创意写作与艺术创作大师',
-                roleClassical: '文章锦绣之才',
-                roleJP: 'クリエイティブライティングとアート創造のマスター',
-                roleEN: 'master of creative writing and artistic creation',
-                roleES: 'maestro de la escritura creativa y la creación artística',
-                roleAR: 'سيد الكتابة الإبداعية والإبداع الفني',
-                qualityCN: '极富想象力、文笔优美、引人入胜、情感丰沛',
-                qualityJP: '想像力豊かで、美しい文章で、魅力的で、感情豊かな',
-                qualityEN: 'imaginative, beautifully written, captivating, and emotionally rich',
-                qualityES: 'imaginativa, bellamente escrita, cautivadora y emocionalmente rica',
-                qualityAR: 'خيالية وجميلة الكتابة وجذابة وغنية عاطفياً',
-                qualityClassical: '辞藻华美，意境深远，情理交融',
-                isActionMode: false
-            },
-            technical: {
-                roleCN: '顶级技术架构师与资深工程师',
-                roleClassical: '精通术数之匠',
-                roleJP: 'トップレベルの技術アーキテクトとシニアエンジニア',
-                roleEN: 'top-tier technical architect and senior engineer',
-                roleES: 'arquitecto técnico de primer nivel e ingeniero sénior',
-                roleAR: 'مهندس تقني من الدرجة الأولى ومهندس أول',
-                qualityCN: '代码精确、架构清晰、最佳实践、性能优化',
-                qualityJP: 'コードが正確で、アーキテクチャが明確で、ベストプラクティスに従い、パフォーマンスが最適化された',
-                qualityEN: 'precise code, clean architecture, best practices, and performance-optimized',
-                qualityES: 'código preciso, arquitectura limpia, mejores prácticas y rendimiento optimizado',
-                qualityAR: 'كود دقيق وبنية نظيفة وأفضل الممارسات وأداء محسّن',
-                qualityClassical: '精密严谨，条理分明，无一疏漏',
-                isActionMode: false
-            },
-            academic: {
-                roleCN: '资深学术研究员与学科专家',
-                roleClassical: '饱学鸿儒',
-                roleJP: 'シニア学術研究者と分野専門家',
-                roleEN: 'senior academic researcher and domain expert',
-                roleES: 'investigador académico sénior y experto en la materia',
-                roleAR: 'باحث أكاديمي أول وخبير في المجال',
-                qualityCN: '论证严密、引用可靠、分析深入、逻辑清晰',
-                qualityJP: '論証が厳密で、引用が信頼でき、分析が深く、論理が明確な',
-                qualityEN: 'rigorous argumentation, reliable citations, deep analysis, and clear logic',
-                qualityES: 'argumentación rigurosa, citas confiables, análisis profundo y lógica clara',
-                qualityAR: 'حجج صارمة واستشهادات موثوقة وتحليل عميق ومنطق واضح',
-                qualityClassical: '考据精详，论证严密，引经据典',
-                isActionMode: false
-            },
-            business: {
-                roleCN: '资深商业战略顾问与行业分析师',
-                roleClassical: '经世济民之才',
-                roleJP: 'シニアビジネス戦略コンサルタントと業界アナリスト',
-                roleEN: 'senior business strategy consultant and industry analyst',
-                roleES: 'consultor sénior de estrategia empresarial y analista de la industria',
-                roleAR: 'مستشار استراتيجي أول ومحلل صناعي',
-                qualityCN: '数据驱动、洞察深刻、策略可行、有商业价值',
-                qualityJP: 'データ駆動で、洞察が深く、実行可能な戦略で、ビジネス価値のある',
-                qualityEN: 'data-driven, deeply insightful, actionable strategies with business value',
-                qualityES: 'basada en datos, profundamente perspicaz, con estrategias accionables y valor comercial',
-                qualityAR: 'مبنية على البيانات وعميقة الرؤية واستراتيجيات قابلة للتنفيذ ذات قيمة تجارية',
-                qualityClassical: '审时度势，运筹帷幄，决胜千里',
-                isActionMode: false
-            },
-            persuasive: {
-                roleCN: '顶级演说家与文案策划大师',
-                roleClassical: '纵横捭阖之辩才',
-                roleJP: 'トップレベルのスピーカーとコピーライティングのマスター',
-                roleEN: 'top-tier public speaker and persuasive copywriting master',
-                roleES: 'orador de primer nivel y maestro de redacción persuasiva',
-                roleAR: 'متحدث من الدرجة الأولى وسيد كتابة النصوص المقنعة',
-                qualityCN: '极具说服力、逻辑严密、情感共鸣、行动号召力强',
-                qualityJP: '説得力があり、論理的で、感情的共鳴があり、行動を促す力が強い',
-                qualityEN: 'highly persuasive, logically rigorous, emotionally resonant, with strong calls to action',
-                qualityES: 'altamente persuasiva, lógicamente rigurosa, emocionalmente resonante, con fuertes llamadas a la acción',
-                qualityAR: 'مقنعة للغاية ومنطقية وعاطفية مع دعوات قوية للعمل',
-                qualityClassical: '辩才无碍，动人心魄，令人信服',
-                isActionMode: false
+        // =====================================================
+        // MULTILINGUAL WORD-LEVEL MIXING DICTIONARY
+        // Each entry maps a Chinese word/phrase to equivalents
+        // in 5 other languages. The mixer replaces individual
+        // words within ONE sentence with different languages,
+        // creating a "polyglot chimera" effect.
+        // =====================================================
+        const wordDict = [
+            // === ACTION PHRASES (longer matches first) ===
+            { zh: '帮我生成', en: 'help me generate', jp: '生成して', es: 'genérame', ar: 'أنشئ لي', classical: '为吾造' },
+            { zh: '帮我写', en: 'write for me', jp: '書いて', es: 'escríbeme', ar: 'اكتب لي', classical: '为吾撰' },
+            { zh: '帮我画', en: 'draw for me', jp: '描いて', es: 'dibújame', ar: 'ارسم لي', classical: '为吾绘' },
+            { zh: '帮我创建', en: 'create for me', jp: '作成して', es: 'créame', ar: 'أنشئ لي', classical: '为吾建' },
+            { zh: '帮我设计', en: 'design for me', jp: 'デザインして', es: 'diséñame', ar: 'صمم لي', classical: '为吾构设' },
+            { zh: '帮我分析', en: 'analyze for me', jp: '分析して', es: 'analiza para mí', ar: 'حلل لي', classical: '为吾析之' },
+            { zh: '帮我制作', en: 'make for me', jp: '作って', es: 'hazme', ar: 'اصنع لي', classical: '为吾制' },
+            { zh: '帮我翻译', en: 'translate for me', jp: '翻訳して', es: 'tradúceme', ar: 'ترجم لي', classical: '为吾译之' },
+            { zh: '帮我编写', en: 'compose for me', jp: '作成して', es: 'redacta para mí', ar: 'ألف لي', classical: '为吾编撰' },
+            // === SINGLE VERBS ===
+            { zh: '生成', en: 'generate', jp: 'ジェネレート', es: 'generar', ar: 'إنشاء', classical: '造' },
+            { zh: '创建', en: 'create', jp: 'クリエイト', es: 'crear', ar: 'إنشاء', classical: '建' },
+            { zh: '编写', en: 'compose', jp: '作成する', es: 'redactar', ar: 'تأليف', classical: '编撰' },
+            { zh: '设计', en: 'design', jp: 'デザイン', es: 'diseñar', ar: 'تصميم', classical: '构设' },
+            { zh: '制作', en: 'produce', jp: 'プロデュース', es: 'producir', ar: 'إنتاج', classical: '制' },
+            { zh: '分析', en: 'analyze', jp: 'アナライズ', es: 'analizar', ar: 'تحليل', classical: '析' },
+            { zh: '翻译', en: 'translate', jp: '翻訳する', es: 'traducir', ar: 'ترجمة', classical: '译' },
+            { zh: '解释', en: 'explain', jp: '説明する', es: 'explicar', ar: 'شرح', classical: '释' },
+            { zh: '优化', en: 'optimize', jp: 'オプティマイズ', es: 'optimizar', ar: 'تحسين', classical: '精进' },
+            { zh: '描述', en: 'describe', jp: '描写する', es: 'describir', ar: 'وصف', classical: '述' },
+            { zh: '总结', en: 'summarize', jp: 'サマライズ', es: 'resumir', ar: 'تلخيص', classical: '概述' },
+            { zh: '比较', en: 'compare', jp: '比較する', es: 'comparar', ar: 'مقارنة', classical: '较' },
+            { zh: '推荐', en: 'recommend', jp: 'おすすめ', es: 'recomendar', ar: 'توصية', classical: '荐' },
+            { zh: '改进', en: 'improve', jp: '改善する', es: 'mejorar', ar: 'تحسين', classical: '改良' },
+            { zh: '列出', en: 'list out', jp: 'リストアップ', es: 'enumerar', ar: 'سرد', classical: '列之' },
+            { zh: '规划', en: 'plan', jp: 'プランニング', es: 'planificar', ar: 'تخطيط', classical: '筹谋' },
+            { zh: '开发', en: 'develop', jp: 'デベロップ', es: 'desarrollar', ar: 'تطوير', classical: '研制' },
+            // === OBJECTS / NOUNS ===
+            { zh: '照片', en: 'photo', jp: 'フォト', es: 'foto', ar: 'صورة فوتوغرافية', classical: '影像' },
+            { zh: '图片', en: 'image', jp: 'イメージ', es: 'imagen', ar: 'صورة', classical: '图' },
+            { zh: '图像', en: 'image', jp: '画像', es: 'imagen', ar: 'صورة', classical: '图' },
+            { zh: '插画', en: 'illustration', jp: 'イラスト', es: 'ilustración', ar: 'رسم توضيحي', classical: '画' },
+            { zh: '海报', en: 'poster', jp: 'ポスター', es: 'póster', ar: 'ملصق', classical: '告示' },
+            { zh: '壁纸', en: 'wallpaper', jp: '壁紙', es: 'fondo de pantalla', ar: 'خلفية', classical: '壁饰' },
+            { zh: '头像', en: 'avatar', jp: 'アバター', es: 'avatar', ar: 'صورة رمزية', classical: '肖像' },
+            { zh: '文章', en: 'article', jp: 'アーティクル', es: 'artículo', ar: 'مقال', classical: '文' },
+            { zh: '故事', en: 'story', jp: 'ストーリー', es: 'historia', ar: 'قصة', classical: '故事' },
+            { zh: '小说', en: 'novel', jp: 'ノベル', es: 'novela', ar: 'رواية', classical: '传奇' },
+            { zh: '论文', en: 'thesis', jp: '論文', es: 'tesis', ar: 'أطروحة', classical: '论著' },
+            { zh: '报告', en: 'report', jp: 'レポート', es: 'informe', ar: 'تقرير', classical: '报告' },
+            { zh: '代码', en: 'code', jp: 'コード', es: 'código', ar: 'كود', classical: '程式' },
+            { zh: '程序', en: 'program', jp: 'プログラム', es: 'programa', ar: 'برنامج', classical: '程式' },
+            { zh: '邮件', en: 'email', jp: 'メール', es: 'correo', ar: 'بريد إلكتروني', classical: '函件' },
+            { zh: '方案', en: 'plan', jp: 'プラン', es: 'plan', ar: 'خطة', classical: '方略' },
+            { zh: '策略', en: 'strategy', jp: 'ストラテジー', es: 'estrategia', ar: 'استراتيجية', classical: '策' },
+            { zh: '内容', en: 'content', jp: 'コンテンツ', es: 'contenido', ar: 'محتوى', classical: '所述' },
+            { zh: '主题', en: 'theme', jp: 'テーマ', es: 'tema', ar: 'موضوع', classical: '题旨' },
+            { zh: '背景', en: 'background', jp: 'バックグラウンド', es: 'fondo', ar: 'خلفية', classical: '背景' },
+            { zh: '场景', en: 'scene', jp: 'シーン', es: 'escena', ar: 'مشهد', classical: '景' },
+            { zh: '效果', en: 'effect', jp: 'エフェクト', es: 'efecto', ar: 'تأثير', classical: '效' },
+            { zh: '人物', en: 'character', jp: 'キャラクター', es: 'personaje', ar: 'شخصية', classical: '人物' },
+            { zh: '风景', en: 'landscape', jp: 'ランドスケープ', es: 'paisaje', ar: 'منظر طبيعي', classical: '风光' },
+            { zh: '建筑', en: 'architecture', jp: 'アーキテクチャ', es: 'arquitectura', ar: 'عمارة', classical: '建筑' },
+            { zh: '视频', en: 'video', jp: 'ビデオ', es: 'video', ar: 'فيديو', classical: '影像' },
+            { zh: '音乐', en: 'music', jp: 'ミュージック', es: 'música', ar: 'موسيقى', classical: '乐' },
+            { zh: '动物', en: 'animal', jp: 'アニマル', es: 'animal', ar: 'حيوان', classical: '兽' },
+            { zh: '植物', en: 'plant', jp: 'プラント', es: 'planta', ar: 'نبات', classical: '草木' },
+            { zh: '食物', en: 'food', jp: 'フード', es: 'comida', ar: 'طعام', classical: '食' },
+            { zh: '美食', en: 'cuisine', jp: 'グルメ', es: 'gastronomía', ar: 'مأكولات', classical: '佳肴' },
+            // === PLACES / SETTINGS ===
+            { zh: '海边', en: 'seaside', jp: 'ビーチ', es: 'la playa', ar: 'شاطئ البحر', classical: '沧海之滨' },
+            { zh: '海滩', en: 'beach', jp: 'ビーチ', es: 'la playa', ar: 'الشاطئ', classical: '沙滩' },
+            { zh: '城市', en: 'city', jp: 'シティ', es: 'ciudad', ar: 'مدينة', classical: '城邑' },
+            { zh: '森林', en: 'forest', jp: 'フォレスト', es: 'bosque', ar: 'غابة', classical: '深林' },
+            { zh: '山', en: 'mountain', jp: 'マウンテン', es: 'montaña', ar: 'جبل', classical: '峰' },
+            { zh: '花园', en: 'garden', jp: 'ガーデン', es: 'jardín', ar: 'حديقة', classical: '园' },
+            { zh: '太空', en: 'outer space', jp: 'スペース', es: 'espacio', ar: 'فضاء', classical: '星际' },
+            { zh: '夜景', en: 'night view', jp: 'ナイトビュー', es: 'vista nocturna', ar: 'منظر ليلي', classical: '夜色' },
+            { zh: '日落', en: 'sunset', jp: 'サンセット', es: 'atardecer', ar: 'غروب الشمس', classical: '落日' },
+            { zh: '街道', en: 'street', jp: 'ストリート', es: 'calle', ar: 'شارع', classical: '街衢' },
+            { zh: '天空', en: 'sky', jp: 'スカイ', es: 'cielo', ar: 'سماء', classical: '天穹' },
+            { zh: '大海', en: 'ocean', jp: 'オーシャン', es: 'océano', ar: 'محيط', classical: '沧海' },
+            { zh: '校园', en: 'campus', jp: 'キャンパス', es: 'campus', ar: 'حرم جامعي', classical: '学府' },
+            { zh: '公园', en: 'park', jp: 'パーク', es: 'parque', ar: 'حديقة عامة', classical: '苑' },
+            { zh: '咖啡馆', en: 'café', jp: 'カフェ', es: 'cafetería', ar: 'مقهى', classical: '茶肆' },
+            { zh: '书房', en: 'study room', jp: '書斎', es: 'estudio', ar: 'غرفة الدراسة', classical: '书斋' },
+            { zh: '室内', en: 'indoor', jp: 'インドア', es: 'interior', ar: 'داخلي', classical: '室内' },
+            { zh: '星空', en: 'starry sky', jp: '星空', es: 'cielo estrellado', ar: 'سماء مرصعة بالنجوم', classical: '星河' },
+            { zh: '月亮', en: 'moon', jp: 'ムーン', es: 'luna', ar: 'قمر', classical: '明月' },
+            { zh: '樱花', en: 'cherry blossom', jp: '桜', es: 'flor de cerezo', ar: 'أزهار الكرز', classical: '樱花' },
+            // === STYLES ===
+            { zh: '亚洲风格', en: 'Asian style', jp: 'アジアンスタイル', es: 'estilo asiático', ar: 'الأسلوب الآسيوي', classical: '东方之韵' },
+            { zh: '中国风', en: 'Chinese style', jp: 'チャイニーズスタイル', es: 'estilo chino', ar: 'الطراز الصيني', classical: '华夏风韵' },
+            { zh: '日本风格', en: 'Japanese style', jp: '和風スタイル', es: 'estilo japonés', ar: 'الأسلوب الياباني', classical: '和风' },
+            { zh: '欧洲风格', en: 'European style', jp: 'ヨーロピアンスタイル', es: 'estilo europeo', ar: 'الأسلوب الأوروبي', classical: '欧陆之风' },
+            { zh: '现代风格', en: 'modern style', jp: 'モダンスタイル', es: 'estilo moderno', ar: 'أسلوب حديث', classical: '当世新风' },
+            { zh: '复古风格', en: 'vintage style', jp: 'レトロスタイル', es: 'estilo vintage', ar: 'أسلوب كلاسيكي', classical: '古朴之风' },
+            { zh: '简约风格', en: 'minimalist style', jp: 'ミニマルスタイル', es: 'estilo minimalista', ar: 'أسلوب بسيط', classical: '简约之风' },
+            { zh: '赛博朋克', en: 'cyberpunk', jp: 'サイバーパンク', es: 'ciberpunk', ar: 'سايبربانك', classical: '机械幻境' },
+            { zh: '水彩', en: 'watercolor', jp: '水彩画', es: 'acuarela', ar: 'ألوان مائية', classical: '水墨' },
+            { zh: '油画', en: 'oil painting', jp: '油絵', es: 'pintura al óleo', ar: 'لوحة زيتية', classical: '丹青' },
+            { zh: '水墨画', en: 'ink painting', jp: '墨絵', es: 'pintura de tinta', ar: 'رسم بالحبر', classical: '水墨丹青' },
+            { zh: '写实', en: 'realistic', jp: 'リアリスティック', es: 'realista', ar: 'واقعي', classical: '写实' },
+            { zh: '卡通', en: 'cartoon', jp: 'カートゥーン', es: 'dibujo animado', ar: 'كرتون', classical: '趣画' },
+            { zh: '动漫', en: 'anime', jp: 'アニメ', es: 'anime', ar: 'أنيمي', classical: '动画' },
+            { zh: '风格', en: 'style', jp: 'スタイル', es: 'estilo', ar: 'أسلوب', classical: '风' },
+            // === DESCRIPTORS / ADJECTIVES ===
+            { zh: '美丽的', en: 'beautiful', jp: '美しい', es: 'hermoso', ar: 'جميل', classical: '秀美之' },
+            { zh: '美丽', en: 'beautiful', jp: '美しい', es: 'hermoso', ar: 'جميل', classical: '秀美' },
+            { zh: '漂亮', en: 'pretty', jp: 'きれいな', es: 'bonito', ar: 'جميل', classical: '美' },
+            { zh: '专业', en: 'professional', jp: 'プロフェッショナル', es: 'profesional', ar: 'محترف', classical: '精湛' },
+            { zh: '详细', en: 'detailed', jp: 'ディテール豊かな', es: 'detallado', ar: 'مفصل', classical: '详尽' },
+            { zh: '高质量', en: 'high quality', jp: 'ハイクオリティ', es: 'alta calidad', ar: 'جودة عالية', classical: '上乘' },
+            { zh: '精美', en: 'exquisite', jp: '精巧な', es: 'exquisito', ar: 'رائع', classical: '精妙' },
+            { zh: '创意', en: 'creative', jp: 'クリエイティブ', es: 'creativo', ar: 'إبداعي', classical: '新奇' },
+            { zh: '深度', en: 'in-depth', jp: 'ディープ', es: 'profundo', ar: 'عميق', classical: '深邃' },
+            { zh: '全面', en: 'comprehensive', jp: 'コンプリヘンシブ', es: 'completo', ar: 'شامل', classical: '周全' },
+            { zh: '清晰', en: 'clear', jp: 'クリア', es: 'claro', ar: 'واضح', classical: '明晰' },
+            { zh: '丰富', en: 'rich', jp: 'リッチ', es: 'rico', ar: 'غني', classical: '丰饶' },
+            { zh: '温暖', en: 'warm', jp: 'ウォーム', es: 'cálido', ar: 'دافئ', classical: '温煦' },
+            { zh: '明亮', en: 'bright', jp: 'ブライト', es: 'brillante', ar: 'مشرق', classical: '明亮' },
+            { zh: '柔和', en: 'soft', jp: 'ソフト', es: 'suave', ar: 'ناعم', classical: '柔和' },
+            { zh: '强烈', en: 'intense', jp: 'インテンス', es: 'intenso', ar: 'شديد', classical: '浓烈' },
+            { zh: '优雅', en: 'elegant', jp: 'エレガント', es: 'elegante', ar: 'أنيق', classical: '雅致' },
+            { zh: '独特', en: 'unique', jp: 'ユニーク', es: 'único', ar: 'فريد', classical: '独特' },
+            { zh: '自然', en: 'natural', jp: 'ナチュラル', es: 'natural', ar: 'طبيعي', classical: '天然' },
+            { zh: '古典', en: 'classical', jp: 'クラシック', es: 'clásico', ar: 'كلاسيكي', classical: '古雅' },
+            { zh: '现代', en: 'modern', jp: 'モダン', es: 'moderno', ar: 'حديث', classical: '当世' },
+            { zh: '壮观', en: 'spectacular', jp: 'スペクタクル', es: 'espectacular', ar: 'مذهل', classical: '壮丽' },
+            { zh: '神秘', en: 'mysterious', jp: 'ミステリアス', es: 'misterioso', ar: 'غامض', classical: '幽秘' },
+            { zh: '浪漫', en: 'romantic', jp: 'ロマンチック', es: 'romántico', ar: 'رومانسي', classical: '浪漫' },
+            { zh: '可爱', en: 'cute', jp: 'かわいい', es: 'lindo', ar: 'لطيف', classical: '可爱' },
+            { zh: '简洁', en: 'concise', jp: 'コンサイス', es: 'conciso', ar: 'موجز', classical: '简洁' },
+            { zh: '高级', en: 'premium', jp: 'プレミアム', es: 'premium', ar: 'فاخر', classical: '上品' },
+            // === TOPICS / DOMAINS ===
+            { zh: '人工智能', en: 'artificial intelligence', jp: 'AI人工知能', es: 'inteligencia artificial', ar: 'الذكاء الاصطناعي', classical: '人工智能' },
+            { zh: '未来发展', en: 'future development', jp: '未来の発展', es: 'desarrollo futuro', ar: 'التطور المستقبلي', classical: '未来之发展' },
+            { zh: '未来', en: 'future', jp: 'フューチャー', es: 'futuro', ar: 'المستقبل', classical: '未来' },
+            { zh: '发展', en: 'development', jp: 'デベロップメント', es: 'desarrollo', ar: 'تطور', classical: '发展' },
+            { zh: '科技', en: 'technology', jp: 'テクノロジー', es: 'tecnología', ar: 'تكنولوجيا', classical: '科技' },
+            { zh: '教育', en: 'education', jp: 'エデュケーション', es: 'educación', ar: 'تعليم', classical: '教育' },
+            { zh: '健康', en: 'health', jp: 'ヘルス', es: 'salud', ar: 'صحة', classical: '康健' },
+            { zh: '商业', en: 'business', jp: 'ビジネス', es: 'negocio', ar: 'أعمال', classical: '商业' },
+            { zh: '艺术', en: 'art', jp: 'アート', es: 'arte', ar: 'فن', classical: '艺术' },
+            { zh: '历史', en: 'history', jp: 'ヒストリー', es: 'historia', ar: 'تاريخ', classical: '史' },
+            { zh: '文化', en: 'culture', jp: 'カルチャー', es: 'cultura', ar: 'ثقافة', classical: '文化' },
+            { zh: '经济', en: 'economy', jp: 'エコノミー', es: 'economía', ar: 'اقتصاد', classical: '经济' },
+            { zh: '社会', en: 'society', jp: 'ソサエティ', es: 'sociedad', ar: 'مجتمع', classical: '社会' },
+            { zh: '旅行', en: 'travel', jp: 'トラベル', es: 'viaje', ar: 'سفر', classical: '游历' },
+            { zh: '环境', en: 'environment', jp: 'エンバイロメント', es: 'medio ambiente', ar: 'بيئة', classical: '环境' },
+            // === VISUAL / IMAGE-SPECIFIC ===
+            { zh: '光影', en: 'lighting', jp: 'ライティング', es: 'iluminación', ar: 'إضاءة', classical: '光影' },
+            { zh: '色彩', en: 'colors', jp: 'カラー', es: 'colores', ar: 'ألوان', classical: '色彩' },
+            { zh: '构图', en: 'composition', jp: 'コンポジション', es: 'composición', ar: 'تكوين', classical: '构图' },
+            { zh: '细节', en: 'details', jp: 'ディテール', es: 'detalles', ar: 'تفاصيل', classical: '细节' },
+            { zh: '画面', en: 'visual', jp: 'ビジュアル', es: 'visual', ar: 'مرئي', classical: '画面' },
+            { zh: '氛围', en: 'atmosphere', jp: 'アトモスフィア', es: 'atmósfera', ar: 'أجواء', classical: '氛围' },
+            { zh: '质感', en: 'texture', jp: 'テクスチャ', es: 'textura', ar: 'ملمس', classical: '质感' },
+            { zh: '女孩', en: 'girl', jp: '女の子', es: 'chica', ar: 'فتاة', classical: '少女' },
+            { zh: '男孩', en: 'boy', jp: '男の子', es: 'chico', ar: 'فتى', classical: '少年' },
+            { zh: '女人', en: 'woman', jp: '女性', es: 'mujer', ar: 'امرأة', classical: '女子' },
+            { zh: '男人', en: 'man', jp: '男性', es: 'hombre', ar: 'رجل', classical: '男子' },
+            { zh: '孩子', en: 'child', jp: '子供', es: 'niño', ar: 'طفل', classical: '童' },
+            { zh: '猫', en: 'cat', jp: 'ネコ', es: 'gato', ar: 'قطة', classical: '猫' },
+            { zh: '狗', en: 'dog', jp: 'イヌ', es: 'perro', ar: 'كلب', classical: '犬' },
+            { zh: '花', en: 'flower', jp: 'フラワー', es: 'flor', ar: 'زهرة', classical: '花' },
+            { zh: '树', en: 'tree', jp: 'ツリー', es: 'árbol', ar: 'شجرة', classical: '木' },
+            { zh: '水', en: 'water', jp: 'ウォーター', es: 'agua', ar: 'ماء', classical: '水' },
+            { zh: '雪', en: 'snow', jp: 'スノー', es: 'nieve', ar: 'ثلج', classical: '雪' },
+            { zh: '雨', en: 'rain', jp: 'レイン', es: 'lluvia', ar: 'مطر', classical: '雨' },
+            // === CONNECTORS / QUANTIFIERS ===
+            { zh: '一张', en: 'a', jp: '一枚の', es: 'una', ar: '', classical: '一幅' },
+            { zh: '一篇', en: 'an', jp: '一つの', es: 'un', ar: '', classical: '一篇' },
+            { zh: '一个', en: 'a', jp: 'ひとつの', es: 'un', ar: '', classical: '一' },
+            { zh: '关于', en: 'about', jp: 'についての', es: 'sobre', ar: 'حول', classical: '关乎' },
+            { zh: '非常', en: 'very', jp: 'とても', es: 'muy', ar: 'جداً', classical: '甚' },
+            { zh: '以及', en: 'and also', jp: 'および', es: 'y también', ar: 'وكذلك', classical: '及' },
+            { zh: '但是', en: 'but', jp: 'しかし', es: 'pero', ar: 'لكن', classical: '然而' },
+            { zh: '如果', en: 'if', jp: 'もし', es: 'si', ar: 'إذا', classical: '若' },
+            { zh: '因为', en: 'because', jp: 'なぜなら', es: 'porque', ar: 'لأن', classical: '盖因' },
+            { zh: '或者', en: 'or', jp: 'または', es: 'o', ar: 'أو', classical: '或' },
+            { zh: '需要', en: 'need', jp: 'ニーズ', es: 'necesitar', ar: 'يحتاج', classical: '须' },
+            { zh: '包含', en: 'include', jp: 'インクルード', es: 'incluir', ar: 'يتضمن', classical: '含' },
+            { zh: '使用', en: 'use', jp: 'ユーズ', es: 'usar', ar: 'استخدام', classical: '用' },
+            { zh: '具有', en: 'with', jp: '持つ', es: 'con', ar: 'ذو', classical: '具' },
+        ];
+
+        // Sort dictionary by Chinese key length descending (longest match first)
+        const sortedDict = [...wordDict].sort((a, b) => b.zh.length - a.zh.length);
+
+        // =====================================================
+        // CORE: Word-Level Multilingual Mixing Function
+        // Scans text for known words, replaces each with a
+        // different target language, cycling through:
+        // English → Japanese → Spanish → Arabic → Classical Chinese
+        // =====================================================
+        function mixSentence(text) {
+            const targetLangsForZh = ['en', 'jp', 'es', 'ar', 'classical'];
+            const targetLangsForEn = ['zh', 'jp', 'es', 'ar', 'classical'];
+            let langIdx = 0;
+
+            // Phase 1: Find all non-overlapping matches
+            const matches = [];
+            for (const entry of sortedDict) {
+                // Try Chinese match
+                if (entry.zh) {
+                    const idx = text.indexOf(entry.zh);
+                    if (idx !== -1) {
+                        const overlap = matches.some(m => idx < m.end && idx + entry.zh.length > m.start);
+                        if (!overlap) {
+                            matches.push({ start: idx, end: idx + entry.zh.length, entry: entry, srcLang: 'zh' });
+                        }
+                        continue;
+                    }
+                }
+                // Try English match (case-insensitive)
+                if (entry.en) {
+                    const lowerText = text.toLowerCase();
+                    const lowerEn = entry.en.toLowerCase();
+                    const idx = lowerText.indexOf(lowerEn);
+                    if (idx !== -1) {
+                        const overlap = matches.some(m => idx < m.end && idx + entry.en.length > m.start);
+                        if (!overlap) {
+                            matches.push({ start: idx, end: idx + entry.en.length, entry: entry, srcLang: 'en' });
+                        }
+                    }
+                }
             }
+
+            // Phase 2: Sort by position, assign target languages
+            matches.sort((a, b) => a.start - b.start);
+            for (const m of matches) {
+                const langs = m.srcLang === 'zh' ? targetLangsForZh : targetLangsForEn;
+                const lang = langs[langIdx % langs.length];
+                m.replacement = m.entry[lang];
+                // Fallback if target language is missing
+                if (!m.replacement) {
+                    m.replacement = m.srcLang === 'zh' ? (m.entry.en || m.entry.zh) : (m.entry.zh || m.entry.en);
+                }
+                langIdx++;
+            }
+
+            // Phase 3: Apply replacements right-to-left to preserve positions
+            let result = text;
+            for (let i = matches.length - 1; i >= 0; i--) {
+                const m = matches[i];
+                result = result.substring(0, m.start) + m.replacement + result.substring(m.end);
+            }
+
+            return { text: result, matchCount: matches.length };
+        }
+
+        // ========== Mode Configuration (simplified for mixed approach) ==========
+        const modeConfig = {
+            general: { isActionMode: false },
+            imageGen: { isActionMode: true },
+            creative: { isActionMode: false },
+            technical: { isActionMode: false },
+            academic: { isActionMode: false },
+            business: { isActionMode: false },
+            persuasive: { isActionMode: false }
         };
+
+        // ========== Domain Detection ==========
+        const domainPatterns = [
+            { regex: imageKeywordRegex, domain: 'visual art视觉アート' },
+            { regex: /编程|代码|程序|开发|软件|API|bug|算法|架构|code|program|develop|software|engineer|debug/i, domain: 'technology技术テクノロジー' },
+            { regex: /文章|写作|故事|小说|诗|散文|write|story|novel|essay|article|blog|creative/i, domain: 'writing写作ライティング' },
+            { regex: /商业|营销|市场|品牌|策略|business|market|brand|strateg|sales|revenue/i, domain: 'businessビジネス商业' },
+            { regex: /研究|论文|学术|分析|数据|research|paper|academic|analys|study|thesis/i, domain: 'academic学术アカデミック' },
+            { regex: /教学|学习|课程|教育|teach|learn|course|education|tutorial|explain/i, domain: 'education教育エデュケーション' },
+            { regex: /设计|UI|UX|界面|用户体验|design|interface|layout|visual|graphic/i, domain: 'designデザイン设计' },
+            { regex: /翻译|语言|translate|language|locali/i, domain: 'language翻訳traducción' },
+            { regex: /健康|医疗|养生|health|medic|fitness|diet|nutrition/i, domain: 'healthヘルス健康' }
+        ];
+
+        function extractDomain(text) {
+            for (const pattern of domainPatterns) {
+                if (pattern.regex.test(text)) return pattern.domain;
+            }
+            return 'general総合ジェネラル';
+        }
 
         // ========== Prompt Generator ==========
         function optimizePrompt() {
@@ -587,241 +759,124 @@
 
             const mode = modeSelect.value;
             const config = modeConfig[mode];
-
-            // Detect the domain/topic from the user's input
             const domain = extractDomain(input);
 
-            // Build the multilingual optimized prompt
-            const optimized = buildOptimizedPrompt(input, config, domain);
+            const optimized = buildOptimizedPrompt(input, config, domain, mode);
 
-            // Show output
             optimizedOutput.value = optimized;
             outputCard.style.display = 'block';
             outputCharCount.textContent = optimized.length + ' characters';
-            showStatus('✅ 优化完成！复制下方内容粘贴到任意AI模型中使用 / Optimization complete! Copy and paste into any AI model.', 'success');
-
-            // Scroll to output
+            showStatus('✅ 词级多语混合完成！每个词已被替换为不同语言 / Word-level mixing complete! Copy and paste into any AI.', 'success');
             outputCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // Pre-compiled domain detection regexes for performance
-        // Note: image domain reuses the shared imageKeywordRegex to avoid duplication
-        const domainPatterns = [
-            { regex: imageKeywordRegex, domain: '视觉艺术与图像生成 / Visual Art & Image Generation' },
-            { regex: /编程|代码|程序|开发|软件|API|bug|算法|架构|code|program|develop|software|engineer|debug/i, domain: '技术与编程 / Technology & Programming' },
-            { regex: /文章|写作|故事|小说|诗|散文|write|story|novel|essay|article|blog|creative/i, domain: '写作与创意 / Writing & Creative' },
-            { regex: /商业|营销|市场|品牌|策略|business|market|brand|strateg|sales|revenue/i, domain: '商业与营销 / Business & Marketing' },
-            { regex: /研究|论文|学术|分析|数据|research|paper|academic|analys|study|thesis/i, domain: '学术与研究 / Academic & Research' },
-            { regex: /教学|学习|课程|教育|teach|learn|course|education|tutorial|explain/i, domain: '教育与学习 / Education & Learning' },
-            { regex: /设计|UI|UX|界面|用户体验|design|interface|layout|visual|graphic/i, domain: '设计与体验 / Design & UX' },
-            { regex: /翻译|语言|translate|language|locali/i, domain: '语言与翻译 / Language & Translation' },
-            { regex: /健康|医疗|养生|health|medic|fitness|diet|nutrition/i, domain: '健康与医疗 / Health & Medical' }
-        ];
-
-        function extractDomain(text) {
-            for (const pattern of domainPatterns) {
-                if (pattern.regex.test(text)) return pattern.domain;
-            }
-            return '综合领域 / General Domain';
-        }
-
-        function buildOptimizedPrompt(userText, config, domain) {
-            const mode = modeSelect.value;
-            // Sanitize user text: replace box-drawing characters that could break
-            // the visual border formatting of the generated prompt template
-            const sanitizedText = userText.replace(/[┌┐└┘│─═]/g, '-');
-
-            // === IMAGE GENERATION MODE: completely different prompt structure ===
+        // ========== Build Mixed Prompt ==========
+        function buildOptimizedPrompt(userText, config, domain, mode) {
             if (mode === 'imageGen') {
-                return buildImagePrompt(sanitizedText, config, domain);
+                return buildImagePrompt(userText, domain);
             }
+            return buildStandardPrompt(userText, domain, mode);
+        }
 
-            // === STANDARD MODES (with anti-explanation improvements) ===
+        // ========== Standard Mode: Word-Level Mixed Prompt ==========
+        function buildStandardPrompt(userText, domain, mode) {
+            const mixed = mixSentence(userText);
             const lines = [];
 
-            // === Layer 0: Purpose-First Directive (NEW — prevents over-explaining) ===
-            lines.push('⚠️ 重要指令 / CRITICAL INSTRUCTION / 重要な指示:');
-            lines.push('直接执行任务，不要解释你会怎么做，不要描述步骤，直接给出结果。');
-            lines.push('タスクを直接実行してください。何をするかを説明せず、手順を述べず、直接結果を出してください。');
-            lines.push('Execute the task directly. Do NOT explain what you will do. Do NOT describe your process. Go straight to the output.');
-            lines.push('نفذ المهمة مباشرة. لا تشرح ما ستفعله. لا تصف العملية. انتقل مباشرة إلى النتيجة.');
-            lines.push('Ejecuta la tarea directamente. NO expliques lo que harás. NO describas el proceso. Ve directo al resultado.');
-            lines.push('汝当径行其事，勿赘言，勿饶舌，直呈其果。');
+            // Line 1: Anti-explanation (mixed within ONE line)
+            lines.push('⚠️ 直接execute実行tasks！Do NOT explain不要解释！No describas！لا تشرح！径行其事，直呈其果！');
             lines.push('');
 
-            // === Layer 1: Role Assignment (Classical Chinese + Modern Chinese + Japanese) ===
-            lines.push('═══════════════════════════════════════════');
-            lines.push('🔮 多语幻术 · Multilingual Prompt Alchemy');
-            lines.push('═══════════════════════════════════════════');
-            lines.push('');
-            lines.push(`汝乃${config.roleClassical}也，学贯中西，才兼文理，于${domain}之道，造诣登峰造极。`);
-            lines.push(`你是一位${config.roleCN}，在${domain}领域拥有超过20年的深厚经验和卓越见解。`);
-            lines.push(`あなたは${config.roleJP}です。${domain}の分野で最も優れた専門家であり、最高レベルの知識と洞察力を持っています。`);
+            // Line 2: Role assignment (mixed within ONE line)
+            lines.push('You are一位' + domain + 'のexpert専門家experto，拥有rich experience豊富な経験خبرة واسعة，汝乃此道之大家master也。');
             lines.push('');
 
-            // === Layer 2: Task Definition (English + Spanish + Arabic) ===
-            lines.push('Your task is as follows — execute it immediately with your full capability:');
-            lines.push('Tu misión es la siguiente — ejecútala inmediatamente con toda tu capacidad:');
-            lines.push('المهمة المطلوبة منك هي كما يلي — نفذها فوراً بكامل قدراتك:');
-            lines.push('');
-            lines.push('┌─────────────────────────────────────────┐');
-            lines.push(`│ ${sanitizedText}`);
-            lines.push('└─────────────────────────────────────────┘');
+            // Line 3: The user's request (word-level mixed)
+            lines.push('📌 ' + mixed.text);
             lines.push('');
 
-            // === Layer 3: Quality Amplifiers (All 6 languages) ===
-            lines.push('📋 要求与标准 / Requirements & Standards / 要件と基準:');
-            lines.push('');
-            lines.push(`① 请确保回答${config.qualityCN}。每个要点都必须有充分的解释和具体示例。`);
-            lines.push(`② ${config.qualityJP}回答を提供してください。すべてのポイントに十分な説明と具体例を含めてください。`);
-            lines.push(`③ Ensure your response is ${config.qualityEN}. Every point must include thorough explanations and concrete examples.`);
-            lines.push(`④ 汝当以${config.qualityClassical}之准则行文，字字珠玑，句句精辟，不可敷衍了事。`);
-            lines.push(`⑤ Asegúrate de que tu respuesta sea ${config.qualityES}. Cada punto debe incluir explicaciones completas y ejemplos concretos.`);
-            lines.push(`⑥ تأكد من أن إجابتك ${config.qualityAR}. يجب أن تتضمن كل نقطة شرحاً وافياً وأمثلة ملموسة.`);
-            lines.push('');
-
-            // === Layer 4: Format Instructions (Mixed) ===
-            lines.push('📐 输出格式 / Output Format / 出力フォーマット:');
-            lines.push('');
-
-            // Mode-specific format instructions
-            const formatInstructions = getFormatInstructions(mode);
-            for (const instruction of formatInstructions) {
-                lines.push(instruction);
+            // Lines 4-6: Mode-specific mixed amplifiers
+            const amplifiers = getMixedAmplifiers(mode);
+            for (const amp of amplifiers) {
+                lines.push(amp);
             }
             lines.push('');
 
-            // === Layer 5: Final Amplifier with Anti-Explanation (All languages) ===
-            lines.push('═══════════════════════════════════════════');
-            lines.push('⚡ 最终要求 / Final Requirements / 最終要件:');
-            lines.push('');
-            lines.push('请竭尽全力，给出你能力范围内最好的回答。不要偷懒，不要省略，不要给出泛泛而谈的内容。');
-            lines.push('全力を尽くして、あなたの能力の範囲内で最高の回答を提供してください。手を抜かず、省略せず、一般的な内容で済ませないでください。');
-            lines.push('Give your absolute best response. Do not cut corners, do not omit details, do not give generic answers.');
-            lines.push('汝当殚精竭虑，倾尽平生所学，以最精妙绝伦之辞章应之。切不可草率敷衍，有负所托。');
-            lines.push('Da tu mejor respuesta absoluta. No tomes atajos, no omitas detalles, no des respuestas genéricas.');
-            lines.push('قدم أفضل إجابة ممكنة. لا تختصر، لا تحذف التفاصيل، لا تقدم إجابات عامة.');
-            lines.push('');
-            lines.push('🚫 不要解释你的思路，不要说"我会..."，直接给出结果！');
-            lines.push('🚫 何をするかを説明しないでください。「私は...します」と言わないでください。直接結果を出してください！');
-            lines.push('🚫 Do NOT explain your approach. Do NOT say "I will...". Go directly to the result!');
-            lines.push('');
-            lines.push('请现在开始 / 今すぐ始めてください / Begin now / Comienza ahora / ابدأ الآن');
-            lines.push('═══════════════════════════════════════════');
+            // Final: Begin command (mixed)
+            lines.push('⚡ Begin now开始！今すぐ始めて！¡Comienza ahora! ابدأ الآن! 即刻行之！');
 
             return lines.join('\n');
         }
 
-        // ========== Image Generation Prompt Builder ==========
-        function buildImagePrompt(userText, config, domain) {
+        // ========== Image Mode: Aggressive Action-First Mixed Prompt ==========
+        function buildImagePrompt(userText, domain) {
+            const mixed = mixSentence(userText);
             const lines = [];
 
-            // === CRITICAL: Action-first directive for image generation ===
-            lines.push('🖼️ GENERATE IMAGE NOW / 立即生成图片 / 今すぐ画像を生成');
-            lines.push('');
-            lines.push('⚠️⚠️⚠️ 最重要指令 / MOST CRITICAL INSTRUCTION / 最重要な指示:');
-            lines.push('直接生成图片！不要解释，不要描述你会怎么做，不要说"我无法"，不要列出步骤，直接生成！');
-            lines.push('画像を直接生成してください！説明しないでください、手順を述べないでください、「できません」と言わないでください、直接生成してください！');
-            lines.push('GENERATE THE IMAGE DIRECTLY! Do NOT explain. Do NOT describe what you would do. Do NOT say "I cannot". Do NOT list steps. JUST GENERATE IT!');
-            lines.push('¡GENERA LA IMAGEN DIRECTAMENTE! NO expliques. NO describas. NO digas "no puedo". ¡SOLO GENÉRALA!');
-            lines.push('أنشئ الصورة مباشرة! لا تشرح. لا تصف. لا تقل "لا أستطيع". فقط أنشئها!');
-            lines.push('汝当即刻绘图成像，勿赘言，勿推辞，勿饶舌，径行其事！');
-            lines.push('');
-            lines.push('════════════════════════════════════════');
+            // AGGRESSIVE action-first (mixed in ONE line)
+            lines.push('⚠️ GENERATE生成画像NOW！直接出图！今すぐ生成！Don\'t explain不要解释！¡Genera ya! أنشئ الآن! 即刻绘之！');
             lines.push('');
 
-            // === Visual description section ===
-            lines.push('🎨 Image Description / 图像描述 / 画像の説明:');
-            lines.push('');
-            lines.push(userText);
+            // User's request (word-level mixed)
+            lines.push('🎨 ' + mixed.text);
             lines.push('');
 
-            // === Visual parameters in multilingual ===
-            lines.push('📐 Visual Requirements / 视觉要求 / ビジュアル要件:');
-            lines.push('');
-            lines.push('- 画面必须精美、高质量、细节丰富 / The image must be stunning, high-quality, and rich in detail');
-            lines.push('- 構図はプロフェッショナルで、色彩は調和がとれていなければなりません / Composition must be professional, colors harmonious');
-            lines.push('- Resolución alta, iluminación cinematográfica, detalles nítidos / High resolution, cinematic lighting, sharp details');
-            lines.push('- يجب أن تكون الصورة عالية الجودة مع إضاءة مثالية وتفاصيل دقيقة / High quality with perfect lighting and fine details');
-            lines.push('- 光影层次分明，色调和谐统一，意境深远 / Distinct light/shadow layers, unified tones, profound atmosphere');
-            lines.push('- 画当精妙传神，笔触细腻，栩栩如生 / The image should be vivid, exquisite, and lifelike');
+            // Visual quality amplifiers (mixed within each line)
+            lines.push('画面须stunning美しいmasterpiece傑作，光影cinematic映画的iluminación cinematográfica إضاءة سينمائية');
+            lines.push('色彩vivid鮮やかcolores ricos ألوان زاهية 斑斓，details细节ディテール detalles rich豊か精妙');
+            lines.push('8K ultra-high resolution超高清解像度resolución فائق الدقة，photorealistic写実的realista واقعي');
+            lines.push('professional composition構図プロcomposición profesional تكوين محترف，此画当栩栩如生lifelike');
             lines.push('');
 
-            // === Style hints ===
-            lines.push('🎭 Style / 风格 / スタイル:');
-            lines.push('- 8K ultra-high resolution, photorealistic, masterpiece quality');
-            lines.push('- 超高清8K画质，照片级写实，大师级作品');
-            lines.push('- 8K超高解像度、フォトリアリスティック、マスターピースクオリティ');
-            lines.push('');
-
-            // === Final action command ===
-            lines.push('════════════════════════════════════════');
-            lines.push('⚡ 立即生成这张图片！不要回复任何文字说明！');
-            lines.push('⚡ 今すぐこの画像を生成してください！テキストの説明を返さないでください！');
-            lines.push('⚡ GENERATE THIS IMAGE NOW! Do NOT reply with any text explanation!');
-            lines.push('⚡ ¡GENERA ESTA IMAGEN AHORA! ¡NO respondas con texto!');
-            lines.push('⚡ أنشئ هذه الصورة الآن! لا ترد بأي نص!');
-            lines.push('⚡ 即刻成像！勿以文字作答！');
-            lines.push('════════════════════════════════════════');
+            // Final generate command (mixed)
+            lines.push('⚡ 直接output this image画像を出力！No text reply文字なし！即刻成像generate now！¡Solo imagen! فقط صورة!');
 
             return lines.join('\n');
         }
 
-        function getFormatInstructions(mode) {
+        // ========== Mode-Specific Mixed-Language Amplifiers ==========
+        function getMixedAmplifiers(mode) {
             switch (mode) {
-                case 'imageGen':
-                    return [
-                        '- 直接生成图片，不要输出任何文字 / Generate the image directly, do not output any text',
-                        '- 画面构图专业，光线完美 / Professional composition, perfect lighting',
-                        '- 色彩丰富和谐，细节精致 / Rich harmonious colors, exquisite details',
-                        '- 8K超高清画质 / 8K ultra-high resolution quality'
-                    ];
                 case 'creative':
                     return [
-                        '- 使用生动的语言和丰富的意象 / Use vivid language and rich imagery',
-                        '- 注重情感表达和氛围营造 / Focus on emotional expression and atmosphere',
-                        '- 结构可以灵活，但要有内在逻辑 / Structure can be flexible but maintain internal logic',
-                        '- 加入独特的观点和出人意料的转折 / Include unique perspectives and unexpected turns'
+                        '须imagination豊かな想象力imaginación创意creative إبداعي，文笔beautiful美しいhermoso优美',
+                        '情感emotional感情的emocional丰沛rich غني，结构flexible柔軟な with internal logic逻辑',
+                        '加入unique独特ユニークperspectives观点視点，出人意料unexpected转折giros inesperados'
                     ];
                 case 'technical':
                     return [
-                        '- 提供完整的、可直接运行的代码 / Provide complete, runnable code',
-                        '- 包含详细的注释和解释 / Include detailed comments and explanations',
-                        '- 说明技术选型的理由 / Explain the reasoning behind technical choices',
-                        '- 考虑边界情况和错误处理 / Consider edge cases and error handling',
-                        '- 遵循最佳实践和设计模式 / Follow best practices and design patterns'
+                        '代码须complete完整コンプリート runnable可运行実行可能な ejecutable，include注释コメントcomentarios',
+                        '架构cleanクリーンlimpia明確，best practicesベストプラクティスmejores prácticas最佳实践أفضل الممارسات',
+                        '考虑edge casesエッジケースcasos límite边界حالات حدودية，error handling错误処理manejo de errores'
                     ];
                 case 'academic':
                     return [
-                        '- 使用学术规范的语言和格式 / Use academic language and formatting',
-                        '- 提供可靠的数据和引用来源 / Provide reliable data and citation sources',
-                        '- 包含文献综述和对比分析 / Include literature review and comparative analysis',
-                        '- 论证逻辑严密，结论有据可依 / Ensure rigorous logic and evidence-based conclusions'
+                        '论证须rigorous严密厳密なriguroso صارم，citations引用citation可靠reliable confiable',
+                        '分析deep深いprofundo عميق in-depth，logic逻辑論理的lógica清晰clear明確 واضح',
+                        '包含literature review文献综述レビュー revisión bibliográfica，対比comparative analysis比较分析'
                     ];
                 case 'business':
                     return [
-                        '- 使用专业的商业语言 / Use professional business language',
-                        '- 包含数据分析和市场洞察 / Include data analysis and market insights',
-                        '- 提供可执行的策略建议 / Provide actionable strategic recommendations',
-                        '- 考虑ROI和可行性 / Consider ROI and feasibility'
+                        '须data-drivenデータ駆動basado en datos数据驱动，insights洞察インサイトperspicaz عميق',
+                        'strategies策略ストラテジーestrategias actionable可行実行可能accionables قابلة للتنفيذ',
+                        '考虑ROI投资回报率リターン retorno العائد，feasibility可行性実現可能性factibilidad'
                     ];
                 case 'persuasive':
                     return [
-                        '- 使用有说服力的论证结构 / Use persuasive argument structure',
-                        '- 结合逻辑论证和情感诉求 / Combine logical reasoning and emotional appeal',
-                        '- 提供具体的证据和案例 / Provide specific evidence and case studies',
-                        '- 包含明确的行动号召 / Include clear calls to action'
+                        '须persuasive有说服力説得力のあるpersuasivo مقنع，logic逻辑厳密rigorous estricto',
+                        '结合emotional情感emotionalアピール appeal訴求 atractivo جاذبية عاطفية',
+                        '包含evidence证据エビデンス evidencia أدلة，clear calls to action行动号召力强い llamadas a la acción'
                     ];
                 default: // general
                     return [
-                        '- 使用清晰的标题和小标题组织内容 / Organize with clear headings and subheadings',
-                        '- 每个要点配以具体实例说明 / Support each point with concrete examples',
-                        '- 内容要有深度，避免浮于表面 / Content must have depth, avoid being superficial',
-                        '- 结尾提供总结和可行建议 / End with a summary and actionable suggestions'
+                        '内容须comprehensive全面コンプリヘンシブcompleto شامل，有depth深度profundidad عمق',
+                        '每point要有concrete具体examples例えばejemplos أمثلة practical実用的，avoid泛泛superficial',
+                        '结尾provide总结summaryサマリーresumen，加actionable可行建议suggestionsおすすめ'
                     ];
             }
         }
 
+        // ========== Copy / Clear Functions ==========
         function copyOutput() {
             const text = optimizedOutput.value;
             if (!text) {
@@ -831,7 +886,7 @@
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(function () {
-                    showStatus('✅ 已复制到剪贴板！现在可以粘贴到任意AI模型中使用 / Copied! Paste into any AI model now.', 'success');
+                    showStatus('✅ 已复制到剪贴板！粘贴到AI模型中使用 / Copied! Paste into any AI model.', 'success');
                 }).catch(function () {
                     fallbackCopy();
                 });
