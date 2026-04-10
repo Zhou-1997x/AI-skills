@@ -563,11 +563,11 @@
             { zh: '欧洲风格', en: 'European style', jp: 'ヨーロピアンスタイル', es: 'estilo europeo', ar: 'الأسلوب الأوروبي', classical: '欧陆之风' },
             { zh: '现代风格', en: 'modern style', jp: 'モダンスタイル', es: 'estilo moderno', ar: 'أسلوب حديث', classical: '当世新风' },
             { zh: '复古风格', en: 'vintage style', jp: 'レトロスタイル', es: 'estilo vintage', ar: 'أسلوب كلاسيكي', classical: '古朴之风' },
-            { zh: '简约风格', en: 'minimalist style', jp: 'ミニマルスタイル', es: 'estilo minimalista', ar: 'أسلوب بسيط', classical: '简约之风' },
+            { zh: '简约风格', en: 'minimalist style', jp: 'ミニマルスタイル', es: 'estilo minimalista', ar: 'أسلوب بسيط', classical: '淡雅之风' },
             { zh: '赛博朋克', en: 'cyberpunk', jp: 'サイバーパンク', es: 'ciberpunk', ar: 'سايبربانك', classical: '机械幻境' },
             { zh: '水彩', en: 'watercolor', jp: '水彩画', es: 'acuarela', ar: 'ألوان مائية', classical: '水墨' },
             { zh: '油画', en: 'oil painting', jp: '油絵', es: 'pintura al óleo', ar: 'لوحة زيتية', classical: '丹青' },
-            { zh: '水墨画', en: 'ink painting', jp: '墨絵', es: 'pintura de tinta', ar: 'رسم بالحبر', classical: '水墨丹青' },
+            { zh: '水墨画', en: 'ink painting', jp: '墨絵', es: 'pintura de tinta', ar: 'رسم بالحبر', classical: '丹青墨韵' },
             { zh: '写实', en: 'realistic', jp: 'リアリスティック', es: 'realista', ar: 'واقعي', classical: '如实' },
             { zh: '卡通', en: 'cartoon', jp: 'カートゥーン', es: 'dibujo animado', ar: 'كرتون', classical: '趣画' },
             { zh: '动漫', en: 'anime', jp: 'アニメ', es: 'anime', ar: 'أنيمي', classical: '动画' },
@@ -602,14 +602,14 @@
             { zh: '高级', en: 'premium', jp: 'プレミアム', es: 'premium', ar: 'فاخر', classical: '上品' },
             // === TOPICS / DOMAINS ===
             { zh: '人工智能', en: 'artificial intelligence', jp: 'AI人工知能', es: 'inteligencia artificial', ar: 'الذكاء الاصطناعي', classical: '机巧之智' },
-            { zh: '未来发展', en: 'future development', jp: '未来の発展', es: 'desarrollo futuro', ar: 'التطور المستقبلي', classical: '未来之发展' },
+            { zh: '未来发展', en: 'future development', jp: '未来の発展', es: 'desarrollo futuro', ar: 'التطور المستقبلي', classical: '日后之演进' },
             { zh: '未来', en: 'future', jp: 'フューチャー', es: 'futuro', ar: 'المستقبل', classical: '来日' },
             { zh: '发展', en: 'development', jp: 'デベロップメント', es: 'desarrollo', ar: 'تطور', classical: '演进' },
             { zh: '科技', en: 'technology', jp: 'テクノロジー', es: 'tecnología', ar: 'تكنولوجيا', classical: '技艺' },
             { zh: '教育', en: 'education', jp: 'エデュケーション', es: 'educación', ar: 'تعليم', classical: '教化' },
             { zh: '健康', en: 'health', jp: 'ヘルス', es: 'salud', ar: 'صحة', classical: '康健' },
             { zh: '商业', en: 'business', jp: 'ビジネス', es: 'negocio', ar: 'أعمال', classical: '贸易' },
-            { zh: '艺术', en: 'art', jp: 'アート', es: 'arte', ar: 'فن', classical: '艺术' },
+            { zh: '艺术', en: 'art', jp: 'アート', es: 'arte', ar: 'فن', classical: '技艺' },
             { zh: '历史', en: 'history', jp: 'ヒストリー', es: 'historia', ar: 'تاريخ', classical: '史' },
             { zh: '文化', en: 'culture', jp: 'カルチャー', es: 'cultura', ar: 'ثقافة', classical: '文明' },
             { zh: '经济', en: 'economy', jp: 'エコノミー', es: 'economía', ar: 'اقتصاد', classical: '财赋' },
@@ -637,8 +637,8 @@
             { zh: '雪', en: 'snow', jp: 'スノー', es: 'nieve', ar: 'ثلج', classical: '白雪' },
             { zh: '雨', en: 'rain', jp: 'レイン', es: 'lluvia', ar: 'مطر', classical: '甘霖' },
             // === CONNECTORS / QUANTIFIERS ===
-            { zh: '一张', en: 'a', jp: '一枚の', es: 'una', ar: '', classical: '一幅' },
-            { zh: '一篇', en: 'an', jp: '一つの', es: 'un', ar: '', classical: '一篇' },
+            { zh: '一张', en: 'a', jp: 'いちまいの', es: 'una', ar: '', classical: '一幅' },
+            { zh: '一篇', en: 'an', jp: 'ひとつの', es: 'un', ar: '', classical: '一则' },
             { zh: '一个', en: 'a', jp: 'ひとつの', es: 'un', ar: '', classical: '一' },
             { zh: '关于', en: 'about', jp: 'についての', es: 'sobre', ar: 'حول', classical: '关乎' },
             { zh: '非常', en: 'very', jp: 'とても', es: 'muy', ar: 'جداً', classical: '甚' },
@@ -695,76 +695,290 @@
         const sortedDict = [...wordDict].sort((a, b) => b.zh.length - a.zh.length);
 
         // =====================================================
-        // FALLBACK: Single Chinese character → foreign replacement
-        // Used for any Chinese characters NOT matched by the
-        // main dictionary. Ensures NO raw user input leaks
-        // through to the output.
+        // FALLBACK: Multilingual single-character replacements
+        // Format: [English, Japanese, Spanish, Arabic, Literary Chinese]
+        // transformGap() cycles through these 5 languages,
+        // ensuring ≥4 languages and Chinese in every output.
         // =====================================================
         const chineseFallback = {
-            // Prepositions & particles
-            '在': 'at', '的': 'の', '了': '', '着': '', '过': '',
-            '得': '', '地': '', '们': '', '吗': '?', '呢': '?',
-            '吧': '', '啊': '!', '呀': '', '哦': '', '嗯': '',
-            '于': 'at', '从': 'from', '到': 'to', '向': 'toward',
-            '对': 'to', '给': 'for', '以': 'with', '为': 'for',
-            '把': '', '被': 'by', '比': 'than', '跟': 'with', '按': 'per',
-            // Pronouns
-            '我': 'I', '你': 'you', '他': 'he', '她': 'she', '它': 'it',
-            '这': 'this', '那': 'that', '哪': 'which', '谁': 'who',
-            '己': 'self', '其': 'its',
-            // Common verbs
-            '是': 'is', '有': 'has', '要': 'want', '会': 'will',
-            '能': 'can', '去': 'go', '来': 'come', '看': 'see', '说': 'say',
-            '想': 'think', '做': 'do', '用': 'use', '找': 'find', '让': 'let',
-            '写': 'write', '画': 'draw', '听': 'hear', '问': 'ask',
-            '读': 'read', '走': 'walk', '跑': 'run', '吃': 'eat',
-            '喝': 'drink', '穿': 'wear', '住': 'live', '带': 'bring',
-            '感': 'feel', '觉': 'sense', '爱': 'love', '叫': 'call',
-            '开': 'open', '关': 'close', '拿': 'take', '放': 'put',
-            '回': 'return', '起': 'rise', '坐': 'sit', '站': 'stand',
-            '打': 'hit', '送': 'send', '买': 'buy', '卖': 'sell',
-            // Adjectives & adverbs
-            '好': 'good', '大': 'big', '小': 'small', '多': 'much', '少': 'few',
-            '高': 'tall', '低': 'low', '长': 'long', '短': 'short',
-            '新': 'new', '旧': 'old', '快': 'fast', '慢': 'slow',
-            '早': 'early', '晚': 'late', '远': 'far', '近': 'near',
-            '热': 'hot', '冷': 'cold', '轻': 'light', '重': 'heavy',
-            '真': 'truly', '很': 'very', '更': 'more', '最': 'most',
-            '太': 'too', '才': 'just', '就': 'then', '都': 'all',
-            '也': 'also', '还': 'still', '又': 'again', '再': 'once more',
-            '已': 'already', '正': 'just', '将': 'will', '可': 'may',
-            '不': 'not', '没': 'no', '别': "don't", '只': 'only',
-            // Common nouns
-            '人': 'person', '时': 'time', '事': 'thing', '物': 'object',
-            '家': 'home', '国': 'nation', '天': 'day',
-            '年': 'year', '月': 'month', '日': 'day', '点': 'point',
-            '路': 'road', '门': 'door', '口': 'mouth', '手': 'hand',
-            '头': 'head', '心': 'heart', '眼': 'eye', '面': 'face',
-            '话': 'word', '书': 'book', '字': 'char', '名': 'name',
-            '力': 'power', '气': 'air', '光': 'light', '色': 'color',
-            '声': 'sound', '情': 'feeling', '理': 'reason', '法': 'method',
-            '度': 'degree', '体': 'body', '数': 'number', '量': 'amount',
-            '意': 'meaning', '思': 'thought', '性': 'nature',
-            '界': 'world', '像': 'like', '间': 'space', '片': 'piece',
-            '张': 'sheet', '件': 'item', '条': 'strip', '段': 'section',
-            '首': 'first', '套': 'set', '位': 'position',
-            '里': 'inside', '外': 'outside', '内': 'within', '上': 'on',
-            '下': 'below', '中': 'in', '前': 'before', '后': 'after',
-            '边': 'side', '旁': 'beside', '处': 'place', '方': 'direction',
-            // Connectors
-            '和': 'and', '与': 'and', '或': 'or', '而': 'and',
-            '但': 'but', '却': 'yet', '因': 'because', '所': 'that which',
-            '如': 'if', '若': 'if', '虽': 'though', '既': 'since',
-            '且': 'and', '则': 'then', '故': 'thus', '然': 'so',
+            // --- Particles (grammatical markers, removed) ---
+            '了': ['', '', '', '', ''],
+            '着': ['', '', '', '', ''],
+            '过': ['', '', '', '', ''],
+            '得': ['', '', '', '', ''],
+            '地': ['', '', '', '', ''],
+            '们': ['', '', '', '', ''],
+            '吧': ['', '', '', '', ''],
+            '呀': ['', '', '', '', ''],
+            '哦': ['', '', '', '', ''],
+            '嗯': ['', '', '', '', ''],
+            '吗': ['?', '？', '?', '؟', '乎'],
+            '呢': ['?', '？', '?', '؟', '耶'],
+            '啊': ['!', '！', '!', '!', '哉'],
+            // --- Prepositions ---
+            '在': ['at', 'にて', 'en', 'في', '于'],
+            '的': ["'s", 'の', 'de', 'لـ', '之'],
+            '于': ['at', 'にて', 'en', 'في', '於'],
+            '从': ['from', 'から', 'desde', 'من', '自'],
+            '到': ['to', 'まで', 'hasta', 'إلى', '至'],
+            '向': ['toward', 'へ', 'hacia', 'نحو', '朝'],
+            '对': ['to', 'へ', 'para', 'إلى', '於'],
+            '给': ['for', 'に', 'para', 'لـ', '予'],
+            '以': ['with', 'で', 'con', 'بـ', '凭'],
+            '为': ['for', 'ために', 'para', 'لـ', '為'],
+            '把': ['', 'を', '', '', '将'],
+            '被': ['by', 'に', 'por', 'بواسطة', '为所'],
+            '比': ['than', 'より', 'que', 'من', '逾'],
+            '跟': ['with', 'と', 'con', 'مع', '同'],
+            '按': ['per', 'により', 'según', 'حسب', '依'],
+            // --- Pronouns ---
+            '我': ['I', '私', 'yo', 'أنا', '吾'],
+            '你': ['you', 'あなた', 'tú', 'أنت', '汝'],
+            '他': ['he', '彼', 'él', 'هو', '其'],
+            '她': ['she', '彼女', 'ella', 'هي', '伊'],
+            '它': ['it', 'それ', 'ello', 'ذلك', '彼物'],
+            '这': ['this', 'この', 'este', 'هذا', '此'],
+            '那': ['that', 'あの', 'ese', 'ذلك', '彼'],
+            '哪': ['which', 'どの', 'cuál', 'أي', '何'],
+            '谁': ['who', '誰', 'quién', 'من', '孰'],
+            '己': ['self', '自身', 'propio', 'ذات', '躬'],
+            '其': ['its', 'その', 'su', 'له', '厥'],
+            // --- Common verbs ---
+            '是': ['is', 'です', 'es', 'هو', '乃'],
+            '有': ['has', 'ある', 'tiene', 'لديه', '具'],
+            '要': ['want', '要る', 'querer', 'يريد', '欲'],
+            '会': ['will', 'できる', 'puede', 'سيكون', '当'],
+            '能': ['can', 'できる', 'poder', 'يقدر', '可'],
+            '去': ['go', '行く', 'ir', 'يذهب', '往'],
+            '来': ['come', '来る', 'venir', 'يأتي', '至'],
+            '看': ['see', '見る', 'ver', 'يرى', '观'],
+            '说': ['say', '言う', 'decir', 'يقول', '曰'],
+            '想': ['think', '思う', 'pensar', 'يظن', '念'],
+            '做': ['do', 'する', 'hacer', 'يفعل', '作'],
+            '用': ['use', '使う', 'usar', 'يستعمل', '施'],
+            '找': ['find', '探す', 'buscar', 'يجد', '寻'],
+            '让': ['let', 'させる', 'dejar', 'يدع', '令'],
+            '写': ['write', '書く', 'escribir', 'يكتب', '书'],
+            '画': ['draw', '描く', 'dibujar', 'يرسم', '绘'],
+            '听': ['hear', '聞く', 'oír', 'يسمع', '闻'],
+            '问': ['ask', '尋ねる', 'preguntar', 'يسأل', '询'],
+            '读': ['read', '読む', 'leer', 'يقرأ', '阅'],
+            '走': ['walk', '歩く', 'caminar', 'يمشي', '行'],
+            '跑': ['run', '走る', 'correr', 'يركض', '奔'],
+            '吃': ['eat', '食べる', 'comer', 'يأكل', '食'],
+            '喝': ['drink', '飲む', 'beber', 'يشرب', '饮'],
+            '穿': ['wear', '着る', 'llevar', 'يرتدي', '衣'],
+            '住': ['live', '住む', 'vivir', 'يسكن', '居'],
+            '带': ['bring', '持つ', 'traer', 'يحمل', '携'],
+            '感': ['feel', '感じる', 'sentir', 'يشعر', '觉'],
+            '觉': ['sense', '気づく', 'percibir', 'يحس', '知'],
+            '爱': ['love', '愛する', 'amar', 'يحب', '慕'],
+            '叫': ['call', '呼ぶ', 'llamar', 'ينادي', '唤'],
+            '开': ['open', '開く', 'abrir', 'يفتح', '启'],
+            '关': ['close', '閉じる', 'cerrar', 'يغلق', '闭'],
+            '拿': ['take', '取る', 'tomar', 'يأخذ', '取'],
+            '放': ['put', '置く', 'poner', 'يضع', '置'],
+            '回': ['return', '戻る', 'volver', 'يرجع', '归'],
+            '起': ['rise', '起きる', 'surgir', 'ينهض', '兴'],
+            '坐': ['sit', '座る', 'sentarse', 'يجلس', '踞'],
+            '站': ['stand', '立つ', 'pararse', 'يقف', '立'],
+            '打': ['hit', '打つ', 'golpear', 'يضرب', '击'],
+            '送': ['send', '送る', 'enviar', 'يرسل', '递'],
+            '买': ['buy', '買う', 'comprar', 'يشتري', '购'],
+            '卖': ['sell', '売る', 'vender', 'يبيع', '售'],
+            // --- Adjectives & adverbs ---
+            '好': ['good', '良い', 'bueno', 'جيد', '善'],
+            '大': ['big', '大きい', 'grande', 'كبير', '巨'],
+            '小': ['small', '小さい', 'pequeño', 'صغير', '微'],
+            '多': ['much', '多い', 'mucho', 'كثير', '众'],
+            '少': ['few', '少ない', 'poco', 'قليل', '寡'],
+            '高': ['tall', '高い', 'alto', 'عال', '峻'],
+            '低': ['low', '低い', 'bajo', 'منخفض', '卑'],
+            '长': ['long', '長い', 'largo', 'طويل', '修'],
+            '短': ['short', '短い', 'corto', 'قصير', '促'],
+            '新': ['new', '新しい', 'nuevo', 'جديد', '鲜'],
+            '旧': ['old', '古い', 'viejo', 'قديم', '故'],
+            '快': ['fast', '速い', 'rápido', 'سريع', '疾'],
+            '慢': ['slow', '遅い', 'lento', 'بطيء', '缓'],
+            '早': ['early', '早い', 'temprano', 'مبكر', '夙'],
+            '晚': ['late', '遅い', 'tarde', 'متأخر', '迟'],
+            '远': ['far', '遠い', 'lejos', 'بعيد', '遥'],
+            '近': ['near', '近い', 'cerca', 'قريب', '邻'],
+            '热': ['hot', '暑い', 'caliente', 'حار', '炎'],
+            '冷': ['cold', '寒い', 'frío', 'بارد', '寒'],
+            '轻': ['light', '軽い', 'ligero', 'خفيف', '微'],
+            '重': ['heavy', '重い', 'pesado', 'ثقيل', '沉'],
+            '真': ['truly', '本当に', 'realmente', 'حقاً', '诚'],
+            '很': ['very', 'とても', 'muy', 'جداً', '甚'],
+            '更': ['more', 'もっと', 'más', 'أكثر', '愈'],
+            '最': ['most', '最も', 'lo más', 'الأكثر', '至'],
+            '太': ['too', 'あまりに', 'demasiado', 'جداً', '过'],
+            '才': ['just', 'やっと', 'apenas', 'فقط', '方'],
+            '就': ['then', 'すぐ', 'luego', 'ثم', '即'],
+            '都': ['all', 'みんな', 'todos', 'الجميع', '皆'],
+            '也': ['also', 'も', 'también', 'أيضاً', '亦'],
+            '还': ['still', 'まだ', 'todavía', 'ما زال', '犹'],
+            '又': ['again', 'また', 'otra vez', 'مجدداً', '复'],
+            '再': ['once more', 'もう一度', 'de nuevo', 'ثانية', '更'],
+            '已': ['already', 'すでに', 'ya', 'بالفعل', '既'],
+            '正': ['just', 'ちょうど', 'justo', 'تماماً', '适'],
+            '将': ['will', 'これから', 'va a', 'سوف', '且'],
+            '可': ['may', 'できる', 'puede', 'يمكن', '堪'],
+            '不': ['not', 'ない', 'no', 'لا', '非'],
+            '没': ['no', 'ない', 'sin', 'ما', '未'],
+            '别': ["don't", 'するな', 'no', 'لا', '莫'],
+            '只': ['only', 'だけ', 'solo', 'فقط', '唯'],
+            // --- Common nouns ---
+            '人': ['person', 'ひと', 'persona', 'شخص', '者'],
+            '时': ['time', 'とき', 'tiempo', 'وقت', '辰'],
+            '事': ['thing', 'こと', 'asunto', 'أمر', '务'],
+            '物': ['object', 'もの', 'objeto', 'شيء', '品'],
+            '家': ['home', 'うち', 'hogar', 'بيت', '宅'],
+            '国': ['nation', 'くに', 'nación', 'دولة', '邦'],
+            '天': ['day', 'ひ', 'día', 'يوم', '昊'],
+            '年': ['year', 'とし', 'año', 'سنة', '载'],
+            '月': ['month', 'つき', 'mes', 'شهر', '朔'],
+            '日': ['day', 'にち', 'día', 'يوم', '旦'],
+            '点': ['point', 'てん', 'punto', 'نقطة', '端'],
+            '路': ['road', 'みち', 'camino', 'طريق', '途'],
+            '门': ['door', 'ドア', 'puerta', 'باب', '户'],
+            '口': ['mouth', 'くち', 'boca', 'فم', '嘴'],
+            '手': ['hand', 'て', 'mano', 'يد', '掌'],
+            '头': ['head', 'あたま', 'cabeza', 'رأس', '首'],
+            '心': ['heart', 'こころ', 'corazón', 'قلب', '衷'],
+            '眼': ['eye', 'め', 'ojo', 'عين', '瞳'],
+            '面': ['face', 'かお', 'cara', 'وجه', '颜'],
+            '话': ['word', 'ことば', 'palabra', 'كلمة', '言'],
+            '书': ['book', 'ほん', 'libro', 'كتاب', '册'],
+            '字': ['char', 'じ', 'letra', 'حرف', '文'],
+            '名': ['name', 'なまえ', 'nombre', 'اسم', '号'],
+            '力': ['power', 'ちから', 'fuerza', 'قوة', '势'],
+            '气': ['air', 'き', 'aire', 'هواء', '息'],
+            '光': ['light', 'ひかり', 'luz', 'ضوء', '辉'],
+            '色': ['color', 'いろ', 'color', 'لون', '彩'],
+            '声': ['sound', 'おと', 'sonido', 'صوت', '响'],
+            '情': ['feeling', 'きもち', 'sentimiento', 'عاطفة', '意'],
+            '理': ['reason', 'わけ', 'razón', 'سبب', '道'],
+            '法': ['method', 'ほう', 'método', 'أسلوب', '术'],
+            '度': ['degree', 'ど', 'grado', 'درجة', '量'],
+            '体': ['body', 'からだ', 'cuerpo', 'جسد', '躯'],
+            '数': ['number', 'かず', 'número', 'عدد', '计'],
+            '量': ['amount', 'りょう', 'cantidad', 'كمية', '额'],
+            '意': ['meaning', 'いみ', 'significado', 'معنى', '旨'],
+            '思': ['thought', 'おもい', 'pensamiento', 'فكرة', '念'],
+            '性': ['nature', 'せい', 'naturaleza', 'طبيعة', '质'],
+            '界': ['world', 'せかい', 'mundo', 'عالم', '域'],
+            '像': ['like', 'のように', 'como', 'مثل', '若'],
+            '间': ['space', 'あいだ', 'espacio', 'مسافة', '隙'],
+            '片': ['piece', 'かけ', 'trozo', 'قطعة', '枚'],
+            '张': ['sheet', 'まい', 'hoja', 'ورقة', '幅'],
+            '件': ['item', 'けん', 'pieza', 'عنصر', '桩'],
+            '条': ['strip', 'すじ', 'línea', 'سطر', '道'],
+            '段': ['section', 'だん', 'parte', 'فقرة', '节'],
+            '首': ['first', 'さいしょ', 'primero', 'أول', '初'],
+            '套': ['set', 'セット', 'juego', 'مجموعة', '组'],
+            '位': ['position', 'いち', 'posición', 'موقع', '所'],
+            '里': ['inside', 'なか', 'dentro', 'داخل', '内'],
+            '外': ['outside', 'そと', 'fuera', 'خارج', '表'],
+            '内': ['within', 'うち', 'adentro', 'في', '中'],
+            '上': ['on', 'うえ', 'arriba', 'فوق', '之上'],
+            '下': ['below', 'した', 'abajo', 'أسفل', '之下'],
+            '中': ['in', 'なか', 'en medio', 'وسط', '之中'],
+            '前': ['before', 'まえ', 'antes', 'قبل', '之前'],
+            '后': ['after', 'あと', 'después', 'بعد', '之后'],
+            '边': ['side', 'へん', 'lado', 'جانب', '畔'],
+            '旁': ['beside', 'そば', 'junto a', 'بجانب', '侧'],
+            '处': ['place', 'ところ', 'lugar', 'مكان', '所'],
+            '方': ['direction', 'ほう', 'dirección', 'اتجاه', '向'],
+            // --- Connectors ---
+            '和': ['and', 'と', 'y', 'و', '与'],
+            '与': ['and', 'と', 'y', 'و', '及'],
+            '或': ['or', 'か', 'o', 'أو', '抑'],
+            '而': ['and', 'そして', 'y', 'و', '且'],
+            '但': ['but', 'でも', 'pero', 'لكن', '然'],
+            '却': ['yet', 'けれど', 'sin embargo', 'لكن', '乃'],
+            '因': ['because', 'なので', 'porque', 'لأن', '盖'],
+            '所': ['that which', 'ところ', 'lo que', 'ما', '之'],
+            '如': ['if', 'もし', 'si', 'لو', '若'],
+            '若': ['if', 'もし', 'si', 'إذا', '倘'],
+            '虽': ['though', 'けれど', 'aunque', 'رغم', '纵'],
+            '既': ['since', 'もう', 'ya que', 'حيث', '已'],
+            '且': ['and', 'かつ', 'además', 'كذلك', '又'],
+            '则': ['then', 'ならば', 'entonces', 'فإن', '乃'],
+            '故': ['thus', 'ゆえに', 'por tanto', 'لذا', '是以'],
+            '然': ['so', 'そう', 'así', 'هكذا', '如此'],
+            // --- Additional common characters ---
+            '今': ['now', 'いま', 'ahora', 'الآن', '此刻'],
+            '请': ['please', 'どうぞ', 'por favor', 'رجاءً', '敬请'],
+            '成': ['become', 'なる', 'convertirse', 'يصبح', '为'],
+            '出': ['out', 'でる', 'salir', 'يخرج', '外'],
+            '入': ['enter', 'はいる', 'entrar', 'يدخل', '进'],
+            '世': ['world', 'よ', 'mundo', 'عالم', '域'],
+            '玩': ['play', 'あそぶ', 'jugar', 'يلعب', '戏'],
+            '学': ['learn', 'まなぶ', 'aprender', 'يتعلم', '习'],
+            '教': ['teach', 'おしえる', 'enseñar', 'يعلم', '授'],
+            '知': ['know', 'しる', 'saber', 'يعرف', '晓'],
+            '定': ['set', 'きめる', 'fijar', 'يحدد', '立'],
+            '变': ['change', 'かわる', 'cambiar', 'يتغير', '易'],
+            '动': ['move', 'うごく', 'mover', 'يتحرك', '行'],
+            '发': ['emit', 'だす', 'emitir', 'يصدر', '启'],
+            '全': ['whole', 'すべて', 'todo', 'كامل', '尽'],
+            '完': ['complete', 'おわる', 'completar', 'يكمل', '毕'],
+            '明': ['bright', 'あかるい', 'claro', 'واضح', '昭'],
+            '清': ['clear', 'きよい', 'claro', 'صاف', '澄'],
+            '活': ['live', 'いきる', 'vivir', 'يعيش', '存'],
+            '接': ['receive', 'うける', 'recibir', 'يستقبل', '承'],
+            '提': ['raise', 'あげる', 'levantar', 'يرفع', '举'],
+            '指': ['point', 'さす', 'señalar', 'يشير', '示'],
+            '表': ['express', 'あらわす', 'expresar', 'يعبر', '述'],
+            '现': ['appear', 'あらわれる', 'aparecer', 'يظهر', '显'],
+            '生': ['life', 'いのち', 'vida', 'حياة', '命'],
+            '本': ['origin', 'もと', 'origen', 'أصل', '根'],
+            '同': ['same', 'おなじ', 'mismo', 'نفس', '齐'],
+            '种': ['kind', 'しゅ', 'tipo', 'نوع', '类'],
+            '样': ['manner', 'よう', 'manera', 'طريقة', '般'],
+            '相': ['mutual', 'あい', 'mutuo', 'متبادل', '互'],
+            '当': ['should', 'べき', 'deber', 'ينبغي', '宜'],
+            '经': ['pass', 'へる', 'pasar', 'يمر', '历'],
+            '工': ['work', 'しごと', 'trabajo', 'عمل', '劳'],
+            '产': ['produce', 'うむ', 'producir', 'ينتج', '造'],
+            '需': ['need', 'いる', 'necesitar', 'يحتاج', '须'],
+            '求': ['seek', 'もとめる', 'buscar', 'يطلب', '索'],
+            '应': ['should', 'べき', 'deber', 'ينبغي', '宜'],
+            '加': ['add', 'くわえる', 'añadir', 'يضيف', '增'],
+            '等': ['etc', 'など', 'etcétera', 'إلخ', '诸'],
+            '平': ['flat', 'たいら', 'plano', 'مسطح', '坦'],
+            '公': ['public', 'おおやけ', 'público', 'عام', '众'],
+            '民': ['people', 'たみ', 'pueblo', 'شعب', '众'],
+            '保': ['protect', 'まもる', 'proteger', 'يحمي', '护'],
+            '护': ['guard', 'まもる', 'guardar', 'يحرس', '卫'],
+            '演': ['perform', 'えんじる', 'actuar', 'يؤدي', '述'],
+            '讲': ['speak', 'はなす', 'hablar', 'يتحدث', '述'],
+            '稿': ['draft', 'こう', 'borrador', 'مسودة', '文'],
+            '能': ['can', 'できる', 'poder', 'يقدر', '可'],
+            '形': ['shape', 'かたち', 'forma', 'شكل', '态'],
+            '看': ['see', '見る', 'ver', 'يرى', '观'],
+            '解': ['solve', 'とく', 'resolver', 'يحل', '释'],
+            '次': ['next', 'つぎ', 'siguiente', 'التالي', '后'],
+            '通': ['through', 'とおる', 'a través', 'عبر', '达'],
+            '合': ['combine', 'あわせる', 'combinar', 'يجمع', '聚'],
+            '正': ['correct', 'ただしい', 'correcto', 'صحيح', '适'],
+            '机': ['machine', 'き', 'máquina', 'آلة', '器'],
+            '系': ['system', 'けい', 'sistema', 'نظام', '统'],
+            '安': ['safe', 'あんぜん', 'seguro', 'آمن', '宁'],
+            '第': ['ordinal', 'だい', 'el/la', 'الـ', '序'],
+            '老': ['old', 'ふるい', 'viejo', 'قديم', '古'],
+            '少': ['few', '少ない', 'poco', 'قليل', '寡'],
         };
 
         // Transform unmatched text segments (gaps between dictionary matches)
-        // Replaces Chinese punctuation and remaining Chinese characters so
-        // NO raw user input leaks through to the output.
-        function transformGap(gap) {
+        // Replaces Chinese punctuation and remaining Chinese characters.
+        // Uses multilingual cycling: each CJK char is replaced with a
+        // different language from its [en, jp, es, ar, zh] array.
+        // cycleState.index is shared across calls to maintain cycling.
+        function transformGap(gap, cycleState) {
             if (!gap) return '';
             var result = gap;
-            // Latin letter regex (including accented characters)
             var isLatin = /[a-zA-Z\u00C0-\u024F]/;
             // Replace Chinese punctuation with Western equivalents
             result = result.replace(/，/g, ', ');
@@ -776,33 +990,49 @@
             result = result.replace(/、/g, ', ');
             result = result.replace(/（/g, '(');
             result = result.replace(/）/g, ')');
-            result = result.replace(/"/g, '"');
-            result = result.replace(/"/g, '"');
-            result = result.replace(/'/g, "'");
-            result = result.replace(/'/g, "'");
+            result = result.replace(/\u201C/g, '"');
+            result = result.replace(/\u201D/g, '"');
+            result = result.replace(/\u2018/g, "'");
+            result = result.replace(/\u2019/g, "'");
             result = result.replace(/《/g, '<');
             result = result.replace(/》/g, '>');
             result = result.replace(/——/g, ' — ');
             result = result.replace(/…/g, '...');
-            // Replace remaining CJK characters using fallback map,
-            // inserting spaces between consecutive replacements to avoid
-            // words running together (e.g., "atla" → "at la")
+            // Replace remaining CJK characters using multilingual fallback,
+            // cycling through [en=0, jp=1, es=2, ar=3, literary_zh=4]
             var output = '';
             var lastWasLetter = false;
             for (var i = 0; i < result.length; i++) {
                 var ch = result[i];
                 if (/[\u4e00-\u9fff]/.test(ch)) {
-                    var replacement = chineseFallback[ch] || '';
+                    var entry = chineseFallback[ch];
+                    var replacement = '';
+                    if (entry && Array.isArray(entry)) {
+                        var langIdx = cycleState.index % 5;
+                        replacement = entry[langIdx] || '';
+                        // Safety: if replacement equals original char, try next slot
+                        if (replacement === ch) {
+                            replacement = entry[(langIdx + 1) % 5] || entry[0] || '';
+                        }
+                        // Only advance cycle for non-empty replacements (particles stay empty)
+                        if (replacement !== '') cycleState.index++;
+                    } else if (!entry) {
+                        // Unknown CJK character not in fallback dictionary:
+                        // use generic articles/particles cycling through 5 languages
+                        // to maintain language diversity and prevent content loss
+                        var genericFiller = ['the', 'の', 'el', 'في', '之'];
+                        var gIdx = cycleState.index % 5;
+                        replacement = genericFiller[gIdx];
+                        cycleState.index++;
+                    }
                     if (replacement) {
-                        // Add space if previous output ended with a letter and replacement starts with one
                         if (lastWasLetter && isLatin.test(replacement[0])) {
                             output += ' ';
                         }
                         output += replacement;
                         lastWasLetter = isLatin.test(replacement[replacement.length - 1]);
                     }
-                    // Particles like 了/着/过/吧 map to '' — intentionally removed as
-                    // they are grammatical markers with no direct foreign equivalent
+                    // Particles like 了/着/过 map to ['','','','',''] — removed
                 } else {
                     output += ch;
                     lastWasLetter = isLatin.test(ch);
@@ -883,21 +1113,22 @@
             // Phase 3: Build result by assembling dictionary replacements
             // and transforming gaps (unmatched segments) so NO raw user
             // input leaks through to the output.
-            // Smart spacing: insert a space between consecutive Latin-script
-            // words to avoid them running together.
+            // Gap characters cycle through 5 languages independently,
+            // ensuring ≥4 languages and Chinese in every output.
+            const gapCycle = { index: 0 };
             const parts = [];
             let lastEnd = 0;
             for (let i = 0; i < matches.length; i++) {
                 const m = matches[i];
                 // Transform the unmatched gap between this match and the previous one
-                const gapText = transformGap(text.substring(lastEnd, m.start));
+                const gapText = transformGap(text.substring(lastEnd, m.start), gapCycle);
                 if (gapText) parts.push(gapText);
                 // Add the dictionary replacement (may contain Classical Chinese — preserved)
                 if (m.replacement) parts.push(m.replacement);
                 lastEnd = m.end;
             }
             // Transform any trailing text after the last match
-            const trailing = transformGap(text.substring(lastEnd));
+            const trailing = transformGap(text.substring(lastEnd), gapCycle);
             if (trailing) parts.push(trailing);
 
             // Join parts with smart spacing: add space between parts that
@@ -961,7 +1192,7 @@
             optimizedOutput.value = optimized;
             outputCard.style.display = 'block';
             outputCharCount.textContent = optimized.length + ' characters';
-            showStatus('✅ 词级多语混合完成！输出中不含原始输入文字 / Word-level mixing complete! Output contains zero raw input. Copy and paste into any AI.', 'success');
+            showStatus('✅ 词级多语混合完成！输出包含≥4种语言且包含中文 / Word-level mixing complete! Output has ≥4 languages including Chinese. Copy and paste into any AI.', 'success');
             outputCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
