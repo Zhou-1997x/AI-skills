@@ -6,7 +6,7 @@
 
 Transform your prompts by replacing individual words with different languages (English, Japanese, Spanish, Arabic, Classical Chinese) within ONE sentence — creating a "polyglot chimera" that forces AI models to process deeper and generate better results.
 
-**例如 / Example:** `帮我生成一张在海边的照片，亚洲风格` → `help me generate一枚の在la playa的صورة فوتوغرافية，东方之韵`
+**例如 / Example:** `帮我生成一张在海边的照片，亚洲风格` → `help me generate一枚のat la playaのصورة فوتوغرافية, 东方之韵`
 
 ---
 
