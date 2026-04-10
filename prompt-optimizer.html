@@ -763,7 +763,9 @@
         // NO raw user input leaks through to the output.
         function transformGap(gap) {
             if (!gap) return '';
-            let result = gap;
+            var result = gap;
+            // Latin letter regex (including accented characters)
+            var isLatin = /[a-zA-Z\u00C0-\u024F]/;
             // Replace Chinese punctuation with Western equivalents
             result = result.replace(/，/g, ', ');
             result = result.replace(/。/g, '. ');
@@ -793,20 +795,17 @@
                     var replacement = chineseFallback[ch] || '';
                     if (replacement) {
                         // Add space if previous output ended with a letter and replacement starts with one
-                        if (lastWasLetter && /^[a-zA-Z\u00C0-\u024F]/.test(replacement)) {
+                        if (lastWasLetter && isLatin.test(replacement[0])) {
                             output += ' ';
                         }
                         output += replacement;
-                        lastWasLetter = /[a-zA-Z\u00C0-\u024F]$/.test(replacement);
+                        lastWasLetter = isLatin.test(replacement[replacement.length - 1]);
                     }
-                    // If no replacement, skip the character (remove it)
+                    // Particles like 了/着/过/吧 map to '' — intentionally removed as
+                    // they are grammatical markers with no direct foreign equivalent
                 } else {
-                    // Add space if previous output ended with letter and this is a letter
-                    if (lastWasLetter && /^[a-zA-Z\u00C0-\u024F]/.test(ch)) {
-                        // Already has the character, no extra space needed
-                    }
                     output += ch;
-                    lastWasLetter = /[a-zA-Z\u00C0-\u024F]/.test(ch);
+                    lastWasLetter = isLatin.test(ch);
                 }
             }
             return output;
