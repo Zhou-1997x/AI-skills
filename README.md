@@ -4,7 +4,7 @@
 
 将一句话中的词汇逐词替换为不同语言（英/日/西/阿/文言文），在保持原意不变的情况下，形成"多语幻术"效果，"欺骗"AI大模型生成更好的内容。
 
-Transform your prompts by replacing individual words with different languages (English, Japanese, Spanish, Arabic, Classical Chinese) within ONE sentence — creating a "polyglot chimera" that forces AI models to process deeper and generate better results.
+Transform your prompts by replacing individual words with different languages (English, Japanese, Spanish, Arabic, Classical Chinese) within ONE sentence — creating a "polyglot chimera" that activates multiple language processing pathways in AI models, potentially leading to richer and more detailed responses.
 
 **例如 / Example:** `帮我生成一张在海边的照片，亚洲风格` → `help me generate一枚のat la playaのصورة فوتوغرافية, 东方之韵`
 
