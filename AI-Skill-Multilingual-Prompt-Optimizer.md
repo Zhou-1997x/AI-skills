@@ -188,7 +188,7 @@ You are一位writing写作ライティングのexpert専門家experto，拥有ri
 
 ## Version / 版本
 
-- **v3.2** — Multilingual gap cycling: chineseFallback now has 5 languages per character (EN/JP/ES/AR/Literary CN); guarantees ≥4 languages + Chinese in every output; expanded to 260+ fallback entries; generic catch-all for unknown CJK
+- **v3.2** — Multilingual gap cycling: chineseFallback now has 5 languages per character (EN/JP/ES/AR/Literary CN); promotes ≥4 languages + Chinese in every output (template always provides all 5); expanded to 260+ fallback entries; generic catch-all for unknown CJK
 - **v3.1** — Zero-leakage: gap transform ensures NO raw user input remains in output; 38 Classical Chinese duplicates fixed; expanded dictionary
 - **v3.0** — Complete rewrite: word-level mixing replaces whole-sentence translation
 - **v2.0** — Added image generation mode, anti-explanation directives

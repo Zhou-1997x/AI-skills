@@ -698,7 +698,8 @@
         // FALLBACK: Multilingual single-character replacements
         // Format: [English, Japanese, Spanish, Arabic, Literary Chinese]
         // transformGap() cycles through these 5 languages,
-        // ensuring ≥4 languages and Chinese in every output.
+        // promoting ≥4 languages and Chinese in every output.
+        // (The surrounding prompt template always adds all 5 languages.)
         // =====================================================
         const chineseFallback = {
             // --- Particles (grammatical markers, removed) ---
@@ -1114,7 +1115,8 @@
             // and transforming gaps (unmatched segments) so NO raw user
             // input leaks through to the output.
             // Gap characters cycle through 5 languages independently,
-            // ensuring ≥4 languages and Chinese in every output.
+            // promoting ≥4 languages and Chinese in user text.
+            // (The surrounding template always provides all 5 languages.)
             const gapCycle = { index: 0 };
             const parts = [];
             let lastEnd = 0;
@@ -1192,7 +1194,7 @@
             optimizedOutput.value = optimized;
             outputCard.style.display = 'block';
             outputCharCount.textContent = optimized.length + ' characters';
-            showStatus('✅ 词级多语混合完成！输出包含≥4种语言且包含中文 / Word-level mixing complete! Output has ≥4 languages including Chinese. Copy and paste into any AI.', 'success');
+            showStatus('✅ 词级多语混合完成！输出包含≥4种语言且包含中文 / Word-level mixing complete! Output promotes ≥4 languages including Chinese. Copy and paste into any AI.', 'success');
             outputCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
