@@ -2,12 +2,11 @@
   "skill_meta": {
     "id": "pdf-to-word-converter",
     "name": "PDF to Word Converter",
-    "version": "1.1.0",
-    "description": "Converts PPT-exported PDF files into structured Word (.docx) documents. Preserves every page as a screenshot, extracts text with automatic language detection, supports 5-language translation (ZH/JP/EN/FR/ES), and generates an AI-powered or offline extractive summary at the document head.",
+    "version": "1.2.0",
+    "description": "Converts PPT-exported PDF files into structured Word (.docx) documents. Extracts the document title from page 1 (largest-font text) for automatic file naming, preserves original text layout (line structure, heading detection via font-size analysis), supports 5-language translation (ZH/JP/EN/FR/ES), and generates an AI-powered English analysis with intelligent category selection or a local TF-IDF extractive summary when no API key is available.",
     "author": "AI-Skills Project",
     "created": "2026-04-22",
     "updated": "2026-04-22",
-    "license": "MIT",
     "tags": ["pdf", "word", "docx", "ppt", "conversion", "translation", "summarization", "nlp"],
     "entry_point": "pdf-to-word-converter.html",
     "runtime": "browser"
@@ -23,8 +22,15 @@
     },
     {
       "id": "text_extraction",
-      "name": "Text Extraction",
-      "description": "Extracts raw text from each PDF page using PDF.js TextContent API. Preserves original characters.",
+      "name": "Structured Text Extraction",
+      "description": "Extracts text from each PDF page using PDF.js TextContent API with y-coordinate line clustering. Preserves line structure, paragraph breaks (gap-based detection), and relative font-size information for heading detection.",
+      "offline": true,
+      "dependencies": ["PDF.js 3.11.174"]
+    },
+    {
+      "id": "title_detection",
+      "name": "Document Title Detection",
+      "description": "Identifies the document title from PDF page 1 by selecting the largest-font text items in the upper 45% of the page. Used for the Word cover page title and download filename.",
       "offline": true,
       "dependencies": ["PDF.js 3.11.174"]
     },
@@ -44,8 +50,8 @@
     },
     {
       "id": "ai_summary",
-      "name": "AI-Powered Summarization",
-      "description": "Calls OpenAI GPT-4o-mini to generate a structured 5-section summary: (1) Topic Overview, (2) Key Points, (3) Data & Conclusions, (4) Action Items, (5) Overall Evaluation.",
+      "name": "AI-Powered English Analysis",
+      "description": "Calls OpenAI GPT-4o-mini. Always outputs in English. AI dynamically chooses 4–6 analysis categories appropriate to the document's domain (e.g., research paper → Background/Methodology/Findings/Implications; business report → Executive Overview/Market Analysis/Financial Highlights/Strategic Recommendations). Each category contains 3–5 detailed bullet points. Ends with a 'Key Takeaways' section.",
       "offline": false,
       "requires_api_key": true,
       "api_provider": "OpenAI",
@@ -81,7 +87,7 @@
       "type": "enum",
       "values": ["zh", "en", "ja", "fr", "es"],
       "default": "zh",
-      "description": "Language in which to write the summary section."
+      "description": "Language for the local (offline) TF-IDF extractive summary only. The AI-powered summary (when an API key is provided) always outputs in English regardless of this setting."
     },
     "translate_to": {
       "type": "enum",
