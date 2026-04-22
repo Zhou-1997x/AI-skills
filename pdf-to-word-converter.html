@@ -1197,9 +1197,11 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
       const w = Math.round(page.width  * scale);
       const h = Math.round(page.height * scale);
 
+      const imgBorder = { style: BorderStyle.SINGLE, size: 4, color: 'AAAAAA' };
       children.push(new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 160 },
+        border: { top: imgBorder, bottom: imgBorder, left: imgBorder, right: imgBorder },
         children: [
           new ImageRun({
             data: imgBytes,
