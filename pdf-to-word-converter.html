@@ -1233,8 +1233,7 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
 
       for (const line of page.lines) {
         if (!line.text || line.type === 'break') {
-          // Paragraph break
-          children.push(new Paragraph({ spacing: { after: 40, ...SINGLE_SPACING }, children: [] }));
+          // Skip empty/break lines — no blank paragraphs between extracted text
           continue;
         }
         // Skip numeric/data-only lines (chart values, axis labels, table numbers)
