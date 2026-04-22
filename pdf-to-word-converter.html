@@ -1213,10 +1213,15 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
     // Extracted text (original, layout-preserving)
     if (includeText && page.lines && page.lines.length > 0) {
       const origLangLabel = langDisplayNames[detectedLang] || detectedLang;
+      // Standard body style: 微软雅黑 小四 (12pt = 24 half-pts) 单倍行距
+      const BODY_FONT = 'Microsoft YaHei';
+      const BODY_SIZE = 24; // 小四 = 12pt = 24 half-points
+      const SINGLE_SPACING = { line: 240, lineRule: 'auto' }; // single line spacing
+
       children.push(new Paragraph({
-        spacing: { before: 80, after: 60 },
+        spacing: { before: 80, after: 60, ...SINGLE_SPACING },
         children: [
-          new TextRun({ text: `📝 原文（${origLangLabel}）：`, bold: true, size: 18, color: '6B7280' }),
+          new TextRun({ text: `📝 原文（${origLangLabel}）：`, bold: true, size: BODY_SIZE, color: '6B7280', font: BODY_FONT }),
         ],
       }));
 
@@ -1229,7 +1234,7 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
       for (const line of page.lines) {
         if (!line.text || line.type === 'break') {
           // Paragraph break
-          children.push(new Paragraph({ spacing: { after: 80 }, children: [] }));
+          children.push(new Paragraph({ spacing: { after: 40, ...SINGLE_SPACING }, children: [] }));
           continue;
         }
         // Skip numeric/data-only lines (chart values, axis labels, table numbers)
@@ -1238,20 +1243,16 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
           continue;
         }
         const isHeadingLine = line.isHeading || (avgPageFontSize > 0 && line.fontSize > avgPageFontSize * 1.4);
-        // Convert PDF points to DOCX half-points; body floor = 18, heading scales up proportionally
-        const rawHalfPts = Math.round(line.fontSize * 2);
-        const docxSize = isHeadingLine
-          ? Math.min(56, Math.max(26, rawHalfPts))
-          : Math.min(24, Math.max(18, rawHalfPts));
+        // All text uses 小四 (24 half-pts); headings stay bold for hierarchy
         children.push(new Paragraph({
-          spacing: { before: isHeadingLine ? 120 : 20, after: isHeadingLine ? 80 : 20 },
+          spacing: { before: isHeadingLine ? 80 : 0, after: isHeadingLine ? 40 : 0, ...SINGLE_SPACING },
           children: [
             new TextRun({
               text: line.text,
-              size: docxSize,
+              size: BODY_SIZE,
               bold: isHeadingLine,
               color: isHeadingLine ? '1E3A5F' : '374151',
-              font: 'Microsoft YaHei',
+              font: BODY_FONT,
             }),
           ],
         }));
