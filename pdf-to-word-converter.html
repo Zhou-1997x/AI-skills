@@ -378,12 +378,25 @@
     <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
     <p class="hint">🔒 API Key 仅在本地使用，不会上传到任何服务器。不填写则跳过 AI 总结。</p>
 
-    <label>AI 总结语言</label>
+    <label>摘要语言</label>
     <select id="summaryLang">
       <option value="zh">中文（简体）</option>
       <option value="en">English</option>
-      <option value="zh-tw">中文（繁體）</option>
+      <option value="ja">日本語</option>
+      <option value="fr">Français</option>
+      <option value="es">Español</option>
     </select>
+
+    <label>文字翻译目标语言（自动检测原文语言）</label>
+    <select id="translateLang">
+      <option value="none">不翻译（保留原文）</option>
+      <option value="zh">译为中文（简体）</option>
+      <option value="en">Translate to English</option>
+      <option value="ja">日本語に翻訳</option>
+      <option value="fr">Traduire en français</option>
+      <option value="es">Traducir al español</option>
+    </select>
+    <p class="hint">💡 有 API Key：用 OpenAI 翻译（高质量）；无 API Key：用 MyMemory 免费翻译（每页限 400 字符）。</p>
 
     <label>渲染质量（影响图片清晰度和文件大小）</label>
     <select id="renderScale">
@@ -550,6 +563,7 @@ convertBtn.addEventListener('click', async () => {
   try {
     const apiKey = document.getElementById('apiKey').value.trim();
     const summaryLang = document.getElementById('summaryLang').value;
+    const translateLang = document.getElementById('translateLang').value;
     const renderScale = parseFloat(document.getElementById('renderScale').value);
     const includeImages = document.getElementById('includeImages').checked;
     const includeText = document.getElementById('includeText').checked;
@@ -593,7 +607,7 @@ convertBtn.addEventListener('click', async () => {
         pageText = tc.items.map(it => it.str).join(' ').replace(/\s+/g, ' ').trim();
       } catch (_) { /* skip text if error */ }
 
-      allText += `\n--- 第 ${i} 页 ---\n${pageText}`;
+      allText += `\n--- Page ${i} ---\n${pageText}`;
 
       renderedPages.push({
         pageNum: i,
@@ -601,6 +615,7 @@ convertBtn.addEventListener('click', async () => {
         width: viewport.width,
         height: viewport.height,
         text: pageText,
+        translatedText: '',
       });
 
       // Add thumbnail
@@ -616,33 +631,71 @@ convertBtn.addEventListener('click', async () => {
     setProgress(55, '页面渲染完成');
     log(`✅ 所有 ${numPages} 页渲染完成`);
 
-    // 3. AI Summary
+    // 2b. Detect source language
+    const detectedLang = detectLanguage(allText);
+    const langDisplayNames = { zh: '中文', en: 'English', ja: '日本語', ko: '한국어', fr: 'Français', es: 'Español', ar: 'العربية', ru: 'Русский', unknown: '未知' };
+    log(`🔍 检测到文字语言：${langDisplayNames[detectedLang] || detectedLang}`);
+
+    // 3. Summary (AI if key provided, else local extractive)
     let summary = '';
-    if (includeSummary && apiKey) {
-      log('🤖 正在调用 AI 总结内容...');
-      setProgress(60, '正在生成 AI 摘要...');
-      try {
-        summary = await generateSummary(allText, apiKey, summaryLang);
-        log('✅ AI 摘要生成成功');
-        setProgress(75, 'AI 摘要完成');
-      } catch (e) {
-        log(`⚠️ AI 总结失败: ${e.message}`, 'warn');
-        log('  继续生成不含 AI 摘要的 Word 文档...', 'warn');
+    let summaryMode = '';
+    if (includeSummary) {
+      if (apiKey) {
+        log('🤖 正在调用 AI 总结内容...');
+        setProgress(60, '正在生成 AI 摘要...');
+        try {
+          summary = await generateAiSummary(allText, apiKey, summaryLang);
+          summaryMode = 'ai';
+          log('✅ AI 摘要生成成功');
+          setProgress(68, 'AI 摘要完成');
+        } catch (e) {
+          log(`⚠️ AI 总结失败: ${e.message}，切换为本地提取摘要...`, 'warn');
+          summary = generateLocalSummary(renderedPages, summaryLang);
+          summaryMode = 'local';
+          setProgress(68, '本地摘要完成（AI 失败）');
+        }
+      } else {
+        log('📊 正在使用本地提取算法生成摘要（无需 API Key）...');
+        setProgress(60, '生成本地摘要...');
+        summary = generateLocalSummary(renderedPages, summaryLang);
+        summaryMode = 'local';
+        log('✅ 本地摘要生成成功');
+        setProgress(68, '本地摘要完成');
       }
-    } else if (includeSummary && !apiKey) {
-      log('ℹ️ 未提供 API Key，跳过 AI 总结');
     }
 
-    // 4. Generate Word
+    // 4. Translation (optional)
+    if (translateLang !== 'none' && translateLang !== detectedLang && includeText) {
+      log(`🌐 正在翻译文字至 ${langDisplayNames[translateLang] || translateLang}...`);
+      setProgress(70, '翻译文字中...');
+      const stepPerPageT = 15 / renderedPages.length;
+      for (let i = 0; i < renderedPages.length; i++) {
+        const page = renderedPages[i];
+        if (page.text) {
+          try {
+            page.translatedText = await translateText(page.text, detectedLang, translateLang, apiKey);
+          } catch (e) {
+            log(`  ⚠️ 第 ${page.pageNum} 页翻译失败: ${e.message}`, 'warn');
+          }
+        }
+        setProgress(Math.round(70 + (i + 1) * stepPerPageT), `翻译第 ${i + 1}/${renderedPages.length} 页...`);
+      }
+      log('✅ 翻译完成');
+    }
+
+    // 5. Generate Word
     log('📝 正在生成 Word 文档...');
-    setProgress(80, '生成 Word 文档...');
+    setProgress(85, '生成 Word 文档...');
     docxBlob = await buildDocx({
       fileName: selectedFile.name,
       pages: renderedPages,
       summary,
+      summaryMode,
       includeImages,
       includeText,
       includeSummary,
+      detectedLang,
+      translateLang,
     });
 
     setProgress(100, '完成！');
@@ -650,10 +703,13 @@ convertBtn.addEventListener('click', async () => {
 
     // Show result
     const hasSummary = summary && includeSummary;
+    const hasTranslation = translateLang !== 'none' && renderedPages.some(p => p.translatedText);
     resultInfo.innerHTML = `
       <span class="badge badge-green">✅ ${numPages} 页已处理</span>
-      ${includeImages ? `<span class="badge badge-blue">🖼️ 包含页面截图</span>` : ''}
-      ${hasSummary ? `<span class="badge badge-purple">🤖 含 AI 摘要</span>` : ''}
+      <span class="badge badge-blue">🔍 语言：${langDisplayNames[detectedLang] || detectedLang}</span>
+      ${includeImages ? `<span class="badge badge-blue">🖼️ 含页面截图</span>` : ''}
+      ${hasSummary ? `<span class="badge badge-purple">${summaryMode === 'ai' ? '🤖 AI摘要' : '📊 本地摘要'}</span>` : ''}
+      ${hasTranslation ? `<span class="badge badge-purple">🌐 已翻译→${langDisplayNames[translateLang]}</span>` : ''}
       <span class="badge badge-green">📦 ${(docxBlob.size / 1024).toFixed(0)} KB</span>
     `;
     resultCard.style.display = 'block';
@@ -686,8 +742,195 @@ function openLightbox(src) {
 lightboxClose.addEventListener('click', () => lightbox.classList.remove('show'));
 lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.remove('show'); });
 
+// ─── Language Detection ───────────────────────────────────────────────────────
+function detectLanguage(text) {
+  if (!text || text.trim().length === 0) return 'unknown';
+  const sample = text.substring(0, 3000);
+  const totalLen = sample.replace(/\s/g, '').length || 1;
+
+  const cjkCount     = (sample.match(/[\u4E00-\u9FFF]/g)  || []).length;
+  const kanaCount    = (sample.match(/[\u3040-\u30FF]/g)  || []).length;
+  const hangulCount  = (sample.match(/[\uAC00-\uD7AF]/g)  || []).length;
+  const arabicCount  = (sample.match(/[\u0600-\u06FF]/g)  || []).length;
+  const cyrillicCount= (sample.match(/[\u0400-\u04FF]/g)  || []).length;
+  const frMarkers    = (sample.match(/[éèêëàâùûîïôçœæ]/gi)|| []).length;
+  const esMarkers    = (sample.match(/[ñáéíóúüï¿¡]/gi)   || []).length;
+
+  if (kanaCount    / totalLen > 0.05) return 'ja';
+  if (hangulCount  / totalLen > 0.05) return 'ko';
+  if (cjkCount     / totalLen > 0.10) return 'zh';
+  if (arabicCount  / totalLen > 0.05) return 'ar';
+  if (cyrillicCount/ totalLen > 0.05) return 'ru';
+  if (frMarkers > esMarkers * 1.5 && frMarkers > 3) return 'fr';
+  if (esMarkers > frMarkers * 1.5 && esMarkers > 3) return 'es';
+  return 'en';
+}
+
+// ─── Local Extractive Summarization (no API needed) ───────────────────────────
+function generateLocalSummary(pages, lang) {
+  const nonEmptyPages = pages.filter(p => p.text && p.text.trim());
+  const allText = nonEmptyPages.map(p => p.text).join(' ');
+
+  const tmpl = {
+    zh: {
+      title:  '📊 内容摘要（本地提取，无需 API Key）',
+      overview: (pg, nePg, wc) => `📌 文档概览\n共 ${pg} 页，其中 ${nePg} 页含可提取文字，约 ${wc} 词。`,
+      keyTitle: '🔑 关键内容（自动提取）',
+      note: '💡 注：本摘要由本地 TF-IDF 算法生成，无需 API Key。填写 OpenAI API Key 可获得更智能的 AI 摘要。',
+    },
+    en: {
+      title:  '📊 Content Summary (Local Extraction, No API Key Required)',
+      overview: (pg, nePg, wc) => `📌 Document Overview\n${pg} total pages, ${nePg} pages with extractable text, ~${wc} words.`,
+      keyTitle: '🔑 Key Points (Auto-extracted)',
+      note: '💡 Note: Generated by a local TF-IDF algorithm. Provide an OpenAI API Key for AI-powered summaries.',
+    },
+    ja: {
+      title:  '📊 コンテンツ概要（ローカル抽出）',
+      overview: (pg, nePg, wc) => `📌 概要\n全 ${pg} ページ、テキスト抽出可能 ${nePg} ページ、約 ${wc} 語。`,
+      keyTitle: '🔑 主要ポイント（自動抽出）',
+      note: '💡 注：APIキー不要のローカルアルゴリズムで生成されました。',
+    },
+    fr: {
+      title:  '📊 Résumé du contenu (Extraction locale)',
+      overview: (pg, nePg, wc) => `📌 Aperçu\n${pg} pages au total, ${nePg} avec texte extractible, ~${wc} mots.`,
+      keyTitle: '🔑 Points clés (Auto-extraits)',
+      note: '💡 Remarque : Généré par un algorithme TF-IDF local, sans clé API.',
+    },
+    es: {
+      title:  '📊 Resumen de contenido (Extracción local)',
+      overview: (pg, nePg, wc) => `📌 Descripción general\n${pg} páginas, ${nePg} con texto extraíble, ~${wc} palabras.`,
+      keyTitle: '🔑 Puntos clave (Auto-extraídos)',
+      note: '💡 Nota: Generado por algoritmo TF-IDF local, sin clave API.',
+    },
+  };
+
+  const t = tmpl[lang] || tmpl.zh;
+  const wordCount = allText.split(/\s+/).filter(Boolean).length;
+
+  if (!allText.trim()) {
+    return `${t.title}\n\n${t.overview(pages.length, 0, 0)}\n\n（无可提取的文字内容，仅有页面截图。）`;
+  }
+
+  // Tokenize into sentences (handles CJK sentence-ending chars too)
+  const MIN_SENTENCE_LEN = 4;
+  const EARLY_SENTENCE_THRESHOLD = 0.15;
+  const EARLY_SENTENCE_BOOST = 1.25;
+  const MIN_SUMMARY_SENTENCES = 3;
+  const MAX_SUMMARY_SENTENCES = 10;
+  const SUMMARY_RATIO = 0.18;
+
+  const rawSentences = allText.match(/[^。！？!?.…\n]{4,}[。！？!?.…]*/g) || [];
+  const sentences = rawSentences.map(s => s.trim()).filter(s => s.length >= MIN_SENTENCE_LEN);
+
+  if (sentences.length === 0) {
+    return `${t.title}\n\n${t.overview(pages.length, nonEmptyPages.length, wordCount)}\n\n（文本内容不足以生成摘要。）`;
+  }
+
+  // TF – word frequency across all text
+  const stopWords = new Set([
+    'the','a','an','is','in','on','at','to','of','for','and','or','but','this','that',
+    'with','are','was','has','have','be','by','not','from','as','it','its','we','our',
+    'their','they','he','she','i','my','you','your','what','how','why','when','where',
+    'which','who','do','does','can','will','would','should','could','may','might',
+    'also','about','up','out','more','if','so','then','than','into','over','after',
+    '的','了','是','在','有','和','这','个','一','不','也','可','以','他','她','它',
+    '我','你','们','于','对','而','到','与','就','用','来','说','时','为','该','其',
+    '等','从','但','被','把','都','很','还','些','或','则','当','中','上','下','后',
+    '前','已','会','将','此','所','者','因','由','及','如','那','里','这个','那个',
+  ]);
+
+  const freq = {};
+  allText.toLowerCase()
+    .split(/[\s,，。！？.!?；;:：、""''()\[\]{}<>「」【】\-—]+/)
+    .forEach(w => {
+      const clean = w.replace(/[^\w\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/g, '');
+      if (clean.length > 1 && !stopWords.has(clean)) {
+        freq[clean] = (freq[clean] || 0) + 1;
+      }
+    });
+
+  const maxFreq = Math.max(...Object.values(freq), 1);
+
+  // Score each sentence
+  const scored = sentences.map((sentence, idx) => {
+    const words = sentence.toLowerCase()
+      .split(/[\s,，。！？.!?；;:：、""''()\[\]{}<>「」【】\-—]+/);
+    let score = 0;
+    words.forEach(w => {
+      const clean = w.replace(/[^\w\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/g, '');
+      if (freq[clean]) score += freq[clean] / maxFreq;
+    });
+    // Normalize by sentence length
+    score /= Math.sqrt(Math.max(words.length, 1));
+    // Boost early sentences (tend to be introductory)
+    if (idx < sentences.length * EARLY_SENTENCE_THRESHOLD) score *= EARLY_SENTENCE_BOOST;
+    return { sentence, score, idx };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const topN = Math.min(MAX_SUMMARY_SENTENCES, Math.max(MIN_SUMMARY_SENTENCES, Math.floor(sentences.length * SUMMARY_RATIO)));
+  const topSentences = scored.slice(0, topN)
+    .sort((a, b) => a.idx - b.idx)
+    .map(s => `• ${s.sentence.trim()}`);
+
+  return [
+    t.title,
+    '',
+    t.overview(pages.length, nonEmptyPages.length, wordCount),
+    '',
+    t.keyTitle,
+    topSentences.join('\n'),
+    '',
+    t.note,
+  ].join('\n');
+}
+
+// ─── Translation ──────────────────────────────────────────────────────────────
+const MYMEMORY_LANG = { zh: 'zh-CN', en: 'en', ja: 'ja', fr: 'fr', es: 'es', ko: 'ko', ar: 'ar', ru: 'ru', unknown: 'en' };
+
+async function translateText(text, srcLang, tgtLang, apiKey) {
+  if (!text || !text.trim()) return text;
+
+  if (apiKey) {
+    // OpenAI translation (up to 2000 chars per page)
+    const langNames = { zh: 'Simplified Chinese', en: 'English', ja: 'Japanese', fr: 'French', es: 'Spanish' };
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: `You are a professional translator. Translate the following text to ${langNames[tgtLang] || tgtLang}. Output ONLY the translated text, preserving the original structure and meaning.` },
+          { role: 'user', content: text.substring(0, 2000) },
+        ],
+        max_tokens: 2000,
+        temperature: 0.3,
+      }),
+    });
+    if (!response.ok) throw new Error(`OpenAI HTTP ${response.status}`);
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content?.trim() || text;
+
+  } else {
+    // MyMemory free API (up to 400 chars per request)
+    const src = MYMEMORY_LANG[srcLang] || 'en';
+    const tgt = MYMEMORY_LANG[tgtLang] || 'zh-CN';
+    const chunk = text.substring(0, 400);
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${src}|${tgt}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`MyMemory HTTP ${response.status}`);
+    const data = await response.json();
+    // responseStatus 200 means success; other values indicate quota/error
+    if (data.responseStatus !== 200) throw new Error(`MyMemory error: ${data.responseDetails || data.responseStatus}`);
+    const translated = data.responseData?.translatedText;
+    if (!translated) return chunk;
+    return translated + (text.length > 400 ? '\n[...]' : '');
+  }
+}
+
 // ─── AI Summary ───────────────────────────────────────────────────────────────
-async function generateSummary(allText, apiKey, lang) {
+async function generateAiSummary(allText, apiKey, lang) {
   const maxChars = 16000;
   const text = allText.length > maxChars
     ? allText.substring(0, maxChars) + '\n[内容已截断...]'
@@ -696,7 +939,9 @@ async function generateSummary(allText, apiKey, lang) {
   const langInstructions = {
     zh: '请用简体中文撰写详细摘要。',
     en: 'Please write the summary in English.',
-    'zh-tw': '請用繁體中文撰寫詳細摘要。',
+    ja: '日本語で詳細なサマリーを書いてください。',
+    fr: 'Veuillez rédiger le résumé en français.',
+    es: 'Por favor, redacte el resumen en español.',
   };
 
   const sysPrompt = `你是一位专业的内容分析师，擅长将 PPT/PDF 内容提炼成结构清晰的报告。${langInstructions[lang] || langInstructions.zh}`;
@@ -739,7 +984,7 @@ ${text}`;
 }
 
 // ─── Build DOCX ───────────────────────────────────────────────────────────────
-async function buildDocx({ fileName, pages, summary, includeImages, includeText, includeSummary }) {
+async function buildDocx({ fileName, pages, summary, summaryMode, includeImages, includeText, includeSummary, detectedLang, translateLang }) {
   const {
     Document, Paragraph, TextRun, ImageRun,
     HeadingLevel, Packer, AlignmentType,
@@ -750,6 +995,7 @@ async function buildDocx({ fileName, pages, summary, includeImages, includeText,
 
   const baseName = fileName.replace(/\.pdf$/i, '');
   const today = new Date().toLocaleDateString('zh-CN');
+  const langDisplayNames = { zh: '中文', en: 'English', ja: '日本語', ko: '한국어', fr: 'Français', es: 'Español', ar: 'العربية', ru: 'Русский', unknown: '未知' };
   const children = [];
 
   // ── Cover / Title ──────────────────────────────────────────────────────────
@@ -789,10 +1035,11 @@ async function buildDocx({ fileName, pages, summary, includeImages, includeText,
 
   // ── AI Summary Section ─────────────────────────────────────────────────────
   if (includeSummary && summary) {
+    const summaryHeading = summaryMode === 'ai' ? '🤖 AI 内容摘要' : '📊 内容摘要（本地提取）';
     children.push(new Paragraph({
       heading: HeadingLevel.HEADING_1,
       spacing: { before: 200, after: 200 },
-      children: [new TextRun({ text: '📊 AI 内容摘要', bold: true, color: '1E40AF' })],
+      children: [new TextRun({ text: summaryHeading, bold: true, color: '1E40AF' })],
     }));
 
     const summaryLines = summary.split('\n');
@@ -825,13 +1072,13 @@ async function buildDocx({ fileName, pages, summary, includeImages, includeText,
     children.push(new Paragraph({
       heading: HeadingLevel.HEADING_1,
       spacing: { before: 200, after: 200 },
-      children: [new TextRun({ text: '📊 AI 内容摘要', bold: true, color: '1E40AF' })],
+      children: [new TextRun({ text: '📊 内容摘要', bold: true, color: '1E40AF' })],
     }));
     children.push(new Paragraph({
       spacing: { after: 200 },
       children: [
         new TextRun({
-          text: '（未提供 OpenAI API Key，跳过 AI 摘要生成。）',
+          text: '（摘要生成失败或被跳过。）',
           italics: true, color: '9CA3AF', size: 22,
         }),
       ],
@@ -882,29 +1129,44 @@ async function buildDocx({ fileName, pages, summary, includeImages, includeText,
       }));
     }
 
-    // Extracted text
+    // Extracted text (original)
     if (includeText && page.text) {
+      const origLangLabel = langDisplayNames[detectedLang] || detectedLang;
       children.push(new Paragraph({
-        spacing: { before: 80, after: 80 },
+        spacing: { before: 80, after: 60 },
         children: [
-          new TextRun({ text: '📝 提取文字：', bold: true, size: 18, color: '6B7280' }),
+          new TextRun({ text: `📝 原文（${origLangLabel}）：`, bold: true, size: 18, color: '6B7280' }),
         ],
       }));
 
-      // Split long text into shorter paragraphs
       const chunks = chunkText(page.text, 500);
       for (const chunk of chunks) {
         children.push(new Paragraph({
           spacing: { after: 60 },
           children: [
-            new TextRun({
-              text: chunk,
-              size: 18,
-              color: '4B5563',
-              font: 'Microsoft YaHei',
-            }),
+            new TextRun({ text: chunk, size: 18, color: '4B5563', font: 'Microsoft YaHei' }),
           ],
         }));
+      }
+
+      // Translated text
+      if (translateLang && translateLang !== 'none' && page.translatedText) {
+        const tgtLabel = langDisplayNames[translateLang] || translateLang;
+        children.push(new Paragraph({
+          spacing: { before: 80, after: 60 },
+          children: [
+            new TextRun({ text: `🌐 译文（${tgtLabel}）：`, bold: true, size: 18, color: '2563EB' }),
+          ],
+        }));
+        const tChunks = chunkText(page.translatedText, 500);
+        for (const chunk of tChunks) {
+          children.push(new Paragraph({
+            spacing: { after: 60 },
+            children: [
+              new TextRun({ text: chunk, size: 18, color: '1E40AF', font: 'Microsoft YaHei' }),
+            ],
+          }));
+        }
       }
     }
 

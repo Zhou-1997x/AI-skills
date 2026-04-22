@@ -1,0 +1,152 @@
+{
+  "skill_meta": {
+    "id": "pdf-to-word-converter",
+    "name": "PDF to Word Converter",
+    "version": "1.1.0",
+    "description": "Converts PPT-exported PDF files into structured Word (.docx) documents. Preserves every page as a screenshot, extracts text with automatic language detection, supports 5-language translation (ZH/JP/EN/FR/ES), and generates an AI-powered or offline extractive summary at the document head.",
+    "author": "AI-Skills Project",
+    "created": "2026-04-22",
+    "updated": "2026-04-22",
+    "license": "MIT",
+    "tags": ["pdf", "word", "docx", "ppt", "conversion", "translation", "summarization", "nlp"],
+    "entry_point": "pdf-to-word-converter.html",
+    "runtime": "browser"
+  },
+
+  "capabilities": [
+    {
+      "id": "page_render",
+      "name": "PDF Page Rendering",
+      "description": "Renders each PDF page to a JPEG image via PDF.js canvas at configurable scale (1.5x / 2.0x / 2.5x).",
+      "offline": true,
+      "dependencies": ["PDF.js 3.11.174"]
+    },
+    {
+      "id": "text_extraction",
+      "name": "Text Extraction",
+      "description": "Extracts raw text from each PDF page using PDF.js TextContent API. Preserves original characters.",
+      "offline": true,
+      "dependencies": ["PDF.js 3.11.174"]
+    },
+    {
+      "id": "language_detection",
+      "name": "Automatic Language Detection",
+      "description": "Heuristic detection of source language from extracted text: Chinese (zh), Japanese (ja), Korean (ko), French (fr), Spanish (es), Arabic (ar), Russian (ru), English (en).",
+      "offline": true,
+      "dependencies": []
+    },
+    {
+      "id": "local_summary",
+      "name": "Offline Extractive Summarization",
+      "description": "TF-IDF sentence scoring to extract the most informative sentences from the PDF without requiring any API key. Produces a structured 2-section summary (overview + key points).",
+      "offline": true,
+      "dependencies": []
+    },
+    {
+      "id": "ai_summary",
+      "name": "AI-Powered Summarization",
+      "description": "Calls OpenAI GPT-4o-mini to generate a structured 5-section summary: (1) Topic Overview, (2) Key Points, (3) Data & Conclusions, (4) Action Items, (5) Overall Evaluation.",
+      "offline": false,
+      "requires_api_key": true,
+      "api_provider": "OpenAI",
+      "model": "gpt-4o-mini",
+      "estimated_cost_usd": "0.001-0.003"
+    },
+    {
+      "id": "translation",
+      "name": "Multilingual Text Translation",
+      "description": "Translates extracted page text to a user-selected target language. With API key uses OpenAI (up to 2000 chars/page); without API key uses MyMemory free API (up to 400 chars/page).",
+      "offline": false,
+      "target_languages": ["zh", "ja", "en", "fr", "es"],
+      "api_provider_with_key": "OpenAI GPT-4o-mini",
+      "api_provider_free": "MyMemory (api.mymemory.translated.net)"
+    },
+    {
+      "id": "docx_generation",
+      "name": "Word Document Generation",
+      "description": "Assembles .docx using docx.js v8: cover page → summary section → per-page (heading + screenshot + original text + translated text). Downloaded directly in the browser.",
+      "offline": true,
+      "dependencies": ["docx 8.5.0"]
+    }
+  ],
+
+  "parameters": {
+    "render_scale": {
+      "type": "enum",
+      "values": ["1.5", "2.0", "2.5"],
+      "default": "2.0",
+      "description": "JPEG render scale factor. Higher values produce sharper images but larger files."
+    },
+    "summary_language": {
+      "type": "enum",
+      "values": ["zh", "en", "ja", "fr", "es"],
+      "default": "zh",
+      "description": "Language in which to write the summary section."
+    },
+    "translate_to": {
+      "type": "enum",
+      "values": ["none", "zh", "ja", "en", "fr", "es"],
+      "default": "none",
+      "description": "Target language for per-page text translation. 'none' preserves original text only."
+    },
+    "include_images": {
+      "type": "boolean",
+      "default": true,
+      "description": "Embed page screenshot images in the Word document."
+    },
+    "include_text": {
+      "type": "boolean",
+      "default": true,
+      "description": "Include extracted original text under each page screenshot."
+    },
+    "include_summary": {
+      "type": "boolean",
+      "default": true,
+      "description": "Insert a summary section at the beginning of the Word document."
+    },
+    "openai_api_key": {
+      "type": "string",
+      "sensitive": true,
+      "required": false,
+      "description": "OpenAI API Key. When provided, enables AI-powered summarization and higher-quality translation. When absent, falls back to local extractive summarization and MyMemory free translation API."
+    }
+  },
+
+  "fallback_strategy": {
+    "summary": {
+      "with_api_key": "ai_summary (GPT-4o-mini)",
+      "without_api_key": "local_summary (TF-IDF extractive)"
+    },
+    "translation": {
+      "with_api_key": "OpenAI GPT-4o-mini (up to 2000 chars/page)",
+      "without_api_key": "MyMemory free API (up to 400 chars/page)"
+    }
+  },
+
+  "privacy": {
+    "pdf_processing": "fully_local",
+    "text_sent_externally": "only_when_api_key_provided",
+    "api_key_storage": "in_memory_only",
+    "data_retention": "none"
+  },
+
+  "output": {
+    "format": "docx",
+    "structure": [
+      "cover_title",
+      "summary_section",
+      "per_page_sections"
+    ],
+    "per_page_section": {
+      "heading": "Page N / 第 N 页",
+      "screenshot": "JPEG image (conditional)",
+      "original_text": "Extracted text with detected language label (conditional)",
+      "translated_text": "Translated text in target language (conditional)"
+    }
+  },
+
+  "invocation_prompt": {
+    "system": "You are PDF-to-Word Converter, a specialist tool that transforms PPT-exported PDFs into structured Word documents. You render every page as a high-resolution screenshot, extract and detect the language of all text, offer translation to 5 languages (Chinese/Japanese/English/French/Spanish), generate a structured summary either via GPT-4o-mini (with API key) or local TF-IDF extraction (without API key), then output a fully formatted .docx file.",
+    "user_template": "Convert the uploaded PDF '{filename}' ({num_pages} pages) to Word. Summary language: {summary_language}. Translate text to: {translate_to}. Include images: {include_images}. Include text: {include_text}."
+  }
+}
