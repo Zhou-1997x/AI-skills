@@ -2,7 +2,7 @@
   "skill_meta": {
     "id": "pdf-to-word-converter",
     "name": "PDF to Word Converter",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "description": "Converts PPT-exported PDF files into structured Word (.docx) documents. Extracts the document title from page 1 (largest-font text) for automatic file naming, preserves original text layout (line structure, heading detection via font-size analysis), supports 5-language translation (ZH/JP/EN/FR/ES), and generates an AI-powered English analysis with intelligent category selection or a local TF-IDF extractive summary when no API key is available.",
     "author": "AI-Skills Project",
     "created": "2026-04-22",
