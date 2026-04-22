@@ -657,7 +657,7 @@ convertBtn.addEventListener('click', async () => {
         pageLines = extractStructuredText(tc);
         pageText = pageLines
           .filter(l => l.text)
-          .map(l => l.text)
+          .map(l => l.isHeading ? l.text : ensureLinePunctuation(l.text))
           .join(' ')
           .replace(/\s+/g, ' ')
           .trim();
@@ -1070,7 +1070,7 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
     HeadingLevel, Packer, AlignmentType,
     PageBreak, ShadingType, BorderStyle,
     Table, TableRow, TableCell, WidthType,
-    convertInchesToTwip,
+    convertInchesToTwip, Footer, PageNumber,
   } = window.docx;
 
   const baseName = fileName.replace(/\.pdf$/i, '');
@@ -1305,6 +1305,20 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
             },
           },
         },
+        footers: {
+          default: new Footer({
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({ children: [PageNumber.CURRENT] }),
+                  new TextRun({ text: ' / ' }),
+                  new TextRun({ children: [PageNumber.TOTAL_PAGES] }),
+                ],
+              }),
+            ],
+          }),
+        },
         children,
       },
     ],
@@ -1482,6 +1496,19 @@ function chunkText(text, maxLen) {
     chunks.push(text.slice(i, i + maxLen));
   }
   return chunks;
+}
+
+/**
+ * Ensures a text line ends with appropriate punctuation.
+ * Skips lines that already end with punctuation.
+ * Uses CJK-style punctuation (。) for CJK text, Western period for others.
+ */
+function ensureLinePunctuation(text) {
+  if (!text || !text.trim()) return text;
+  const t = text.trim();
+  if (/[。！？!?.…,，；;：:—\)\]」』》～]$/.test(t)) return t;
+  if (/[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/.test(t)) return t + '。';
+  return t + '.';
 }
 </script>
 </body>
