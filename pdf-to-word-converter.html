@@ -1071,7 +1071,6 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
     PageBreak, ShadingType, BorderStyle,
     Table, TableRow, TableCell, WidthType,
     convertInchesToTwip, Footer, PageNumber,
-    TabStopType,
   } = window.docx;
 
   const baseName = fileName.replace(/\.pdf$/i, '');
@@ -1080,35 +1079,24 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
   const langDisplayNames = { zh: '中文', en: 'English', ja: '日本語', ko: '한국어', fr: 'Français', es: 'Español', ar: 'العربية', ru: 'Русский', unknown: '未知' };
   const children = [];
 
-  // ── Design tokens ──────────────────────────────────────────────────────────
-  const BODY_FONT    = 'Microsoft YaHei';
-  const BODY_SIZE    = 24;                             // 小四 = 12pt = 24 half-points
-  const BODY_SPACING = { line: 276, lineRule: 'auto' }; // 1.15× line-height
-  const ACCENT_BLUE  = '2563EB';
-  const DARK_BLUE    = '1E3A5F';
-  const CALLOUT_FILL = 'EFF6FF';  // label callout background
-  const SUMMARY_FILL = 'F9FAFB';  // summary card background
-
   // ── Cover / Title ──────────────────────────────────────────────────────────
-  // Dark-blue shading block → white title text (professional cover feel)
   children.push(new Paragraph({
     alignment: AlignmentType.CENTER,
-    spacing: { before: convertInchesToTwip(1.5), after: 240 },
-    shading: { type: ShadingType.SOLID, fill: DARK_BLUE, color: 'auto' },
+    spacing: { before: convertInchesToTwip(1.5), after: 200 },
     children: [
       new TextRun({
         text: coverTitle,
         bold: true,
         size: 56,
-        color: 'FFFFFF',
-        font: BODY_FONT,
+        color: '1E3A5F',
+        font: 'Microsoft YaHei',
       }),
     ],
   }));
 
   children.push(new Paragraph({
     alignment: AlignmentType.CENTER,
-    spacing: { before: 160, after: 480 },
+    spacing: { after: 400 },
     children: [
       new TextRun({
         text: `PDF → Word  |  ${today}  |  ${pages.length} pages`,
@@ -1122,20 +1110,17 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
   // Divider line
   children.push(new Paragraph({
     border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '7C3AED' } },
-    spacing: { after: 480 },
+    spacing: { after: 400 },
     children: [],
   }));
 
   // ── AI Summary Section ─────────────────────────────────────────────────────
   if (includeSummary && summary) {
     const summaryHeading = summaryMode === 'ai' ? '🤖 AI 内容摘要' : '📊 内容摘要（本地提取）';
-    // H1 with left accent bar
     children.push(new Paragraph({
       heading: HeadingLevel.HEADING_1,
-      spacing: { before: 240, after: 160 },
-      border: { left: { style: BorderStyle.SINGLE, size: 18, color: DARK_BLUE } },
-      indent: { left: 240 },
-      children: [new TextRun({ text: summaryHeading, bold: true, size: 56, color: DARK_BLUE, font: BODY_FONT })],
+      spacing: { before: 200, after: 200 },
+      children: [new TextRun({ text: summaryHeading, bold: true, color: '1E40AF' })],
     }));
 
     const summaryLines = summary.split('\n');
@@ -1147,18 +1132,14 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
       }
       const isBold = trimmed.startsWith('#') || trimmed.startsWith('**');
       const cleaned = trimmed.replace(/^#+\s*/, '').replace(/\*\*/g, '');
-      // Summary card: light-gray background + subtle left border
       children.push(new Paragraph({
-        spacing: { before: 60, after: 60, ...BODY_SPACING },
-        shading: { type: ShadingType.SOLID, fill: SUMMARY_FILL, color: 'auto' },
-        border: { left: { style: BorderStyle.SINGLE, size: 8, color: 'D1D5DB' } },
-        indent: { left: 180 },
+        spacing: { before: 60, after: 60 },
         children: [
           new TextRun({
             text: cleaned,
             size: 22,
             bold: isBold,
-            font: BODY_FONT,
+            font: 'Microsoft YaHei',
           }),
         ],
       }));
@@ -1171,10 +1152,8 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
   } else if (includeSummary && !summary) {
     children.push(new Paragraph({
       heading: HeadingLevel.HEADING_1,
-      spacing: { before: 240, after: 160 },
-      border: { left: { style: BorderStyle.SINGLE, size: 18, color: DARK_BLUE } },
-      indent: { left: 240 },
-      children: [new TextRun({ text: '📊 内容摘要', bold: true, size: 56, color: DARK_BLUE, font: BODY_FONT })],
+      spacing: { before: 200, after: 200 },
+      children: [new TextRun({ text: '📊 内容摘要', bold: true, color: '1E40AF' })],
     }));
     children.push(new Paragraph({
       spacing: { after: 200 },
@@ -1189,27 +1168,23 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
   }
 
   // ── Pages Section ──────────────────────────────────────────────────────────
-  // H1 with left accent bar
   children.push(new Paragraph({
     heading: HeadingLevel.HEADING_1,
-    spacing: { before: 240, after: 160 },
-    border: { left: { style: BorderStyle.SINGLE, size: 18, color: DARK_BLUE } },
-    indent: { left: 240 },
-    children: [new TextRun({ text: '📄 PDF 页面内容', bold: true, size: 56, color: DARK_BLUE, font: BODY_FONT })],
+    spacing: { before: 200, after: 200 },
+    children: [new TextRun({ text: '📄 PDF 页面内容', bold: true, color: '1E40AF' })],
   }));
 
   for (const page of pages) {
-    // Page heading — H2: mid-blue, 20pt bold
+    // Page heading
     children.push(new Paragraph({
       heading: HeadingLevel.HEADING_2,
-      spacing: { before: 320, after: 160 },
+      spacing: { before: 300, after: 150 },
       children: [
         new TextRun({
           text: `第 ${page.pageNum} 页 / Page ${page.pageNum}`,
           bold: true,
-          color: ACCENT_BLUE,
-          size: 40, // 20pt = 40 half-points
-          font: BODY_FONT,
+          color: '374151',
+          size: 28,
         }),
       ],
     }));
@@ -1222,11 +1197,10 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
       const w = Math.round(page.width  * scale);
       const h = Math.round(page.height * scale);
 
-      // Lighter border + more breathing room around image
-      const imgBorder = { style: BorderStyle.SINGLE, size: 4, color: 'D1D5DB' };
+      const imgBorder = { style: BorderStyle.SINGLE, size: 4, color: 'AAAAAA' };
       children.push(new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { before: 120, after: 200 },
+        spacing: { after: 160 },
         border: { top: imgBorder, bottom: imgBorder, left: imgBorder, right: imgBorder },
         children: [
           new ImageRun({
@@ -1241,15 +1215,15 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
     // Extracted text (original, layout-preserving)
     if (includeText && page.lines && page.lines.length > 0) {
       const origLangLabel = langDisplayNames[detectedLang] || detectedLang;
+      // Standard body style: 微软雅黑 小四 (12pt = 24 half-pts) 单倍行距
+      const BODY_FONT = 'Microsoft YaHei';
+      const BODY_SIZE = 24; // 小四 = 12pt = 24 half-points
+      const SINGLE_SPACING = { line: 240, lineRule: 'auto' }; // single line spacing
 
-      // "📝 原文" callout label — blue tinted card with left accent
       children.push(new Paragraph({
-        spacing: { before: 100, after: 80, ...BODY_SPACING },
-        shading: { type: ShadingType.SOLID, fill: CALLOUT_FILL, color: 'auto' },
-        border: { left: { style: BorderStyle.SINGLE, size: 24, color: ACCENT_BLUE } },
-        indent: { left: 180 },
+        spacing: { before: 80, after: 60, ...SINGLE_SPACING },
         children: [
-          new TextRun({ text: `📝 原文（${origLangLabel}）：`, bold: true, size: BODY_SIZE, color: ACCENT_BLUE, font: BODY_FONT }),
+          new TextRun({ text: `📝 原文（${origLangLabel}）：`, bold: true, size: BODY_SIZE, color: '6B7280', font: BODY_FONT }),
         ],
       }));
 
@@ -1270,16 +1244,15 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
           continue;
         }
         const isHeadingLine = line.isHeading || (avgPageFontSize > 0 && line.fontSize > avgPageFontSize * 1.4);
-        // Body lines: 1.15× spacing + first-line indent (Chinese convention); headings bold
+        // All text uses 小四 (24 half-pts); headings stay bold for hierarchy
         children.push(new Paragraph({
-          spacing: { before: isHeadingLine ? 100 : 0, after: isHeadingLine ? 60 : 0, ...BODY_SPACING },
-          indent: isHeadingLine ? undefined : { firstLine: 480 },
+          spacing: { before: isHeadingLine ? 80 : 0, after: isHeadingLine ? 40 : 0, ...SINGLE_SPACING },
           children: [
             new TextRun({
               text: line.text,
               size: BODY_SIZE,
               bold: isHeadingLine,
-              color: isHeadingLine ? DARK_BLUE : '374151',
+              color: isHeadingLine ? '1E3A5F' : '374151',
               font: BODY_FONT,
             }),
           ],
@@ -1289,41 +1262,35 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
       // Translated text (flat – translation is done on flattened text)
       if (translateLang && translateLang !== 'none' && page.translatedText) {
         const tgtLabel = langDisplayNames[translateLang] || translateLang;
-        // "🌐 译文" callout label — same card style as original
         children.push(new Paragraph({
-          spacing: { before: 140, after: 80, ...BODY_SPACING },
-          shading: { type: ShadingType.SOLID, fill: CALLOUT_FILL, color: 'auto' },
-          border: { left: { style: BorderStyle.SINGLE, size: 24, color: ACCENT_BLUE } },
-          indent: { left: 180 },
+          spacing: { before: 100, after: 60 },
           children: [
-            new TextRun({ text: `🌐 译文（${tgtLabel}）：`, bold: true, size: BODY_SIZE, color: ACCENT_BLUE, font: BODY_FONT }),
+            new TextRun({ text: `🌐 译文（${tgtLabel}）：`, bold: true, size: 18, color: '2563EB' }),
           ],
         }));
         const tChunks = chunkText(page.translatedText, 500);
         for (const chunk of tChunks) {
           children.push(new Paragraph({
-            spacing: { after: 60, ...BODY_SPACING },
-            indent: { firstLine: 480 },
+            spacing: { after: 60 },
             children: [
-              new TextRun({ text: chunk, size: BODY_SIZE, color: '1E40AF', font: BODY_FONT }),
+              new TextRun({ text: chunk, size: 18, color: '1E40AF', font: 'Microsoft YaHei' }),
             ],
           }));
         }
       }
     }
 
-    // Separator between pages (not after last) — thin solid purple tint, more whitespace
+    // Separator between pages (not after last)
     if (page.pageNum < pages.length) {
       children.push(new Paragraph({
-        border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: 'C7D2FE' } },
-        spacing: { before: 280, after: 280 },
+        border: { bottom: { style: BorderStyle.DASHED, size: 4, color: 'D1D5DB' } },
+        spacing: { before: 200, after: 200 },
         children: [],
       }));
     }
   }
 
   // Build document
-  const footerTitleText = coverTitle.length > 40 ? coverTitle.slice(0, 37) + '…' : coverTitle;
   const doc = new Document({
     creator: 'PDF to Word Converter',
     title: coverTitle,
@@ -1334,9 +1301,9 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
           page: {
             margin: {
               top:    convertInchesToTwip(1),
-              right:  convertInchesToTwip(0.9), // slightly narrower for more reading width
+              right:  convertInchesToTwip(1),
               bottom: convertInchesToTwip(1),
-              left:   convertInchesToTwip(0.9),
+              left:   convertInchesToTwip(1),
             },
           },
         },
@@ -1344,14 +1311,11 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
           default: new Footer({
             children: [
               new Paragraph({
-                // Left: doc title · Right: page / total  (tab-stop layout)
-                tabStops: [{ type: TabStopType.RIGHT, position: convertInchesToTwip(6.7) }],
+                alignment: AlignmentType.CENTER,
                 children: [
-                  new TextRun({ text: footerTitleText, size: 18, color: '9CA3AF', font: BODY_FONT }),
-                  new TextRun({ text: '\t' }),
-                  new TextRun({ children: [PageNumber.CURRENT], size: 18, color: '6B7280' }),
-                  new TextRun({ text: ' / ', size: 18, color: '6B7280' }),
-                  new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 18, color: '6B7280' }),
+                  new TextRun({ children: [PageNumber.CURRENT] }),
+                  new TextRun({ text: ' / ' }),
+                  new TextRun({ children: [PageNumber.TOTAL_PAGES] }),
                 ],
               }),
             ],
