@@ -751,11 +751,15 @@ convertBtn.addEventListener('click', async () => {
       log(`🌐 正在翻译文字至 ${langDisplayNames[translateLang] || translateLang}...`);
       setProgress(70, '翻译文字中...');
       const stepPerPageT = 15 / renderedPages.length;
+      translateText._aiFailed = null;
       for (let i = 0; i < renderedPages.length; i++) {
         const page = renderedPages[i];
         if (page.text) {
           try {
             page.translatedText = await translateText(page.text, detectedLang, translateLang, apiKey, aiProvider);
+            if (translateText._aiFailed && i === 0) {
+              log(`⚠️ AI 翻译失败 (${translateText._aiFailed})，已切换至 MyMemory 免费翻译`, 'warn');
+            }
           } catch (e) {
             log(`  ⚠️ 第 ${page.pageNum} 页翻译失败: ${e.message}`, 'warn');
           }
@@ -1072,23 +1076,27 @@ async function translateText(text, srcLang, tgtLang, apiKey, aiProvider = 'opena
   if (apiKey) {
     const langNames = { zh: 'Simplified Chinese', en: 'English', ja: 'Japanese', fr: 'French', es: 'Spanish' };
     const sysPrompt = `You are a professional translator. Translate the following text to ${langNames[tgtLang] || tgtLang}. Output ONLY the translated text, preserving the original structure and meaning.`;
-    return _callAI(aiProvider, apiKey, sysPrompt, text.substring(0, 2000), { maxTokens: 2000, temperature: 0.3 });
-
-  } else {
-    // MyMemory free API (up to 400 chars per request)
-    const src = MYMEMORY_LANG[srcLang] || 'en';
-    const tgt = MYMEMORY_LANG[tgtLang] || 'zh-CN';
-    const chunk = text.substring(0, 400);
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${src}|${tgt}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`MyMemory HTTP ${response.status}`);
-    const data = await response.json();
-    // responseStatus 200 means success; other values indicate quota/error
-    if (data.responseStatus !== 200) throw new Error(`MyMemory error: ${data.responseDetails || data.responseStatus}`);
-    const translated = data.responseData?.translatedText;
-    if (!translated) return chunk;
-    return translated + (text.length > 400 ? '\n[...]' : '');
+    try {
+      return await _callAI(aiProvider, apiKey, sysPrompt, text.substring(0, 2000), { maxTokens: 2000, temperature: 0.3 });
+    } catch (aiErr) {
+      // AI provider failed (e.g. Insufficient Balance) – fall through to MyMemory
+      translateText._aiFailed = aiErr.message;
+    }
   }
+
+  // MyMemory free API (up to 400 chars per request)
+  const src = MYMEMORY_LANG[srcLang] || 'en';
+  const tgt = MYMEMORY_LANG[tgtLang] || 'zh-CN';
+  const chunk = text.substring(0, 400);
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${src}|${tgt}`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`MyMemory HTTP ${response.status}`);
+  const data = await response.json();
+  // responseStatus 200 means success; other values indicate quota/error
+  if (data.responseStatus !== 200) throw new Error(`MyMemory error: ${data.responseDetails || data.responseStatus}`);
+  const translated = data.responseData?.translatedText;
+  if (!translated) return chunk;
+  return translated + (text.length > 400 ? '\n[...]' : '');
 }
 
 // ─── AI Summary ───────────────────────────────────────────────────────────────
