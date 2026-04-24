@@ -412,39 +412,9 @@
   .verify-ok  { color: #34d399; }
   .verify-err { color: #f87171; }
 
-  /* ─── Walking characters ──────────────────────────────────────────────────── */
-  .walkers-stage {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-  }
-  .walker {
-    position: absolute;
-    bottom: 4px;
-    font-size: 1.6rem;
-    animation: walk-across linear infinite;
-    user-select: none;
-  }
-  /* Each walker gets its own direction + speed via inline style */
-  @keyframes walk-across {
-    from { transform: translateX(0); }
-    to   { transform: translateX(var(--travel)); }
-  }
-  @keyframes walk-across-flip {
-    from { transform: translateX(0) scaleX(-1); }
-    to   { transform: translateX(var(--travel)) scaleX(-1); }
-  }
 </style>
 </head>
 <body>
-<!-- Walking characters background -->
-<div class="walkers-stage" id="walkersStage"></div>
-
 <div class="container">
 
   <header>
@@ -1707,48 +1677,6 @@ function ensureLinePunctuation(text) {
   if (/[\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/.test(t)) return t + '。';
   return t + '.';
 }
-
-// ─── Walking Characters ───────────────────────────────────────────────────────
-(function spawnWalkers() {
-  const stage = document.getElementById('walkersStage');
-  // emojis: walking person in different directions/styles
-  const emojis = ['🚶', '🚶‍♀️', '🏃', '🏃‍♀️', '👶', '🧓', '🧑‍💼', '🧑‍🎤'];
-  const configs = [
-    // { emoji, startPct, speed(s), size, bottom, flipClass }
-    { idx: 0, start: 110, speed: 18, size: 1.5, btm: 2,  flip: true  },
-    { idx: 1, start: -5,  speed: 22, size: 1.3, btm: 6,  flip: false },
-    { idx: 2, start: 105, speed: 12, size: 1.8, btm: 0,  flip: true  },
-    { idx: 3, start: -8,  speed: 28, size: 1.1, btm: 8,  flip: false },
-    { idx: 4, start: 102, speed: 35, size: 1.0, btm: 4,  flip: true  },
-    { idx: 5, start: -3,  speed: 16, size: 1.6, btm: 2,  flip: false },
-    { idx: 6, start: 108, speed: 24, size: 1.2, btm: 7,  flip: true  },
-    { idx: 7, start: -6,  speed: 20, size: 1.4, btm: 3,  flip: false },
-  ];
-  configs.forEach(cfg => {
-    const el = document.createElement('span');
-    el.className = 'walker';
-    el.textContent = emojis[cfg.idx % emojis.length];
-    // travel distance: walk full viewport width + some margin
-    const travel = cfg.flip ? '-110vw' : '110vw';
-    const startX  = cfg.flip ? `${cfg.start}vw` : `${cfg.start}vw`;
-    el.style.cssText = [
-      `left: ${startX}`,
-      `bottom: ${cfg.btm}px`,
-      `font-size: ${cfg.size}rem`,
-      `--travel: ${travel}`,
-      `animation-name: ${cfg.flip ? 'walk-across' : 'walk-across'}`,
-      `animation-duration: ${cfg.speed}s`,
-      `animation-delay: ${-(cfg.speed * (cfg.idx / configs.length)).toFixed(1)}s`,
-      cfg.flip ? 'transform: scaleX(-1)' : '',
-    ].filter(Boolean).join(';');
-    // For flip walkers (right→left) override keyframe so scaleX(-1) is preserved
-    if (cfg.flip) {
-      el.style.animationName = 'walk-across-flip';
-      el.style.removeProperty('transform');
-    }
-    stage.appendChild(el);
-  });
-})();
 </script>
 </body>
 </html>
