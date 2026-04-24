@@ -468,22 +468,22 @@
 
   <header>
     <h1>📄 PDF → Word 转换器</h1>
-    <p>将 PPT 导出的 PDF 转换为 Word 文档<br>
-       保留每页截图 · AI 自动总结内容 · 一键下载 .docx</p>
+    <p>将 PPT 导出的 PDF 转换为 Word 文档 / Convert PPT-exported PDFs to Word<br>
+       保留每页截图 · AI 自动总结内容 · 一键下载 .docx / Keep screenshots · AI summary · Download .docx</p>
   </header>
 
   <!-- Step 1: Upload -->
   <div class="card">
-    <h2>📁 第一步：选择 PDF 文件</h2>
+    <h2>📁 第一步：选择 PDF 文件 / Step 1: Select PDF</h2>
     <div class="drop-zone" id="dropZone">
       <div class="icon">📑</div>
-      <p><strong>点击选择</strong> 或将 PDF 文件拖放至此处</p>
-      <p style="margin-top:6px; font-size:0.8rem;">支持单个或多个 PDF 文件（可批量处理）</p>
+      <p><strong>点击选择 / Click to select</strong> 或将 PDF 文件拖放至此处 / or drag & drop PDF here</p>
+      <p style="margin-top:6px; font-size:0.8rem;">支持单个或多个 PDF 文件（可批量处理）/ Single or multiple PDFs (batch)</p>
     </div>
     <div class="file-selected" id="fileSelected">
       <div class="file-selected-header">
         <span>✅</span>
-        <span id="fileInfo">已选择文件</span>
+        <span id="fileInfo">已选择文件 / File selected</span>
       </div>
       <ul class="file-list" id="fileList"></ul>
     </div>
@@ -492,70 +492,70 @@
 
   <!-- Step 2: Options -->
   <div class="card">
-    <h2>⚙️ 第二步：配置选项</h2>
+    <h2>⚙️ 第二步：配置选项 / Step 2: Configure Options</h2>
 
-    <label>AI 服务商（可选，用于高质量翻译和 AI 内容总结）</label>
+    <label>AI 服务商 / AI Provider（可选 / Optional，用于高质量翻译和 AI 内容总结 / for translation & summary）</label>
     <select id="aiProvider">
       <option value="openai">OpenAI（GPT-4o-mini）</option>
       <option value="deepseek">DeepSeek（deepseek-chat）</option>
-      <option value="zhipu">智谱 GLM（glm-4-flash）</option>
+      <option value="zhipu">智谱 GLM / Zhipu GLM（glm-4-flash）</option>
       <option value="gemini">Google Gemini（gemini-1.5-flash）</option>
       <option value="claude">Anthropic Claude（claude-3-haiku）</option>
       <optgroup label="Kimi（Moonshot AI）">
-        <option value="kimi-8k">Kimi（moonshot-v1-8k，8K 上下文）</option>
-        <option value="kimi-32k">Kimi（moonshot-v1-32k，32K 上下文）</option>
-        <option value="kimi-128k">Kimi（moonshot-v1-128k，128K 长文档）</option>
+        <option value="kimi-8k">Kimi（moonshot-v1-8k，8K 上下文 / context）</option>
+        <option value="kimi-32k">Kimi（moonshot-v1-32k，32K 上下文 / context）</option>
+        <option value="kimi-128k">Kimi（moonshot-v1-128k，128K 长文档 / long doc）</option>
       </optgroup>
     </select>
 
-    <label id="apiKeyLabel">API Key（可选）</label>
+    <label id="apiKeyLabel">API Key（可选 / Optional）</label>
     <div class="api-key-row">
       <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
-      <button class="btn-verify" id="verifyBtn" type="button">验证</button>
+      <button class="btn-verify" id="verifyBtn" type="button">验证 / Verify</button>
     </div>
     <div class="verify-result" id="verifyResult"></div>
-    <p class="hint" id="apiKeyHint">🔒 API Key 仅在本地使用，不会上传到任何服务器。不填写则跳过 AI 总结。</p>
+    <p class="hint" id="apiKeyHint">🔒 API Key 仅在本地使用 / stored locally，不会上传到任何服务器 / never uploaded。不填写则跳过 AI 总结 / Skip AI summary if empty。</p>
 
-    <label>本地摘要语言（AI 摘要固定输出英文）</label>
+    <label>本地摘要语言 / Summary Language（AI 摘要固定输出英文 / AI always outputs English）</label>
     <select id="summaryLang">
-      <option value="zh">中文（简体）</option>
+      <option value="zh">中文（简体）/ Chinese (Simplified)</option>
       <option value="en">English</option>
       <option value="ja">日本語</option>
       <option value="fr">Français</option>
       <option value="es">Español</option>
     </select>
 
-    <label>文字翻译目标语言（自动检测原文语言）</label>
+    <label>文字翻译目标语言 / Translation Target（自动检测原文语言 / auto-detect source）</label>
     <select id="translateLang">
-      <option value="none">不翻译（保留原文）</option>
-      <option value="zh">译为中文（简体）</option>
+      <option value="none">不翻译 / No Translation（保留原文 / keep original）</option>
+      <option value="zh">译为中文（简体）/ Translate to Chinese (Simplified)</option>
       <option value="en">Translate to English</option>
       <option value="ja">日本語に翻訳</option>
       <option value="fr">Traduire en français</option>
       <option value="es">Traducir al español</option>
     </select>
-    <p class="hint">💡 有 API Key：用所选 AI 服务商翻译（高质量）；无 API Key：用 MyMemory 免费翻译（每页限 400 字符）。</p>
+    <p class="hint">💡 有 API Key / With API Key：用所选 AI 服务商翻译 / AI translation（高质量 / high quality）；无 API Key / Without Key：用 MyMemory 免费翻译 / free translation（每页限 400 字符 / 400 chars/page）。</p>
 
-    <label>渲染质量（影响图片清晰度和文件大小）</label>
+    <label>渲染质量 / Render Quality（影响图片清晰度和文件大小 / affects image clarity & file size）</label>
     <select id="renderScale">
-      <option value="1.5">标准（1.5x）</option>
-      <option value="2.0" selected>高清（2.0x）推荐</option>
-      <option value="2.5">超清（2.5x）文件较大</option>
+      <option value="1.5">标准 / Standard（1.5x）</option>
+      <option value="2.0" selected>高清 / HD（2.0x）推荐 / Recommended</option>
+      <option value="2.5">超清 / Ultra HD（2.5x）文件较大 / large file</option>
     </select>
 
-    <label>导出选项</label>
+    <label>导出选项 / Export Options</label>
     <div class="checkbox-group">
       <label class="checkbox-label">
         <input type="checkbox" id="includeImages" checked>
-        包含页面截图
+        包含页面截图 / Include page screenshots
       </label>
       <label class="checkbox-label">
         <input type="checkbox" id="includeText" checked>
-        包含提取文字
+        包含提取文字 / Include extracted text
       </label>
       <label class="checkbox-label">
         <input type="checkbox" id="includeSummary" checked>
-        在开头插入 AI 总结
+        在开头插入 AI 总结 / Insert AI summary at start
       </label>
     </div>
   </div>
@@ -569,9 +569,9 @@
 
   <!-- Progress -->
   <div class="card" id="progress-card">
-    <h2>⏳ 处理进度</h2>
+    <h2>⏳ 处理进度 / Processing</h2>
     <div class="progress-label">
-      <span id="progressLabel">准备中...</span>
+      <span id="progressLabel">准备中... / Preparing...</span>
       <span id="progressPct">0%</span>
     </div>
     <div class="progress-bar-wrap">
@@ -582,20 +582,20 @@
 
   <!-- Preview -->
   <div class="card" id="preview-card">
-    <h2>🖼️ 页面预览（点击放大）</h2>
+    <h2>🖼️ 页面预览 / Page Preview（点击放大 / click to enlarge）</h2>
     <div class="file-tabs" id="fileTabs" style="display:none"></div>
     <div class="thumbnails" id="thumbnails"></div>
   </div>
 
   <!-- Result -->
   <div class="card" id="result-card">
-    <h2>✅ 转换完成</h2>
+    <h2>✅ 转换完成 / Conversion Complete</h2>
     <div class="result-info" id="resultInfo"></div>
     <div id="downloadButtons"></div>
   </div>
 
   <footer>
-    PDF to Word Converter · AI-Skills Project · 基于 PDF.js 和 docx.js 构建
+    PDF to Word Converter · AI-Skills Project · 基于 PDF.js 和 docx.js 构建 / Built with PDF.js & docx.js
   </footer>
 </div>
 
@@ -644,20 +644,20 @@ const lightboxCounter= document.getElementById('lightboxCounter');
 
 // ─── AI Provider Meta ─────────────────────────────────────────────────────────
 const AI_PROVIDER_META = {
-  openai:    { placeholder: 'sk-...',                hint: '🔒 OpenAI API Key，仅在本地使用。',    billing: 'https://platform.openai.com/account/billing' },
-  deepseek:  { placeholder: 'sk-...',                hint: '🔒 DeepSeek API Key，仅在本地使用。',  billing: 'https://platform.deepseek.com/top_up' },
-  zhipu:     { placeholder: '输入智谱 API Key...',   hint: '🔒 智谱 GLM API Key，仅在本地使用。', billing: 'https://open.bigmodel.cn/finance/overview' },
-  gemini:    { placeholder: 'AIza...',               hint: '🔒 Google Gemini API Key，仅在本地使用。', billing: 'https://aistudio.google.com/app/apikey' },
-  claude:    { placeholder: 'sk-ant-...',            hint: '🔒 Anthropic Claude API Key，仅在本地使用。', billing: 'https://console.anthropic.com/settings/billing' },
-  'kimi-8k':   { placeholder: 'sk-...',             hint: '🔒 Kimi (Moonshot) API Key，仅在本地使用。', billing: 'https://platform.moonshot.cn/console/account' },
-  'kimi-32k':  { placeholder: 'sk-...',             hint: '🔒 Kimi (Moonshot) API Key，仅在本地使用。', billing: 'https://platform.moonshot.cn/console/account' },
-  'kimi-128k': { placeholder: 'sk-...',             hint: '🔒 Kimi (Moonshot) API Key，仅在本地使用。', billing: 'https://platform.moonshot.cn/console/account' },
+  openai:    { placeholder: 'sk-...',                hint: '🔒 OpenAI API Key，仅在本地使用 / stored locally。',    billing: 'https://platform.openai.com/account/billing' },
+  deepseek:  { placeholder: 'sk-...',                hint: '🔒 DeepSeek API Key，仅在本地使用 / stored locally。',  billing: 'https://platform.deepseek.com/top_up' },
+  zhipu:     { placeholder: '输入智谱 API Key...',   hint: '🔒 智谱 GLM API Key，仅在本地使用 / stored locally。', billing: 'https://open.bigmodel.cn/finance/overview' },
+  gemini:    { placeholder: 'AIza...',               hint: '🔒 Google Gemini API Key，仅在本地使用 / stored locally。', billing: 'https://aistudio.google.com/app/apikey' },
+  claude:    { placeholder: 'sk-ant-...',            hint: '🔒 Anthropic Claude API Key，仅在本地使用 / stored locally。', billing: 'https://console.anthropic.com/settings/billing' },
+  'kimi-8k':   { placeholder: 'sk-...',             hint: '🔒 Kimi (Moonshot) API Key，仅在本地使用 / stored locally。', billing: 'https://platform.moonshot.cn/console/account' },
+  'kimi-32k':  { placeholder: 'sk-...',             hint: '🔒 Kimi (Moonshot) API Key，仅在本地使用 / stored locally。', billing: 'https://platform.moonshot.cn/console/account' },
+  'kimi-128k': { placeholder: 'sk-...',             hint: '🔒 Kimi (Moonshot) API Key，仅在本地使用 / stored locally。', billing: 'https://platform.moonshot.cn/console/account' },
 };
 
 document.getElementById('aiProvider').addEventListener('change', function () {
   const meta = AI_PROVIDER_META[this.value] || AI_PROVIDER_META.openai;
   document.getElementById('apiKey').placeholder = meta.placeholder;
-  document.getElementById('apiKeyHint').textContent = meta.hint + ' 不填写则跳过 AI 总结。';
+  document.getElementById('apiKeyHint').textContent = meta.hint + ' 不填写则跳过 AI 总结 / Skip AI summary if empty。';
   document.getElementById('verifyResult').textContent = '';
 });
 
@@ -667,22 +667,22 @@ document.getElementById('verifyBtn').addEventListener('click', async function ()
   const provider = document.getElementById('aiProvider').value;
   const resultEl = document.getElementById('verifyResult');
   if (!apiKey) {
-    resultEl.textContent = '请先输入 API Key';
+    resultEl.textContent = '请先输入 API Key / Please enter your API Key';
     resultEl.className = 'verify-result verify-err';
     return;
   }
   this.disabled = true;
-  resultEl.textContent = '验证中…';
+  resultEl.textContent = '验证中… / Verifying…';
   resultEl.className = 'verify-result';
   try {
     await _callAI(provider, apiKey, 'You are a test assistant.', 'Reply with OK only.', { maxTokens: 5, temperature: 0 });
-    resultEl.textContent = '✅ 连接成功，API Key 有效！';
+    resultEl.textContent = '✅ 连接成功，API Key 有效！/ Connected successfully, API Key is valid!';
     resultEl.className = 'verify-result verify-ok';
   } catch (e) {
     const meta = AI_PROVIDER_META[provider] || {};
     const isBalance = /balance|quota|insufficient|credit/i.test(e.message);
     if (isBalance && meta.billing) {
-      resultEl.innerHTML = `❌ ${e.message}（余额不足）&nbsp;—&nbsp;<a href="${meta.billing}" target="_blank" style="color:#a78bfa;">前往充值 ↗</a>`;
+      resultEl.innerHTML = `❌ ${e.message}（余额不足 / Insufficient balance）&nbsp;—&nbsp;<a href="${meta.billing}" target="_blank" style="color:#a78bfa;">前往充值 / Top Up ↗</a>`;
     } else {
       resultEl.textContent = `❌ ${e.message}`;
     }
@@ -706,7 +706,7 @@ dropZone.addEventListener('drop', (e) => {
   dropZone.classList.remove('drag-over');
   const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
   if (files.length > 0) setFiles(files);
-  else log('⚠️ 请拖入 PDF 文件', 'warn');
+  else log('⚠️ 请拖入 PDF 文件 / Please drop PDF files', 'warn');
 });
 
 fileInput.addEventListener('change', () => {
@@ -720,7 +720,7 @@ function setFiles(files) {
   if (selectedFiles.length === 1) {
     fileInfo.textContent = `${selectedFiles[0].name}  (${totalMB} MB)`;
   } else {
-    fileInfo.textContent = `已选择 ${selectedFiles.length} 个 PDF 文件（共 ${totalMB} MB）`;
+    fileInfo.textContent = `已选择 / Selected ${selectedFiles.length} 个 PDF 文件（共 / total ${totalMB} MB）`;
   }
   // Render numbered file list
   const fileListEl = document.getElementById('fileList');
@@ -764,7 +764,7 @@ convertBtn.addEventListener('click', async () => {
   fileTabs.style.display = 'none';
   resultInfo.innerHTML = '';
   document.getElementById('downloadButtons').innerHTML = '';
-  setProgress(0, '准备中...');
+  setProgress(0, '准备中... / Preparing...');
   progressCard.style.display = 'block';
   previewCard.style.display = 'none';
   resultCard.style.display = 'none';
@@ -793,11 +793,11 @@ convertBtn.addEventListener('click', async () => {
 
       // 1. Load PDF
       log(`${fp}📂 加载: ${currentFile.name}`);
-      setProgress(5, `${fp}加载 PDF...`);
+      setProgress(5, `${fp}加载 PDF... / Loading PDF...`);
       const arrayBuffer = await currentFile.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const numPages = pdf.numPages;
-      log(`${fp}✅ PDF 加载成功，共 ${numPages} 页`);
+      log(`${fp}✅ PDF 加载成功，共 ${numPages} 页 / PDF loaded, ${numPages} pages`);
 
       // Create partial result entry immediately and show preview tab
       const partialIdx = allResults.length;
@@ -824,7 +824,7 @@ convertBtn.addEventListener('click', async () => {
       const stepPerPage = 50 / numPages;
 
       for (let i = 1; i <= numPages; i++) {
-        setProgress(Math.round(5 + (i - 1) * stepPerPage), `${fp}渲染第 ${i}/${numPages} 页...`);
+        setProgress(Math.round(5 + (i - 1) * stepPerPage), `${fp}渲染第 ${i}/${numPages} 页... / Rendering page ${i}/${numPages}...`);
         log(`  渲染第 ${i} 页...`);
 
         const page = await pdf.getPage(i);
@@ -875,7 +875,7 @@ convertBtn.addEventListener('click', async () => {
           const img = document.createElement('img');
           img.className = 'thumbnail';
           img.src = dataUrl;
-          img.title = `第 ${i} 页`;
+          img.title = `第 ${i} 页 / Page ${i}`;
           const pageIdx = i - 1;
           img.addEventListener('click', () => { activeFileIndex = partialIdx; openLightbox(pageIdx); });
           thumbnails.appendChild(img);
@@ -883,8 +883,8 @@ convertBtn.addEventListener('click', async () => {
       }
 
       allResults[partialIdx].docTitle = docTitleCurrent;
-      setProgress(55, `${fp}页面渲染完成`);
-      log(`${fp}✅ 所有 ${numPages} 页渲染完成`);
+      setProgress(55, `${fp}页面渲染完成 / Pages rendered`);
+      log(`${fp}✅ 所有 ${numPages} 页渲染完成 / All ${numPages} pages rendered`);
 
       // 2b. Detect source language
       const detectedLang = detectLanguage(allText);
@@ -895,39 +895,39 @@ convertBtn.addEventListener('click', async () => {
       let summaryMode = '';
       if (includeSummary) {
         if (apiKey) {
-          log(`${fp}🤖 正在调用 AI 总结内容...`);
-          setProgress(60, `${fp}正在生成 AI 摘要...`);
+          log(`${fp}🤖 正在调用 AI 总结内容... / Generating AI summary...`);
+          setProgress(60, `${fp}正在生成 AI 摘要... / Generating AI summary...`);
           try {
             summary = await generateAiSummary(allText, apiKey, aiProvider);
             summaryMode = 'ai';
-            log(`${fp}✅ AI 摘要生成成功`);
-            setProgress(68, `${fp}AI 摘要完成`);
+            log(`${fp}✅ AI 摘要生成成功 / AI summary generated`);
+            setProgress(68, `${fp}AI 摘要完成 / AI summary done`);
           } catch (e) {
             const isBalance = /balance|quota|insufficient|credit/i.test(e.message);
             const meta = AI_PROVIDER_META[aiProvider] || {};
-            const billingHint = isBalance && meta.billing ? `（余额不足，请 <a href="${meta.billing}" target="_blank" style="color:#fbbf24">前往充值</a>）` : '';
+            const billingHint = isBalance && meta.billing ? `（余额不足 / Insufficient balance，请 <a href="${meta.billing}" target="_blank" style="color:#fbbf24">前往充值 / Top Up</a>）` : '';
             const msgEl = document.createElement('div');
             msgEl.className = 'log-warn';
-            msgEl.innerHTML = `${fp}⚠️ AI 总结失败: ${e.message}${billingHint}，切换为本地提取摘要...`;
+            msgEl.innerHTML = `${fp}⚠️ AI 总结失败 / AI summary failed: ${e.message}${billingHint}，切换为本地提取摘要 / switching to local summary...`;
             logBox.appendChild(msgEl);
             summary = generateLocalSummary(renderedPagesCurrent, summaryLang);
             summaryMode = 'local';
-            setProgress(68, `${fp}本地摘要完成（AI 失败）`);
+            setProgress(68, `${fp}本地摘要完成 / Local summary done（AI 失败 / AI failed）`);
           }
         } else {
-          log(`${fp}📊 正在使用本地提取算法生成摘要（无需 API Key）...`);
-          setProgress(60, `${fp}生成本地摘要...`);
+          log(`${fp}📊 正在使用本地提取算法生成摘要 / Generating local summary（无需 API Key / no API Key needed）...`);
+          setProgress(60, `${fp}生成本地摘要... / Generating local summary...`);
           summary = generateLocalSummary(renderedPagesCurrent, summaryLang);
           summaryMode = 'local';
-          log(`${fp}✅ 本地摘要生成成功`);
-          setProgress(68, `${fp}本地摘要完成`);
+          log(`${fp}✅ 本地摘要生成成功 / Local summary generated`);
+          setProgress(68, `${fp}本地摘要完成 / Local summary done`);
         }
       }
 
       // 4. Translation (optional)
       if (translateLang !== 'none' && translateLang !== detectedLang && includeText) {
-        log(`${fp}🌐 正在翻译文字至 ${langDisplayNames[translateLang] || translateLang}...`);
-        setProgress(70, `${fp}翻译文字中...`);
+        log(`${fp}🌐 正在翻译文字至 / Translating to ${langDisplayNames[translateLang] || translateLang}...`);
+        setProgress(70, `${fp}翻译文字中... / Translating...`);
         const stepPerPageT = 15 / renderedPagesCurrent.length;
         translateText._aiFailed = null;
         for (let i = 0; i < renderedPagesCurrent.length; i++) {
@@ -938,24 +938,24 @@ convertBtn.addEventListener('click', async () => {
               if (translateText._aiFailed && i === 0) {
                 const isBalance = /balance|quota|insufficient|credit/i.test(translateText._aiFailed);
                 const meta = AI_PROVIDER_META[aiProvider] || {};
-                const billingHint = isBalance && meta.billing ? `&nbsp;<a href="${meta.billing}" target="_blank" style="color:#fbbf24">前往充值 ↗</a>` : '';
+                const billingHint = isBalance && meta.billing ? `&nbsp;<a href="${meta.billing}" target="_blank" style="color:#fbbf24">前往充值 / Top Up ↗</a>` : '';
                 const msgEl = document.createElement('div');
                 msgEl.className = 'log-warn';
-                msgEl.innerHTML = `${fp}⚠️ AI 翻译失败 (${translateText._aiFailed})${billingHint}，已切换至 MyMemory 免费翻译`;
+                msgEl.innerHTML = `${fp}⚠️ AI 翻译失败 / AI translation failed (${translateText._aiFailed})${billingHint}，已切换至 MyMemory 免费翻译 / switched to MyMemory free translation`;
                 logBox.appendChild(msgEl);
               }
             } catch (e) {
-              log(`  ${fp}⚠️ 第 ${pg.pageNum} 页翻译失败: ${e.message}`, 'warn');
+              log(`  ${fp}⚠️ 第 ${pg.pageNum} 页翻译失败 / Page ${pg.pageNum} translation failed: ${e.message}`, 'warn');
             }
           }
-          setProgress(Math.round(70 + (i + 1) * stepPerPageT), `${fp}翻译第 ${i + 1}/${renderedPagesCurrent.length} 页...`);
+          setProgress(Math.round(70 + (i + 1) * stepPerPageT), `${fp}翻译第 ${i + 1}/${renderedPagesCurrent.length} 页 / Translating page ${i + 1}/${renderedPagesCurrent.length}...`);
         }
-        log(`${fp}✅ 翻译完成`);
+        log(`${fp}✅ 翻译完成 / Translation done`);
       }
 
       // 5. Generate Word
-      log(`${fp}📝 正在生成 Word 文档...`);
-      setProgress(85, `${fp}生成 Word 文档...`);
+      log(`${fp}📝 正在生成 Word 文档... / Generating Word document...`);
+      setProgress(85, `${fp}生成 Word 文档... / Generating Word...`);
       const blob = await buildDocx({
         fileName: currentFile.name,
         docTitle: docTitleCurrent,
@@ -968,7 +968,7 @@ convertBtn.addEventListener('click', async () => {
         detectedLang,
         translateLang,
       });
-      log(`${fp}✅ Word 文档生成成功（${(blob.size / 1024).toFixed(0)} KB）`);
+      log(`${fp}✅ Word 文档生成成功 / Word document generated（${(blob.size / 1024).toFixed(0)} KB）`);
 
       // Update partial entry with completed data
       allResults[partialIdx].blob = blob;
@@ -977,7 +977,7 @@ convertBtn.addEventListener('click', async () => {
       allResults[partialIdx].detectedLang = detectedLang;
     }
 
-    setProgress(100, '全部完成！');
+    setProgress(100, '全部完成！/ All done!');
 
     // Refresh preview to first file
     activeFileIndex = 0;
@@ -989,7 +989,7 @@ convertBtn.addEventListener('click', async () => {
     resultCard.style.display = 'block';
 
   } catch (e) {
-    log(`❌ 错误: ${e.message}`, 'err');
+    log(`❌ 错误 / Error: ${e.message}`, 'err');
     console.error(e);
   } finally {
     convertBtn.disabled = false;
@@ -1021,7 +1021,7 @@ function showFilePreview(idx) {
     const img = document.createElement('img');
     img.className = 'thumbnail';
     img.src = 'data:image/jpeg;base64,' + pg.base64;
-    img.title = `${result.file.name} — 第 ${pg.pageNum} 页`;
+    img.title = `${result.file.name} — 第 ${pg.pageNum} 页 / Page ${pg.pageNum}`;
     img.addEventListener('click', () => { activeFileIndex = idx; openLightbox(i); });
     thumbnails.appendChild(img);
   });
@@ -1040,19 +1040,19 @@ function renderDownloadButtons() {
     const hasSummary = r.summary && r.summaryMode;
     const hasTranslation = r.translateLang !== 'none' && r.pages.some(p => p.translatedText);
     resultInfo.innerHTML = `
-      <span class="badge badge-green">✅ ${r.numPages} 页已处理</span>
-      <span class="badge badge-blue">🔍 语言：${langDisplayNames[r.detectedLang] || r.detectedLang}</span>
-      ${r.includeImages ? `<span class="badge badge-blue">🖼️ 含页面截图</span>` : ''}
-      ${hasSummary ? `<span class="badge badge-purple">${r.summaryMode === 'ai' ? '🤖 AI摘要' : '📊 本地摘要'}</span>` : ''}
-      ${hasTranslation ? `<span class="badge badge-purple">🌐 已翻译→${langDisplayNames[r.translateLang]}</span>` : ''}
+      <span class="badge badge-green">✅ ${r.numPages} 页已处理 / pages processed</span>
+      <span class="badge badge-blue">🔍 语言 / Language：${langDisplayNames[r.detectedLang] || r.detectedLang}</span>
+      ${r.includeImages ? `<span class="badge badge-blue">🖼️ 含页面截图 / With screenshots</span>` : ''}
+      ${hasSummary ? `<span class="badge badge-purple">${r.summaryMode === 'ai' ? '🤖 AI摘要 / AI Summary' : '📊 本地摘要 / Local Summary'}</span>` : ''}
+      ${hasTranslation ? `<span class="badge badge-purple">🌐 已翻译 / Translated→${langDisplayNames[r.translateLang]}</span>` : ''}
       <span class="badge badge-green">📦 ${(r.blob.size / 1024).toFixed(0)} KB</span>
     `;
   } else {
     const totalKB = readyResults.reduce((s, r) => s + r.blob.size / 1024, 0).toFixed(0);
     resultInfo.innerHTML = `
-      <span class="badge badge-green">✅ ${readyResults.length} 个文件已处理</span>
-      <span class="badge badge-blue">📄 共 ${readyResults.reduce((s, r) => s + r.numPages, 0)} 页</span>
-      <span class="badge badge-green">📦 共 ${totalKB} KB</span>
+      <span class="badge badge-green">✅ ${readyResults.length} 个文件已处理 / files processed</span>
+      <span class="badge badge-blue">📄 共 / Total ${readyResults.reduce((s, r) => s + r.numPages, 0)} 页 / pages</span>
+      <span class="badge badge-green">📦 共 / Total ${totalKB} KB</span>
     `;
   }
 
@@ -1066,7 +1066,7 @@ function renderDownloadButtons() {
     btn.download = fileName;
     const label = readyResults.length > 1
       ? `⬇️ ${r.file.name.replace(/\.pdf$/i, '')}.docx`
-      : '⬇️ 下载 Word 文档 (.docx)';
+      : '⬇️ 下载 Word 文档 / Download Word Document (.docx)';
     btn.textContent = label;
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     container.appendChild(btn);
