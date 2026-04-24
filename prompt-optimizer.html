@@ -412,7 +412,6 @@
             font-size: 0.9em;
             color: #777;
             padding: 4px;
-            margin-top: 10px;
         }
 
         .api-key-toggle:hover { color: #aaa; }
@@ -591,7 +590,7 @@
             <!-- API key + model config -->
             <div class="api-config-row">
                 <div class="api-key-wrap">
-                    <label class="api-field-label">🔑 API Key <span id="corsWarning" class="cors-badge" style="display:none;" title="">⚠️ 需代理/Needs proxy</span></label>
+                    <label class="api-field-label">🔑 API Key <span id="corsWarning" class="cors-badge" style="display:none;" title="This provider may restrict direct browser access. A reverse proxy may be required.">⚠️ 需代理/Needs proxy</span></label>
                     <input type="password" id="apiKeyInput" placeholder="sk-... / AIza... / your API key here" autocomplete="off" />
                     <button class="api-key-toggle" id="apiKeyToggle" onclick="toggleApiKeyVis()" title="Show/Hide key">👁</button>
                 </div>
@@ -1597,6 +1596,8 @@
         // Supports 9 major providers. Keys stored in localStorage (browser
         // only) and sent directly to the provider endpoint — no proxy.
         // ===================================================================
+        const API_MAX_TOKENS = 2048;  // default max response tokens across all providers
+
         const providerConfigs = {
             openai: {
                 name: 'OpenAI', label: 'ChatGPT', icon: '🤖',
@@ -1778,7 +1779,7 @@
                 body: JSON.stringify({
                     model: model,
                     messages: [{ role: 'user', content: prompt }],
-                    max_tokens: 2048,
+                    max_tokens: API_MAX_TOKENS,
                     temperature: 0.7
                 })
             });
@@ -1801,7 +1802,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: { maxOutputTokens: 2048, temperature: 0.7 }
+                    generationConfig: { maxOutputTokens: API_MAX_TOKENS, temperature: 0.7 }
                 })
             });
             if (!resp.ok) {
@@ -1827,7 +1828,7 @@
                 },
                 body: JSON.stringify({
                     model: model,
-                    max_tokens: 2048,
+                    max_tokens: API_MAX_TOKENS,
                     messages: [{ role: 'user', content: prompt }]
                 })
             });
