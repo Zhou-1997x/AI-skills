@@ -619,7 +619,8 @@
             </div>
 
             <div class="privacy-note">
-                🔒 <strong>Privacy / 隐私：</strong> API keys are stored only in your browser's localStorage and sent directly to the selected provider endpoint only — no third-party server involved. / API Key仅保存在本地浏览器中，仅直接发送给所选提供商，不经过任何第三方服务器。
+                🔒 <strong>Privacy / 隐私：</strong> API keys are stored only in your browser's localStorage and sent directly to the selected provider endpoint only — no third-party server involved. / API Key仅保存在本地浏览器中，仅直接发送给所选提供商，不经过任何第三方服务器。<br>
+                ⚠️ <strong>Security note / 安全提示：</strong> API keys used in browser-based apps are visible in DevTools. Use test/limited keys here, not production keys with high spend limits. / 浏览器中的API Key可通过开发者工具查看，请使用测试用途或限额较低的Key，切勿使用高额度生产Key。
             </div>
         </div>
 
@@ -1596,7 +1597,8 @@
         // Supports 9 major providers. Keys stored in localStorage (browser
         // only) and sent directly to the provider endpoint — no proxy.
         // ===================================================================
-        const API_MAX_TOKENS = 2048;  // default max response tokens across all providers
+        const API_MAX_TOKENS = 2048;  // conservative default shared across providers; balances response length vs cost
+        const API_TEMPERATURE = 0.7;  // default creativity level (0 = deterministic, 1 = creative)
 
         const providerConfigs = {
             openai: {
@@ -1661,7 +1663,7 @@
                 format: 'anthropic',
                 models: ['claude-opus-4-5', 'claude-sonnet-4-5', 'claude-haiku-4-5'],
                 corsOk: false,
-                corsNote: 'Anthropic requires the anthropic-dangerous-direct-browser-access header. Ensure CORS is allowed on your network, or use a reverse proxy.'
+                corsNote: 'Anthropic API restricts direct browser access due to browser CORS policies (enforced by the browser, not your network). Use the anthropic-dangerous-direct-browser-access header for testing only, or route requests through a server-side proxy for production use.'
             }
         };
 
@@ -1780,7 +1782,7 @@
                     model: model,
                     messages: [{ role: 'user', content: prompt }],
                     max_tokens: API_MAX_TOKENS,
-                    temperature: 0.7
+                    temperature: API_TEMPERATURE
                 })
             });
             if (!resp.ok) {
@@ -1802,7 +1804,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: { maxOutputTokens: API_MAX_TOKENS, temperature: 0.7 }
+                    generationConfig: { maxOutputTokens: API_MAX_TOKENS, temperature: API_TEMPERATURE }
                 })
             });
             if (!resp.ok) {
