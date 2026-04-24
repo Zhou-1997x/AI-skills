@@ -563,7 +563,7 @@
   <!-- Convert button -->
   <div class="card" style="padding: 20px;">
     <button class="btn-convert" id="convertBtn" disabled>
-      🔄 开始转换
+      🔄 开始转换 / Start Converting
     </button>
   </div>
 
@@ -769,6 +769,8 @@ convertBtn.addEventListener('click', async () => {
   previewCard.style.display = 'none';
   resultCard.style.display = 'none';
   convertBtn.disabled = true;
+  // Scroll to progress section so the user can follow along
+  progressCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   try {
     const apiKey = document.getElementById('apiKey').value.trim();
