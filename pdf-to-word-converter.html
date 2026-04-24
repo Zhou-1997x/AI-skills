@@ -18,7 +18,7 @@
   }
 
   .container {
-    max-width: 800px;
+    max-width: 1440px;
     margin: 0 auto;
   }
 
@@ -66,7 +66,7 @@
   .drop-zone {
     border: 2px dashed rgba(167, 139, 250, 0.4);
     border-radius: 12px;
-    padding: 50px 20px;
+    padding: 32px 20px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -245,7 +245,13 @@
     flex-wrap: wrap;
     gap: 10px;
     margin-top: 8px;
+    max-height: 460px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(167,139,250,0.3) transparent;
   }
+  .thumbnails::-webkit-scrollbar { width: 4px; }
+  .thumbnails::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.3); border-radius: 2px; }
 
   .thumbnail {
     width: 90px;
@@ -439,6 +445,36 @@
   /* ─── Per-file download buttons ────────────────────────────────────────────── */
   #downloadButtons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 
+  /* ─── Two-column app layout ───────────────────────────────────────────────── */
+  .app-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .left-panel { display: flex; flex-direction: column; }
+
+  .right-panel {
+    position: sticky;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(167,139,250,0.3) transparent;
+    padding-right: 2px;
+  }
+  .right-panel::-webkit-scrollbar { width: 4px; }
+  .right-panel::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.3); border-radius: 2px; }
+
+  @media (max-width: 960px) {
+    .app-layout { grid-template-columns: 1fr; }
+    .right-panel { position: static; max-height: none; overflow-y: visible; }
+    .thumbnails { max-height: none; }
+  }
+
 </style>
 </head>
 <body>
@@ -450,124 +486,138 @@
        保留每页截图 · AI 自动总结内容 · 一键下载 .docx</p>
   </header>
 
-  <!-- Step 1: Upload -->
-  <div class="card">
-    <h2>📁 第一步：选择 PDF 文件</h2>
-    <div class="drop-zone" id="dropZone">
-      <div class="icon">📑</div>
-      <p><strong>点击选择</strong> 或将 PDF 文件拖放至此处</p>
-      <p style="margin-top:6px; font-size:0.8rem;">支持单个或多个 PDF 文件（可批量处理）</p>
-    </div>
-    <div class="file-selected" id="fileSelected">
-      <span>✅</span>
-      <span id="fileInfo">已选择文件</span>
-    </div>
-    <input type="file" id="fileInput" accept=".pdf" multiple style="display:none">
-  </div>
+  <div class="app-layout">
 
-  <!-- Step 2: Options -->
-  <div class="card">
-    <h2>⚙️ 第二步：配置选项</h2>
+    <!-- ══════ LEFT PANEL ════════════════════════════════════════════════════ -->
+    <div class="left-panel">
 
-    <label>AI 服务商（可选，用于高质量翻译和 AI 内容总结）</label>
-    <select id="aiProvider">
-      <option value="openai">OpenAI（GPT-4o-mini）</option>
-      <option value="deepseek">DeepSeek（deepseek-chat）</option>
-      <option value="zhipu">智谱 GLM（glm-4-flash）</option>
-      <option value="gemini">Google Gemini（gemini-1.5-flash）</option>
-      <option value="claude">Anthropic Claude（claude-3-haiku）</option>
-      <optgroup label="Kimi（Moonshot AI）">
-        <option value="kimi-8k">Kimi（moonshot-v1-8k，8K 上下文）</option>
-        <option value="kimi-32k">Kimi（moonshot-v1-32k，32K 上下文）</option>
-        <option value="kimi-128k">Kimi（moonshot-v1-128k，128K 长文档）</option>
-      </optgroup>
-    </select>
+      <!-- Step 1: Upload -->
+      <div class="card">
+        <h2>📁 第一步：选择 PDF 文件</h2>
+        <div class="drop-zone" id="dropZone">
+          <div class="icon">📑</div>
+          <p><strong>点击选择</strong> 或将 PDF 文件拖放至此处</p>
+          <p style="margin-top:6px; font-size:0.8rem;">支持单个或多个 PDF 文件（可批量处理）</p>
+        </div>
+        <div class="file-selected" id="fileSelected">
+          <span>✅</span>
+          <span id="fileInfo">已选择文件</span>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf" multiple style="display:none">
+      </div>
 
-    <label id="apiKeyLabel">API Key（可选）</label>
-    <div class="api-key-row">
-      <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
-      <button class="btn-verify" id="verifyBtn" type="button">验证</button>
-    </div>
-    <div class="verify-result" id="verifyResult"></div>
-    <p class="hint" id="apiKeyHint">🔒 API Key 仅在本地使用，不会上传到任何服务器。不填写则跳过 AI 总结。</p>
+      <!-- Step 2: Options -->
+      <div class="card">
+        <h2>⚙️ 第二步：配置选项</h2>
 
-    <label>本地摘要语言（AI 摘要固定输出英文）</label>
-    <select id="summaryLang">
-      <option value="zh">中文（简体）</option>
-      <option value="en">English</option>
-      <option value="ja">日本語</option>
-      <option value="fr">Français</option>
-      <option value="es">Español</option>
-    </select>
+        <label>AI 服务商（可选，用于高质量翻译和 AI 内容总结）</label>
+        <select id="aiProvider">
+          <option value="openai">OpenAI（GPT-4o-mini）</option>
+          <option value="deepseek">DeepSeek（deepseek-chat）</option>
+          <option value="zhipu">智谱 GLM（glm-4-flash）</option>
+          <option value="gemini">Google Gemini（gemini-1.5-flash）</option>
+          <option value="claude">Anthropic Claude（claude-3-haiku）</option>
+          <optgroup label="Kimi（Moonshot AI）">
+            <option value="kimi-8k">Kimi（moonshot-v1-8k，8K 上下文）</option>
+            <option value="kimi-32k">Kimi（moonshot-v1-32k，32K 上下文）</option>
+            <option value="kimi-128k">Kimi（moonshot-v1-128k，128K 长文档）</option>
+          </optgroup>
+        </select>
 
-    <label>文字翻译目标语言（自动检测原文语言）</label>
-    <select id="translateLang">
-      <option value="none">不翻译（保留原文）</option>
-      <option value="zh">译为中文（简体）</option>
-      <option value="en">Translate to English</option>
-      <option value="ja">日本語に翻訳</option>
-      <option value="fr">Traduire en français</option>
-      <option value="es">Traducir al español</option>
-    </select>
-    <p class="hint">💡 有 API Key：用所选 AI 服务商翻译（高质量）；无 API Key：用 MyMemory 免费翻译（每页限 400 字符）。</p>
+        <label id="apiKeyLabel">API Key（可选）</label>
+        <div class="api-key-row">
+          <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
+          <button class="btn-verify" id="verifyBtn" type="button">验证</button>
+        </div>
+        <div class="verify-result" id="verifyResult"></div>
+        <p class="hint" id="apiKeyHint">🔒 API Key 仅在本地使用，不会上传到任何服务器。不填写则跳过 AI 总结。</p>
 
-    <label>渲染质量（影响图片清晰度和文件大小）</label>
-    <select id="renderScale">
-      <option value="1.5">标准（1.5x）</option>
-      <option value="2.0" selected>高清（2.0x）推荐</option>
-      <option value="2.5">超清（2.5x）文件较大</option>
-    </select>
+        <label>本地摘要语言（AI 摘要固定输出英文）</label>
+        <select id="summaryLang">
+          <option value="zh">中文（简体）</option>
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+          <option value="fr">Français</option>
+          <option value="es">Español</option>
+        </select>
 
-    <label>导出选项</label>
-    <div class="checkbox-group">
-      <label class="checkbox-label">
-        <input type="checkbox" id="includeImages" checked>
-        包含页面截图
-      </label>
-      <label class="checkbox-label">
-        <input type="checkbox" id="includeText" checked>
-        包含提取文字
-      </label>
-      <label class="checkbox-label">
-        <input type="checkbox" id="includeSummary" checked>
-        在开头插入 AI 总结
-      </label>
-    </div>
-  </div>
+        <label>文字翻译目标语言（自动检测原文语言）</label>
+        <select id="translateLang">
+          <option value="none">不翻译（保留原文）</option>
+          <option value="zh">译为中文（简体）</option>
+          <option value="en">Translate to English</option>
+          <option value="ja">日本語に翻訳</option>
+          <option value="fr">Traduire en français</option>
+          <option value="es">Traducir al español</option>
+        </select>
+        <p class="hint">💡 有 API Key：用所选 AI 服务商翻译（高质量）；无 API Key：用 MyMemory 免费翻译（每页限 400 字符）。</p>
 
-  <!-- Convert button -->
-  <div class="card" style="padding: 20px;">
-    <button class="btn-convert" id="convertBtn" disabled>
-      🔄 开始转换
-    </button>
-  </div>
+        <label>渲染质量（影响图片清晰度和文件大小）</label>
+        <select id="renderScale">
+          <option value="1.5">标准（1.5x）</option>
+          <option value="2.0" selected>高清（2.0x）推荐</option>
+          <option value="2.5">超清（2.5x）文件较大</option>
+        </select>
 
-  <!-- Progress -->
-  <div class="card" id="progress-card">
-    <h2>⏳ 处理进度</h2>
-    <div class="progress-label">
-      <span id="progressLabel">准备中...</span>
-      <span id="progressPct">0%</span>
-    </div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
-    <div class="log-box" id="logBox"></div>
-  </div>
+        <label>导出选项</label>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="includeImages" checked>
+            包含页面截图
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="includeText" checked>
+            包含提取文字
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="includeSummary" checked>
+            在开头插入 AI 总结
+          </label>
+        </div>
+      </div>
 
-  <!-- Preview -->
-  <div class="card" id="preview-card">
-    <h2>🖼️ 页面预览（点击放大）</h2>
-    <div class="file-tabs" id="fileTabs" style="display:none"></div>
-    <div class="thumbnails" id="thumbnails"></div>
-  </div>
+      <!-- Convert button -->
+      <div class="card" style="padding: 20px;">
+        <button class="btn-convert" id="convertBtn" disabled>
+          🔄 开始转换
+        </button>
+      </div>
 
-  <!-- Result -->
-  <div class="card" id="result-card">
-    <h2>✅ 转换完成</h2>
-    <div class="result-info" id="resultInfo"></div>
-    <div id="downloadButtons"></div>
-  </div>
+    </div><!-- /left-panel -->
+
+    <!-- ══════ RIGHT PANEL ═══════════════════════════════════════════════════ -->
+    <div class="right-panel">
+
+      <!-- Progress (top ~1/3) -->
+      <div class="card" id="progress-card">
+        <h2>⏳ 处理进度</h2>
+        <div class="progress-label">
+          <span id="progressLabel">准备中...</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="log-box" id="logBox"></div>
+      </div>
+
+      <!-- Preview (bottom ~2/3, shared with result) -->
+      <div class="card" id="preview-card">
+        <h2>🖼️ 页面预览（点击放大）</h2>
+        <div class="file-tabs" id="fileTabs" style="display:none"></div>
+        <div class="thumbnails" id="thumbnails"></div>
+      </div>
+
+      <!-- Result -->
+      <div class="card" id="result-card">
+        <h2>✅ 转换完成</h2>
+        <div class="result-info" id="resultInfo"></div>
+        <div id="downloadButtons"></div>
+      </div>
+
+    </div><!-- /right-panel -->
+
+  </div><!-- /app-layout -->
 
   <footer>
     PDF to Word Converter · AI-Skills Project · 基于 PDF.js 和 docx.js 构建
@@ -763,7 +813,26 @@ convertBtn.addEventListener('click', async () => {
       const numPages = pdf.numPages;
       log(`${fp}✅ PDF 加载成功，共 ${numPages} 页`);
 
-      // 2. Render pages
+      // Create partial result entry immediately and show preview tab
+      const partialIdx = allResults.length;
+      allResults.push({
+        file: currentFile,
+        blob: null,
+        docTitle: '',
+        pages: [],
+        numPages,
+        summary: '',
+        summaryMode: '',
+        detectedLang: '',
+        translateLang,
+        includeImages,
+      });
+      activeFileIndex = partialIdx;
+      renderPreviewTabs();
+      thumbnails.innerHTML = '';
+      previewCard.style.display = 'block';
+
+      // 2. Render pages — append thumbnails live as each page completes
       log(`${fp}🖼️ 开始渲染页面...`);
       let allText = '';
       const stepPerPage = 50 / numPages;
@@ -803,7 +872,7 @@ convertBtn.addEventListener('click', async () => {
 
         allText += `\n--- Page ${i} ---\n${pageText}`;
 
-        renderedPagesCurrent.push({
+        const pageData = {
           pageNum: i,
           base64,
           width: viewport.width,
@@ -811,9 +880,23 @@ convertBtn.addEventListener('click', async () => {
           text: pageText,
           lines: pageLines,
           translatedText: '',
-        });
+        };
+        renderedPagesCurrent.push(pageData);
+        allResults[partialIdx].pages.push(pageData);
+
+        // Append thumbnail live if user is currently viewing this file's tab
+        if (activeFileIndex === partialIdx) {
+          const img = document.createElement('img');
+          img.className = 'thumbnail';
+          img.src = dataUrl;
+          img.title = `第 ${i} 页`;
+          const pageIdx = i - 1;
+          img.addEventListener('click', () => { activeFileIndex = partialIdx; openLightbox(pageIdx); });
+          thumbnails.appendChild(img);
+        }
       }
 
+      allResults[partialIdx].docTitle = docTitleCurrent;
       setProgress(55, `${fp}页面渲染完成`);
       log(`${fp}✅ 所有 ${numPages} 页渲染完成`);
 
@@ -901,29 +984,21 @@ convertBtn.addEventListener('click', async () => {
       });
       log(`${fp}✅ Word 文档生成成功（${(blob.size / 1024).toFixed(0)} KB）`);
 
-      allResults.push({
-        file: currentFile,
-        blob,
-        docTitle: docTitleCurrent,
-        pages: renderedPagesCurrent,
-        numPages,
-        summary,
-        summaryMode,
-        detectedLang,
-        translateLang,
-        includeImages,
-      });
+      // Update partial entry with completed data
+      allResults[partialIdx].blob = blob;
+      allResults[partialIdx].summary = summary;
+      allResults[partialIdx].summaryMode = summaryMode;
+      allResults[partialIdx].detectedLang = detectedLang;
     }
 
     setProgress(100, '全部完成！');
 
-    // Show preview
+    // Refresh preview to first file
     activeFileIndex = 0;
     renderPreviewTabs();
     showFilePreview(0);
-    previewCard.style.display = 'block';
 
-    // Show result
+    // Show results
     renderDownloadButtons();
     resultCard.style.display = 'block';
 
@@ -945,16 +1020,14 @@ function renderPreviewTabs() {
     btn.className = 'file-tab' + (idx === activeFileIndex ? ' active' : '');
     btn.title = r.file.name;
     btn.textContent = `📄 ${r.file.name}`;
-    btn.addEventListener('click', () => {
-      activeFileIndex = idx;
-      document.querySelectorAll('.file-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
-      showFilePreview(idx);
-    });
+    btn.addEventListener('click', () => showFilePreview(idx));
     fileTabs.appendChild(btn);
   });
 }
 
 function showFilePreview(idx) {
+  activeFileIndex = idx;
+  document.querySelectorAll('.file-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
   thumbnails.innerHTML = '';
   const result = allResults[idx];
   if (!result) return;
@@ -972,10 +1045,12 @@ function showFilePreview(idx) {
 function renderDownloadButtons() {
   const container = document.getElementById('downloadButtons');
   container.innerHTML = '';
+  const readyResults = allResults.filter(r => r.blob !== null);
+  if (readyResults.length === 0) return;
   const langDisplayNames = { zh: '中文', en: 'English', ja: '日本語', ko: '한국어', fr: 'Français', es: 'Español', ar: 'العربية', ru: 'Русский', unknown: '未知' };
 
-  if (allResults.length === 1) {
-    const r = allResults[0];
+  if (readyResults.length === 1) {
+    const r = readyResults[0];
     const hasSummary = r.summary && r.summaryMode;
     const hasTranslation = r.translateLang !== 'none' && r.pages.some(p => p.translatedText);
     resultInfo.innerHTML = `
@@ -987,15 +1062,15 @@ function renderDownloadButtons() {
       <span class="badge badge-green">📦 ${(r.blob.size / 1024).toFixed(0)} KB</span>
     `;
   } else {
-    const totalKB = allResults.reduce((s, r) => s + r.blob.size / 1024, 0).toFixed(0);
+    const totalKB = readyResults.reduce((s, r) => s + r.blob.size / 1024, 0).toFixed(0);
     resultInfo.innerHTML = `
-      <span class="badge badge-green">✅ ${allResults.length} 个文件已处理</span>
-      <span class="badge badge-blue">📄 共 ${allResults.reduce((s, r) => s + r.numPages, 0)} 页</span>
+      <span class="badge badge-green">✅ ${readyResults.length} 个文件已处理</span>
+      <span class="badge badge-blue">📄 共 ${readyResults.reduce((s, r) => s + r.numPages, 0)} 页</span>
       <span class="badge badge-green">📦 共 ${totalKB} KB</span>
     `;
   }
 
-  allResults.forEach((r) => {
+  readyResults.forEach((r) => {
     const base = sanitizeFileName(r.docTitle) || r.file.name.replace(/\.pdf$/i, '');
     const fileName = base + '.docx';
     const url = URL.createObjectURL(r.blob);
@@ -1003,7 +1078,7 @@ function renderDownloadButtons() {
     btn.className = 'btn-download';
     btn.href = url;
     btn.download = fileName;
-    const label = allResults.length > 1
+    const label = readyResults.length > 1
       ? `⬇️ ${r.file.name.replace(/\.pdf$/i, '')}.docx`
       : '⬇️ 下载 Word 文档 (.docx)';
     btn.textContent = label;
