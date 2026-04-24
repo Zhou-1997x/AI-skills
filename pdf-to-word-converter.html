@@ -412,6 +412,33 @@
   .verify-ok  { color: #34d399; }
   .verify-err { color: #f87171; }
 
+  /* ─── Multi-file tabs ──────────────────────────────────────────────────────── */
+  .file-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .file-tab {
+    padding: 5px 14px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: 1px solid rgba(167,139,250,0.4);
+    background: rgba(167,139,250,0.08);
+    color: #a78bfa;
+    transition: all 0.2s;
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .file-tab:hover  { background: rgba(167,139,250,0.22); }
+  .file-tab.active { background: rgba(167,139,250,0.3); border-color: #a78bfa; font-weight: 600; }
+
+  /* ─── Per-file download buttons ────────────────────────────────────────────── */
+  #downloadButtons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+
 </style>
 </head>
 <body>
@@ -429,13 +456,13 @@
     <div class="drop-zone" id="dropZone">
       <div class="icon">📑</div>
       <p><strong>点击选择</strong> 或将 PDF 文件拖放至此处</p>
-      <p style="margin-top:6px; font-size:0.8rem;">支持 PPT 导出的 PDF 文件</p>
+      <p style="margin-top:6px; font-size:0.8rem;">支持单个或多个 PDF 文件（可批量处理）</p>
     </div>
     <div class="file-selected" id="fileSelected">
       <span>✅</span>
       <span id="fileInfo">已选择文件</span>
     </div>
-    <input type="file" id="fileInput" accept=".pdf" style="display:none">
+    <input type="file" id="fileInput" accept=".pdf" multiple style="display:none">
   </div>
 
   <!-- Step 2: Options -->
@@ -531,6 +558,7 @@
   <!-- Preview -->
   <div class="card" id="preview-card">
     <h2>🖼️ 页面预览（点击放大）</h2>
+    <div class="file-tabs" id="fileTabs" style="display:none"></div>
     <div class="thumbnails" id="thumbnails"></div>
   </div>
 
@@ -538,9 +566,7 @@
   <div class="card" id="result-card">
     <h2>✅ 转换完成</h2>
     <div class="result-info" id="resultInfo"></div>
-    <button class="btn-download" id="downloadBtn">
-      ⬇️ 下载 Word 文档 (.docx)
-    </button>
+    <div id="downloadButtons"></div>
   </div>
 
   <footer>
@@ -563,10 +589,9 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 // ─── State ────────────────────────────────────────────────────────────────────
-let selectedFile = null;
-let docxBlob = null;
-let renderedPages = [];
-let docTitle = '';
+let selectedFiles = [];
+let allResults = [];   // [{file, blob, docTitle, pages, numPages, summary, summaryMode, detectedLang, translateLang, includeImages}]
+let activeFileIndex = 0;
 let lightboxIndex = 0;
 
 // ─── UI Elements ──────────────────────────────────────────────────────────────
@@ -584,7 +609,7 @@ const progressPct = document.getElementById('progressPct');
 const logBox      = document.getElementById('logBox');
 const thumbnails  = document.getElementById('thumbnails');
 const resultInfo  = document.getElementById('resultInfo');
-const downloadBtn = document.getElementById('downloadBtn');
+const fileTabs    = document.getElementById('fileTabs');
 const lightbox       = document.getElementById('lightbox');
 const lightboxImg    = document.getElementById('lightboxImg');
 const lightboxClose  = document.getElementById('lightboxClose');
@@ -654,19 +679,25 @@ dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-ove
 dropZone.addEventListener('drop', (e) => {
   e.preventDefault();
   dropZone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file && file.type === 'application/pdf') setFile(file);
+  const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+  if (files.length > 0) setFiles(files);
   else log('⚠️ 请拖入 PDF 文件', 'warn');
 });
 
 fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) setFile(fileInput.files[0]);
+  if (fileInput.files.length > 0) setFiles(Array.from(fileInput.files));
 });
 
-function setFile(file) {
-  selectedFile = file;
-  const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-  fileInfo.textContent = `${file.name}  (${sizeMB} MB)`;
+function setFiles(files) {
+  selectedFiles = files.filter(f => f.type === 'application/pdf');
+  if (selectedFiles.length === 0) return;
+  if (selectedFiles.length === 1) {
+    const f = selectedFiles[0];
+    fileInfo.textContent = `${f.name}  (${(f.size / 1024 / 1024).toFixed(2)} MB)`;
+  } else {
+    const totalMB = (selectedFiles.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(2);
+    fileInfo.textContent = `已选择 ${selectedFiles.length} 个 PDF 文件（共 ${totalMB} MB）`;
+  }
   fileSelected.classList.add('show');
   convertBtn.disabled = false;
 }
@@ -689,15 +720,16 @@ function setProgress(pct, label) {
 
 // ─── Main Convert ─────────────────────────────────────────────────────────────
 convertBtn.addEventListener('click', async () => {
-  if (!selectedFile) return;
+  if (selectedFiles.length === 0) return;
 
   // Reset
-  docxBlob = null;
-  docTitle = '';
-  renderedPages = [];
+  allResults = [];
   logBox.innerHTML = '';
   thumbnails.innerHTML = '';
+  fileTabs.innerHTML = '';
+  fileTabs.style.display = 'none';
   resultInfo.innerHTML = '';
+  document.getElementById('downloadButtons').innerHTML = '';
   setProgress(0, '准备中...');
   progressCard.style.display = 'block';
   previewCard.style.display = 'none';
@@ -713,180 +745,186 @@ convertBtn.addEventListener('click', async () => {
     const includeImages = document.getElementById('includeImages').checked;
     const includeText = document.getElementById('includeText').checked;
     const includeSummary = document.getElementById('includeSummary').checked;
-
-    // 1. Load PDF
-    log('📂 正在加载 PDF...');
-    setProgress(5, '加载 PDF...');
-    const arrayBuffer = await selectedFile.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    const numPages = pdf.numPages;
-    log(`✅ PDF 加载成功，共 ${numPages} 页`);
-
-    // 2. Render pages
-    log('🖼️ 开始渲染页面...');
-    let allText = '';
-    const stepPerPage = 50 / numPages; // 5% → 55% for rendering
-
-    for (let i = 1; i <= numPages; i++) {
-      setProgress(Math.round(5 + (i - 1) * stepPerPage), `渲染第 ${i}/${numPages} 页...`);
-      log(`  渲染第 ${i} 页...`);
-
-      const page = await pdf.getPage(i);
-      const viewport = page.getViewport({ scale: renderScale });
-
-      // Render to canvas
-      const canvas = document.createElement('canvas');
-      canvas.width  = viewport.width;
-      canvas.height = viewport.height;
-      const ctx = canvas.getContext('2d');
-      await page.render({ canvasContext: ctx, viewport }).promise;
-
-      // Image data
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
-      const base64 = dataUrl.split(',')[1];
-
-      // Extract text (structured, layout-preserving)
-      let pageText = '';
-      let pageLines = [];
-      try {
-        const tc = await page.getTextContent();
-        // Extract title from page 1 (before structuring)
-        if (i === 1) {
-          docTitle = extractPageTitle(tc);
-          if (docTitle) log(`📌 检测到文档标题：${docTitle}`);
-        }
-        pageLines = extractStructuredText(tc);
-        pageText = pageLines
-          .filter(l => l.text)
-          .map(l => l.isHeading ? l.text : ensureLinePunctuation(l.text))
-          .join(' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-      } catch (_) { /* skip text if error */ }
-
-      allText += `\n--- Page ${i} ---\n${pageText}`;
-
-      renderedPages.push({
-        pageNum: i,
-        base64,
-        width: viewport.width,
-        height: viewport.height,
-        text: pageText,
-        lines: pageLines,
-        translatedText: '',
-      });
-
-      // Add thumbnail
-      const img = document.createElement('img');
-      img.className = 'thumbnail';
-      img.src = dataUrl;
-      img.title = `第 ${i} 页`;
-      img.addEventListener('click', () => openLightbox(i - 1));
-      thumbnails.appendChild(img);
-    }
-
-    previewCard.style.display = 'block';
-    setProgress(55, '页面渲染完成');
-    log(`✅ 所有 ${numPages} 页渲染完成`);
-
-    // 2b. Detect source language
-    const detectedLang = detectLanguage(allText);
+    const totalFiles = selectedFiles.length;
     const langDisplayNames = { zh: '中文', en: 'English', ja: '日本語', ko: '한국어', fr: 'Français', es: 'Español', ar: 'العربية', ru: 'Русский', unknown: '未知' };
-    log(`🔍 检测到文字语言：${langDisplayNames[detectedLang] || detectedLang}`);
 
-    // 3. Summary (AI if key provided, else local extractive)
-    let summary = '';
-    let summaryMode = '';
-    if (includeSummary) {
-      if (apiKey) {
-        log('🤖 正在调用 AI 总结内容...');
-        setProgress(60, '正在生成 AI 摘要...');
+    for (let fileIdx = 0; fileIdx < totalFiles; fileIdx++) {
+      const currentFile = selectedFiles[fileIdx];
+      const fp = totalFiles > 1 ? `[${fileIdx + 1}/${totalFiles}] ` : '';
+
+      let docTitleCurrent = '';
+      let renderedPagesCurrent = [];
+
+      // 1. Load PDF
+      log(`${fp}📂 加载: ${currentFile.name}`);
+      setProgress(5, `${fp}加载 PDF...`);
+      const arrayBuffer = await currentFile.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const numPages = pdf.numPages;
+      log(`${fp}✅ PDF 加载成功，共 ${numPages} 页`);
+
+      // 2. Render pages
+      log(`${fp}🖼️ 开始渲染页面...`);
+      let allText = '';
+      const stepPerPage = 50 / numPages;
+
+      for (let i = 1; i <= numPages; i++) {
+        setProgress(Math.round(5 + (i - 1) * stepPerPage), `${fp}渲染第 ${i}/${numPages} 页...`);
+        log(`  渲染第 ${i} 页...`);
+
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: renderScale });
+
+        const canvas = document.createElement('canvas');
+        canvas.width  = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+        const base64 = dataUrl.split(',')[1];
+
+        let pageText = '';
+        let pageLines = [];
         try {
-          summary = await generateAiSummary(allText, apiKey, aiProvider);
-          summaryMode = 'ai';
-          log('✅ AI 摘要生成成功');
-          setProgress(68, 'AI 摘要完成');
-        } catch (e) {
-          const isBalance = /balance|quota|insufficient|credit/i.test(e.message);
-          const meta = AI_PROVIDER_META[aiProvider] || {};
-          const billingHint = isBalance && meta.billing ? `（余额不足，请 <a href="${meta.billing}" target="_blank" style="color:#fbbf24">前往充值</a>）` : '';
-          const msgEl = document.createElement('div');
-          msgEl.className = 'log-warn';
-          msgEl.innerHTML = `⚠️ AI 总结失败: ${e.message}${billingHint}，切换为本地提取摘要...`;
-          document.getElementById('logBox').appendChild(msgEl);
-          summary = generateLocalSummary(renderedPages, summaryLang);
-          summaryMode = 'local';
-          setProgress(68, '本地摘要完成（AI 失败）');
-        }
-      } else {
-        log('📊 正在使用本地提取算法生成摘要（无需 API Key）...');
-        setProgress(60, '生成本地摘要...');
-        summary = generateLocalSummary(renderedPages, summaryLang);
-        summaryMode = 'local';
-        log('✅ 本地摘要生成成功');
-        setProgress(68, '本地摘要完成');
-      }
-    }
-
-    // 4. Translation (optional)
-    if (translateLang !== 'none' && translateLang !== detectedLang && includeText) {
-      log(`🌐 正在翻译文字至 ${langDisplayNames[translateLang] || translateLang}...`);
-      setProgress(70, '翻译文字中...');
-      const stepPerPageT = 15 / renderedPages.length;
-      translateText._aiFailed = null;
-      for (let i = 0; i < renderedPages.length; i++) {
-        const page = renderedPages[i];
-        if (page.text) {
-          try {
-            page.translatedText = await translateText(page.text, detectedLang, translateLang, apiKey, aiProvider);
-            if (translateText._aiFailed && i === 0) {
-              const isBalance = /balance|quota|insufficient|credit/i.test(translateText._aiFailed);
-              const meta = AI_PROVIDER_META[aiProvider] || {};
-              const billingHint = isBalance && meta.billing ? `&nbsp;<a href="${meta.billing}" target="_blank" style="color:#fbbf24">前往充值 ↗</a>` : '';
-              const msgEl = document.createElement('div');
-              msgEl.className = 'log-warn';
-              msgEl.innerHTML = `⚠️ AI 翻译失败 (${translateText._aiFailed})${billingHint}，已切换至 MyMemory 免费翻译`;
-              document.getElementById('logBox').appendChild(msgEl);
-            }
-          } catch (e) {
-            log(`  ⚠️ 第 ${page.pageNum} 页翻译失败: ${e.message}`, 'warn');
+          const tc = await page.getTextContent();
+          if (i === 1) {
+            docTitleCurrent = extractPageTitle(tc);
+            if (docTitleCurrent) log(`${fp}📌 文档标题：${docTitleCurrent}`);
           }
-        }
-        setProgress(Math.round(70 + (i + 1) * stepPerPageT), `翻译第 ${i + 1}/${renderedPages.length} 页...`);
+          pageLines = extractStructuredText(tc);
+          pageText = pageLines
+            .filter(l => l.text)
+            .map(l => l.isHeading ? l.text : ensureLinePunctuation(l.text))
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        } catch (_) { /* skip text if error */ }
+
+        allText += `\n--- Page ${i} ---\n${pageText}`;
+
+        renderedPagesCurrent.push({
+          pageNum: i,
+          base64,
+          width: viewport.width,
+          height: viewport.height,
+          text: pageText,
+          lines: pageLines,
+          translatedText: '',
+        });
       }
-      log('✅ 翻译完成');
+
+      setProgress(55, `${fp}页面渲染完成`);
+      log(`${fp}✅ 所有 ${numPages} 页渲染完成`);
+
+      // 2b. Detect source language
+      const detectedLang = detectLanguage(allText);
+      log(`${fp}🔍 检测到文字语言：${langDisplayNames[detectedLang] || detectedLang}`);
+
+      // 3. Summary
+      let summary = '';
+      let summaryMode = '';
+      if (includeSummary) {
+        if (apiKey) {
+          log(`${fp}🤖 正在调用 AI 总结内容...`);
+          setProgress(60, `${fp}正在生成 AI 摘要...`);
+          try {
+            summary = await generateAiSummary(allText, apiKey, aiProvider);
+            summaryMode = 'ai';
+            log(`${fp}✅ AI 摘要生成成功`);
+            setProgress(68, `${fp}AI 摘要完成`);
+          } catch (e) {
+            const isBalance = /balance|quota|insufficient|credit/i.test(e.message);
+            const meta = AI_PROVIDER_META[aiProvider] || {};
+            const billingHint = isBalance && meta.billing ? `（余额不足，请 <a href="${meta.billing}" target="_blank" style="color:#fbbf24">前往充值</a>）` : '';
+            const msgEl = document.createElement('div');
+            msgEl.className = 'log-warn';
+            msgEl.innerHTML = `${fp}⚠️ AI 总结失败: ${e.message}${billingHint}，切换为本地提取摘要...`;
+            logBox.appendChild(msgEl);
+            summary = generateLocalSummary(renderedPagesCurrent, summaryLang);
+            summaryMode = 'local';
+            setProgress(68, `${fp}本地摘要完成（AI 失败）`);
+          }
+        } else {
+          log(`${fp}📊 正在使用本地提取算法生成摘要（无需 API Key）...`);
+          setProgress(60, `${fp}生成本地摘要...`);
+          summary = generateLocalSummary(renderedPagesCurrent, summaryLang);
+          summaryMode = 'local';
+          log(`${fp}✅ 本地摘要生成成功`);
+          setProgress(68, `${fp}本地摘要完成`);
+        }
+      }
+
+      // 4. Translation (optional)
+      if (translateLang !== 'none' && translateLang !== detectedLang && includeText) {
+        log(`${fp}🌐 正在翻译文字至 ${langDisplayNames[translateLang] || translateLang}...`);
+        setProgress(70, `${fp}翻译文字中...`);
+        const stepPerPageT = 15 / renderedPagesCurrent.length;
+        translateText._aiFailed = null;
+        for (let i = 0; i < renderedPagesCurrent.length; i++) {
+          const pg = renderedPagesCurrent[i];
+          if (pg.text) {
+            try {
+              pg.translatedText = await translateText(pg.text, detectedLang, translateLang, apiKey, aiProvider);
+              if (translateText._aiFailed && i === 0) {
+                const isBalance = /balance|quota|insufficient|credit/i.test(translateText._aiFailed);
+                const meta = AI_PROVIDER_META[aiProvider] || {};
+                const billingHint = isBalance && meta.billing ? `&nbsp;<a href="${meta.billing}" target="_blank" style="color:#fbbf24">前往充值 ↗</a>` : '';
+                const msgEl = document.createElement('div');
+                msgEl.className = 'log-warn';
+                msgEl.innerHTML = `${fp}⚠️ AI 翻译失败 (${translateText._aiFailed})${billingHint}，已切换至 MyMemory 免费翻译`;
+                logBox.appendChild(msgEl);
+              }
+            } catch (e) {
+              log(`  ${fp}⚠️ 第 ${pg.pageNum} 页翻译失败: ${e.message}`, 'warn');
+            }
+          }
+          setProgress(Math.round(70 + (i + 1) * stepPerPageT), `${fp}翻译第 ${i + 1}/${renderedPagesCurrent.length} 页...`);
+        }
+        log(`${fp}✅ 翻译完成`);
+      }
+
+      // 5. Generate Word
+      log(`${fp}📝 正在生成 Word 文档...`);
+      setProgress(85, `${fp}生成 Word 文档...`);
+      const blob = await buildDocx({
+        fileName: currentFile.name,
+        docTitle: docTitleCurrent,
+        pages: renderedPagesCurrent,
+        summary,
+        summaryMode,
+        includeImages,
+        includeText,
+        includeSummary,
+        detectedLang,
+        translateLang,
+      });
+      log(`${fp}✅ Word 文档生成成功（${(blob.size / 1024).toFixed(0)} KB）`);
+
+      allResults.push({
+        file: currentFile,
+        blob,
+        docTitle: docTitleCurrent,
+        pages: renderedPagesCurrent,
+        numPages,
+        summary,
+        summaryMode,
+        detectedLang,
+        translateLang,
+        includeImages,
+      });
     }
 
-    // 5. Generate Word
-    log('📝 正在生成 Word 文档...');
-    setProgress(85, '生成 Word 文档...');
-    docxBlob = await buildDocx({
-      fileName: selectedFile.name,
-      docTitle,
-      pages: renderedPages,
-      summary,
-      summaryMode,
-      includeImages,
-      includeText,
-      includeSummary,
-      detectedLang,
-      translateLang,
-    });
+    setProgress(100, '全部完成！');
 
-    setProgress(100, '完成！');
-    log(`✅ Word 文档生成成功（${(docxBlob.size / 1024).toFixed(0)} KB）`);
+    // Show preview
+    activeFileIndex = 0;
+    renderPreviewTabs();
+    showFilePreview(0);
+    previewCard.style.display = 'block';
 
     // Show result
-    const hasSummary = summary && includeSummary;
-    const hasTranslation = translateLang !== 'none' && renderedPages.some(p => p.translatedText);
-    resultInfo.innerHTML = `
-      <span class="badge badge-green">✅ ${numPages} 页已处理</span>
-      <span class="badge badge-blue">🔍 语言：${langDisplayNames[detectedLang] || detectedLang}</span>
-      ${includeImages ? `<span class="badge badge-blue">🖼️ 含页面截图</span>` : ''}
-      ${hasSummary ? `<span class="badge badge-purple">${summaryMode === 'ai' ? '🤖 AI摘要' : '📊 本地摘要'}</span>` : ''}
-      ${hasTranslation ? `<span class="badge badge-purple">🌐 已翻译→${langDisplayNames[translateLang]}</span>` : ''}
-      <span class="badge badge-green">📦 ${(docxBlob.size / 1024).toFixed(0)} KB</span>
-    `;
+    renderDownloadButtons();
     resultCard.style.display = 'block';
 
   } catch (e) {
@@ -897,26 +935,91 @@ convertBtn.addEventListener('click', async () => {
   }
 });
 
-// ─── Download ─────────────────────────────────────────────────────────────────
-downloadBtn.addEventListener('click', () => {
-  if (!docxBlob) return;
-  const base = sanitizeFileName(docTitle) || (selectedFile?.name || 'output').replace(/\.pdf$/i, '');
-  const name = base + '.docx';
-  const url = URL.createObjectURL(docxBlob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
-});
+// ─── Preview Tabs & File Switcher ─────────────────────────────────────────────
+function renderPreviewTabs() {
+  fileTabs.innerHTML = '';
+  if (allResults.length <= 1) { fileTabs.style.display = 'none'; return; }
+  fileTabs.style.display = 'flex';
+  allResults.forEach((r, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'file-tab' + (idx === activeFileIndex ? ' active' : '');
+    btn.title = r.file.name;
+    btn.textContent = `📄 ${r.file.name}`;
+    btn.addEventListener('click', () => {
+      activeFileIndex = idx;
+      document.querySelectorAll('.file-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+      showFilePreview(idx);
+    });
+    fileTabs.appendChild(btn);
+  });
+}
+
+function showFilePreview(idx) {
+  thumbnails.innerHTML = '';
+  const result = allResults[idx];
+  if (!result) return;
+  result.pages.forEach((pg, i) => {
+    const img = document.createElement('img');
+    img.className = 'thumbnail';
+    img.src = 'data:image/jpeg;base64,' + pg.base64;
+    img.title = `${result.file.name} — 第 ${pg.pageNum} 页`;
+    img.addEventListener('click', () => { activeFileIndex = idx; openLightbox(i); });
+    thumbnails.appendChild(img);
+  });
+}
+
+// ─── Download Buttons ─────────────────────────────────────────────────────────
+function renderDownloadButtons() {
+  const container = document.getElementById('downloadButtons');
+  container.innerHTML = '';
+  const langDisplayNames = { zh: '中文', en: 'English', ja: '日本語', ko: '한국어', fr: 'Français', es: 'Español', ar: 'العربية', ru: 'Русский', unknown: '未知' };
+
+  if (allResults.length === 1) {
+    const r = allResults[0];
+    const hasSummary = r.summary && r.summaryMode;
+    const hasTranslation = r.translateLang !== 'none' && r.pages.some(p => p.translatedText);
+    resultInfo.innerHTML = `
+      <span class="badge badge-green">✅ ${r.numPages} 页已处理</span>
+      <span class="badge badge-blue">🔍 语言：${langDisplayNames[r.detectedLang] || r.detectedLang}</span>
+      ${r.includeImages ? `<span class="badge badge-blue">🖼️ 含页面截图</span>` : ''}
+      ${hasSummary ? `<span class="badge badge-purple">${r.summaryMode === 'ai' ? '🤖 AI摘要' : '📊 本地摘要'}</span>` : ''}
+      ${hasTranslation ? `<span class="badge badge-purple">🌐 已翻译→${langDisplayNames[r.translateLang]}</span>` : ''}
+      <span class="badge badge-green">📦 ${(r.blob.size / 1024).toFixed(0)} KB</span>
+    `;
+  } else {
+    const totalKB = allResults.reduce((s, r) => s + r.blob.size / 1024, 0).toFixed(0);
+    resultInfo.innerHTML = `
+      <span class="badge badge-green">✅ ${allResults.length} 个文件已处理</span>
+      <span class="badge badge-blue">📄 共 ${allResults.reduce((s, r) => s + r.numPages, 0)} 页</span>
+      <span class="badge badge-green">📦 共 ${totalKB} KB</span>
+    `;
+  }
+
+  allResults.forEach((r) => {
+    const base = sanitizeFileName(r.docTitle) || r.file.name.replace(/\.pdf$/i, '');
+    const fileName = base + '.docx';
+    const url = URL.createObjectURL(r.blob);
+    const btn = document.createElement('a');
+    btn.className = 'btn-download';
+    btn.href = url;
+    btn.download = fileName;
+    const label = allResults.length > 1
+      ? `⬇️ ${r.file.name.replace(/\.pdf$/i, '')}.docx`
+      : '⬇️ 下载 Word 文档 (.docx)';
+    btn.textContent = label;
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    container.appendChild(btn);
+  });
+}
 
 // ─── Lightbox ─────────────────────────────────────────────────────────────────
 function openLightbox(index) {
-  lightboxIndex = Math.max(0, Math.min(index, renderedPages.length - 1));
-  lightboxImg.src = 'data:image/jpeg;base64,' + renderedPages[lightboxIndex].base64;
-  lightboxCounter.textContent = `${lightboxIndex + 1} / ${renderedPages.length}`;
+  const pages = allResults[activeFileIndex]?.pages || [];
+  lightboxIndex = Math.max(0, Math.min(index, pages.length - 1));
+  lightboxImg.src = 'data:image/jpeg;base64,' + pages[lightboxIndex].base64;
+  lightboxCounter.textContent = `${lightboxIndex + 1} / ${pages.length}`;
   lightboxPrev.disabled = lightboxIndex === 0;
-  lightboxNext.disabled = lightboxIndex === renderedPages.length - 1;
+  lightboxNext.disabled = lightboxIndex === pages.length - 1;
   lightbox.classList.add('show');
 }
 
