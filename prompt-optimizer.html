@@ -324,6 +324,165 @@
             .btn { width: 100%; justify-content: center; }
             .mode-select { min-width: 100%; }
         }
+
+        /* ===== API Integration Section ===== */
+        .api-section .card-title { color: #a78bfa; }
+
+        .provider-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .provider-btn {
+            padding: 8px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #bbb;
+            cursor: pointer;
+            font-size: 0.88em;
+            font-family: inherit;
+            transition: all 0.25s;
+            white-space: nowrap;
+        }
+
+        .provider-btn:hover {
+            background: rgba(167, 139, 250, 0.12);
+            border-color: rgba(167, 139, 250, 0.4);
+            color: #e0e0e0;
+        }
+
+        .provider-btn.active {
+            background: rgba(167, 139, 250, 0.22);
+            border-color: #a78bfa;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.25);
+        }
+
+        .api-config-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .api-key-wrap {
+            flex: 1;
+            min-width: 240px;
+            position: relative;
+        }
+
+        .api-field-label {
+            display: block;
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .api-key-wrap input {
+            width: 100%;
+            padding: 10px 40px 10px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #e0e0e0;
+            font-size: 0.93em;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .api-key-wrap input:focus {
+            outline: none;
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+        }
+
+        .api-key-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: #777;
+            padding: 4px;
+            margin-top: 10px;
+        }
+
+        .api-key-toggle:hover { color: #aaa; }
+
+        .model-select-wrap { min-width: 180px; }
+
+        .cors-badge {
+            display: inline-block;
+            font-size: 0.72em;
+            padding: 2px 7px;
+            border-radius: 10px;
+            background: rgba(255, 165, 0, 0.15);
+            color: #ffa500;
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .api-status-msg {
+            padding: 9px 13px;
+            border-radius: 9px;
+            font-size: 0.88em;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .api-status-msg.show { display: block; }
+        .api-status-msg.loading { background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.25); }
+        .api-status-msg.ok { background: rgba(46, 213, 115, 0.1); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.25); }
+        .api-status-msg.err { background: rgba(255, 71, 87, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 71, 87, 0.25); }
+
+        .api-response-wrap { margin-top: 16px; }
+
+        .api-response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .api-response-area {
+            background: rgba(0, 0, 0, 0.38);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 80px;
+            max-height: 420px;
+            overflow-y: auto;
+            font-size: 0.92em;
+            line-height: 1.85;
+            color: #d4d4d4;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .privacy-note {
+            font-size: 0.78em;
+            color: #555;
+            margin-top: 14px;
+            padding: 9px 13px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 640px) {
+            .api-config-row { flex-direction: column; }
+            .model-select-wrap { min-width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -366,8 +525,8 @@
                 </div>
                 <div class="step">
                     <div class="step-num">3</div>
-                    <h4>复制并"欺骗"AI / Copy & Trick AI</h4>
-                    <p>混合语言迫使AI更深层处理，激活多个语言知识中心，生成更好的内容。Mixed languages force AI to process deeper, generating better results.</p>
+                    <h4>直接发送给AI / Send Directly to AI</h4>
+                    <p>复制混合后的提示词粘贴到任意AI，或使用下方API测试区直接发送给主流大模型。Copy & paste into any AI, or use the API panel below to send directly to any major LLM.</p>
                 </div>
             </div>
         </div>
@@ -417,7 +576,51 @@
             <textarea id="optimizedOutput" class="output" readonly></textarea>
             <div class="char-info">
                 <span id="outputCharCount">0 characters</span>
-                <span>💡 Paste this into any AI model for better results</span>
+                <span>💡 Paste into any AI · or use API panel below ↓</span>
+            </div>
+        </div>
+
+        <!-- API Direct Test Section -->
+        <div class="card api-section" id="apiTestCard" style="display:none;">
+            <div class="card-title">🚀 Direct API Test / 直接API对话</div>
+            <p style="font-size:0.88em;color:#888;margin-bottom:14px;">选择提供商并输入你的API Key，将优化后的提示词直接发送给大模型，即时查看效果。/ Select a provider, enter your API key, and send the optimized prompt directly to the LLM.</p>
+
+            <!-- Provider selection grid -->
+            <div class="provider-grid" id="providerGrid"><!-- populated by JS --></div>
+
+            <!-- API key + model config -->
+            <div class="api-config-row">
+                <div class="api-key-wrap">
+                    <label class="api-field-label">🔑 API Key <span id="corsWarning" class="cors-badge" style="display:none;" title="">⚠️ 需代理/Needs proxy</span></label>
+                    <input type="password" id="apiKeyInput" placeholder="sk-... / AIza... / your API key here" autocomplete="off" />
+                    <button class="api-key-toggle" id="apiKeyToggle" onclick="toggleApiKeyVis()" title="Show/Hide key">👁</button>
+                </div>
+                <div class="model-select-wrap">
+                    <label class="api-field-label">🤖 Model / 模型</label>
+                    <select id="apiModelSelect" style="width:100%;"></select>
+                </div>
+            </div>
+
+            <!-- Status + send button -->
+            <div id="apiStatusMsg" class="api-status-msg"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+                <button class="btn btn-primary" id="sendApiBtn" onclick="sendOptimizedPrompt()" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">
+                    ⚡ Send Optimized Prompt / 发送优化提示词
+                </button>
+                <button class="btn btn-secondary" onclick="clearApiResponse()">🗑️ Clear Response</button>
+            </div>
+
+            <!-- Response area -->
+            <div class="api-response-wrap" id="apiResponseWrap" style="display:none;">
+                <div class="api-response-header">
+                    <span style="font-size:0.85em;color:#888;">📨 AI Response / 模型回复</span>
+                    <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82em;" onclick="copyApiResponse()">📋 Copy Response</button>
+                </div>
+                <div class="api-response-area" id="apiResponseArea"></div>
+            </div>
+
+            <div class="privacy-note">
+                🔒 <strong>Privacy / 隐私：</strong> API keys are stored only in your browser's localStorage and sent directly to the selected provider endpoint only — no third-party server involved. / API Key仅保存在本地浏览器中，仅直接发送给所选提供商，不经过任何第三方服务器。
             </div>
         </div>
 
@@ -1195,6 +1398,9 @@
             outputCard.style.display = 'block';
             outputCharCount.textContent = optimized.length + ' characters';
             showStatus('✅ v4.0词级多语混合+认知绕行完成！/ Word-level mixing + cognitive bypass complete! Copy and paste into any AI.', 'success');
+            // Show the API test panel and reset its state
+            document.getElementById('apiTestCard').style.display = 'block';
+            clearApiResponse();
             outputCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -1379,11 +1585,302 @@
             userInput.value = '';
             optimizedOutput.value = '';
             outputCard.style.display = 'none';
+            document.getElementById('apiTestCard').style.display = 'none';
             charCount.textContent = '0 characters';
             outputCharCount.textContent = '0 characters';
             hideStatus();
+            clearApiResponse();
             userInput.focus();
         }
+        // ===================================================================
+        // API INTEGRATION — Direct LLM API Testing
+        // Supports 9 major providers. Keys stored in localStorage (browser
+        // only) and sent directly to the provider endpoint — no proxy.
+        // ===================================================================
+        const providerConfigs = {
+            openai: {
+                name: 'OpenAI', label: 'ChatGPT', icon: '🤖',
+                url: 'https://api.openai.com/v1/chat/completions',
+                format: 'openai',
+                models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'],
+                corsOk: true
+            },
+            gemini: {
+                name: 'Gemini', label: 'Google', icon: '✨',
+                url: 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent',
+                format: 'gemini',
+                models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+                corsOk: true
+            },
+            deepseek: {
+                name: 'DeepSeek', label: '深度求索', icon: '🔬',
+                url: 'https://api.deepseek.com/v1/chat/completions',
+                format: 'openai',
+                models: ['deepseek-chat', 'deepseek-reasoner'],
+                corsOk: true
+            },
+            moonshot: {
+                name: 'Kimi', label: 'Moonshot', icon: '🌙',
+                url: 'https://api.moonshot.cn/v1/chat/completions',
+                format: 'openai',
+                models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
+                corsOk: true
+            },
+            zhipu: {
+                name: 'GLM-4', label: '智谱AI', icon: '⚡',
+                url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+                format: 'openai',
+                models: ['glm-4-flash', 'glm-4-plus', 'glm-4'],
+                corsOk: true
+            },
+            qwen: {
+                name: 'Qwen', label: '通义千问', icon: '🌊',
+                url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+                format: 'openai',
+                models: ['qwen-plus', 'qwen-turbo', 'qwen-max', 'qwen-long'],
+                corsOk: true
+            },
+            mistral: {
+                name: 'Mistral', label: 'Mistral AI', icon: '💨',
+                url: 'https://api.mistral.ai/v1/chat/completions',
+                format: 'openai',
+                models: ['mistral-large-latest', 'mistral-small-latest', 'open-mixtral-8x22b'],
+                corsOk: true
+            },
+            groq: {
+                name: 'Groq', label: 'Groq', icon: '🚀',
+                url: 'https://api.groq.com/openai/v1/chat/completions',
+                format: 'openai',
+                models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it'],
+                corsOk: true
+            },
+            anthropic: {
+                name: 'Claude', label: 'Anthropic', icon: '🧠',
+                url: 'https://api.anthropic.com/v1/messages',
+                format: 'anthropic',
+                models: ['claude-opus-4-5', 'claude-sonnet-4-5', 'claude-haiku-4-5'],
+                corsOk: false,
+                corsNote: 'Anthropic requires the anthropic-dangerous-direct-browser-access header. Ensure CORS is allowed on your network, or use a reverse proxy.'
+            }
+        };
+
+        let selectedProvider = 'openai';
+        const API_LS_PREFIX = 'aitools_apikey_';
+
+        function initProviderGrid() {
+            const grid = document.getElementById('providerGrid');
+            grid.innerHTML = '';
+            for (const [id, cfg] of Object.entries(providerConfigs)) {
+                const btn = document.createElement('button');
+                btn.id = 'prov_' + id;
+                btn.className = 'provider-btn' + (id === selectedProvider ? ' active' : '');
+                btn.textContent = cfg.icon + ' ' + cfg.name + ' / ' + cfg.label;
+                btn.onclick = () => selectProvider(id);
+                grid.appendChild(btn);
+            }
+            selectProvider(selectedProvider);
+        }
+
+        function selectProvider(id) {
+            selectedProvider = id;
+            const cfg = providerConfigs[id];
+
+            // Update button active states
+            for (const pid of Object.keys(providerConfigs)) {
+                const btn = document.getElementById('prov_' + pid);
+                if (btn) btn.className = 'provider-btn' + (pid === id ? ' active' : '');
+            }
+
+            // Populate model dropdown
+            const sel = document.getElementById('apiModelSelect');
+            sel.innerHTML = '';
+            for (const m of cfg.models) {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                sel.appendChild(opt);
+            }
+
+            // Load saved API key
+            const savedKey = localStorage.getItem(API_LS_PREFIX + id) || '';
+            const keyInput = document.getElementById('apiKeyInput');
+            keyInput.value = savedKey;
+            keyInput.placeholder = id === 'gemini' ? 'AIza...' : 'sk-...';
+
+            // CORS warning
+            const warn = document.getElementById('corsWarning');
+            if (!cfg.corsOk) {
+                warn.style.display = 'inline-block';
+                warn.title = cfg.corsNote || '';
+            } else {
+                warn.style.display = 'none';
+            }
+
+            clearApiResponse();
+        }
+
+        function toggleApiKeyVis() {
+            const inp = document.getElementById('apiKeyInput');
+            const btn = document.getElementById('apiKeyToggle');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+        }
+
+        async function sendOptimizedPrompt() {
+            const prompt = document.getElementById('optimizedOutput').value;
+            if (!prompt) {
+                showApiStatus('⚠️ 请先生成优化提示词 / Please optimize a prompt first.', 'err');
+                return;
+            }
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) {
+                showApiStatus('⚠️ 请输入API Key / Please enter your API key.', 'err');
+                document.getElementById('apiKeyInput').focus();
+                return;
+            }
+            const model = document.getElementById('apiModelSelect').value;
+            const cfg = providerConfigs[selectedProvider];
+
+            // Persist key in localStorage
+            localStorage.setItem(API_LS_PREFIX + selectedProvider, apiKey);
+
+            const sendBtn = document.getElementById('sendApiBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="spinner"></span> 发送中 / Sending...';
+            showApiStatus('⏳ 正在调用 ' + cfg.name + ' (' + model + ')...', 'loading');
+
+            try {
+                let responseText = '';
+                if (cfg.format === 'openai') {
+                    responseText = await callOpenAIFormat(cfg.url, apiKey, model, prompt);
+                } else if (cfg.format === 'gemini') {
+                    responseText = await callGeminiFormat(apiKey, model, prompt);
+                } else if (cfg.format === 'anthropic') {
+                    responseText = await callAnthropicFormat(cfg.url, apiKey, model, prompt);
+                }
+                showApiStatus('✅ ' + cfg.name + ' 响应成功！/ Response received successfully!', 'ok');
+                showApiResponse(responseText);
+            } catch (err) {
+                showApiStatus('❌ 请求失败 / Request failed: ' + err.message, 'err');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '⚡ Send Optimized Prompt / 发送优化提示词';
+            }
+        }
+
+        async function callOpenAIFormat(url, apiKey, model, prompt) {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + apiKey
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: 'user', content: prompt }],
+                    max_tokens: 2048,
+                    temperature: 0.7
+                })
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                throw new Error((err.error && err.error.message) || 'HTTP ' + resp.status);
+            }
+            const data = await resp.json();
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                return data.choices[0].message.content || '';
+            }
+            return JSON.stringify(data, null, 2);
+        }
+
+        async function callGeminiFormat(apiKey, model, prompt) {
+            const url = 'https://generativelanguage.googleapis.com/v1beta/models/'
+                + model + ':generateContent?key=' + apiKey;
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { maxOutputTokens: 2048, temperature: 0.7 }
+                })
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                throw new Error((err.error && err.error.message) || 'HTTP ' + resp.status);
+            }
+            const data = await resp.json();
+            if (data.candidates && data.candidates[0] && data.candidates[0].content
+                && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+                return data.candidates[0].content.parts[0].text || '';
+            }
+            return JSON.stringify(data, null, 2);
+        }
+
+        async function callAnthropicFormat(url, apiKey, model, prompt) {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01',
+                    'anthropic-dangerous-direct-browser-access': 'true'
+                },
+                body: JSON.stringify({
+                    model: model,
+                    max_tokens: 2048,
+                    messages: [{ role: 'user', content: prompt }]
+                })
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                throw new Error((err.error && err.error.message) || 'HTTP ' + resp.status);
+            }
+            const data = await resp.json();
+            if (data.content && data.content[0] && data.content[0].text) {
+                return data.content[0].text;
+            }
+            return JSON.stringify(data, null, 2);
+        }
+
+        function showApiStatus(msg, type) {
+            const el = document.getElementById('apiStatusMsg');
+            el.className = 'api-status-msg show ' + type;
+            el.textContent = msg;
+        }
+
+        function showApiResponse(text) {
+            document.getElementById('apiResponseArea').textContent = text;
+            document.getElementById('apiResponseWrap').style.display = 'block';
+            document.getElementById('apiResponseWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function clearApiResponse() {
+            document.getElementById('apiResponseArea').textContent = '';
+            document.getElementById('apiResponseWrap').style.display = 'none';
+            const el = document.getElementById('apiStatusMsg');
+            if (el) el.className = 'api-status-msg';
+        }
+
+        function copyApiResponse() {
+            const text = document.getElementById('apiResponseArea').textContent;
+            if (!text) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () {
+                    showApiStatus('✅ 已复制回复内容 / Response copied!', 'ok');
+                });
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showApiStatus('✅ 已复制回复内容 / Response copied!', 'ok');
+            }
+        }
+
+        // Initialize provider grid on page load
+        initProviderGrid();
     </script>
 </body>
 </html>
