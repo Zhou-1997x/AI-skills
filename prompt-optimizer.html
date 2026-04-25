@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多语幻术师 — Multilingual Prompt Optimizer / 多语混合提示词优化器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans SC', 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a, #1a0a2e, #0a1a2e);
+            min-height: 100vh;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .app {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 0 20px;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            color: #888;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+
+        .header .subtitle span {
+            display: inline-block;
+            margin: 0 4px;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #ccc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Input area */
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            font-size: 1em;
+            resize: vertical;
+            background: rgba(255, 255, 255, 0.06);
+            color: #e0e0e0;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        textarea.output {
+            min-height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            font-family: 'Courier New', 'Noto Sans SC', monospace;
+            font-size: 0.92em;
+            line-height: 1.8;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .mode-select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .mode-select label {
+            display: block;
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            font-size: 0.95em;
+            background: rgba(255, 255, 255, 0.06);
+            color: #e0e0e0;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        select option {
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ccc;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Status */
+        .status {
+            padding: 10px 14px;
+            margin: 14px 0;
+            border-radius: 10px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .status.show { display: block; }
+        .status.success { background: rgba(46, 213, 115, 0.12); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.25); }
+        .status.error { background: rgba(255, 71, 87, 0.12); color: #ff6b6b; border: 1px solid rgba(255, 71, 87, 0.25); }
+        .status.info { background: rgba(102, 126, 234, 0.12); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.25); }
+
+        /* Language tags */
+        .lang-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin: 16px 0;
+        }
+
+        .lang-tag {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78em;
+            background: rgba(255, 255, 255, 0.06);
+            color: #aaa;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* How it works */
+        .how-it-works {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .step {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+        }
+
+        .step h4 {
+            color: #ccc;
+            margin-bottom: 4px;
+            font-size: 0.95em;
+        }
+
+        .step p {
+            color: #888;
+            font-size: 0.85em;
+        }
+
+        /* Output header */
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        /* Char count */
+        .char-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 6px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #555;
+            font-size: 0.8em;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .app { padding: 12px; }
+            .header h1 { font-size: 1.6em; }
+            .card { padding: 18px; }
+            .controls { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+            .mode-select { min-width: 100%; }
+        }
+
+        /* ===== API Integration Section ===== */
+        .api-section .card-title { color: #a78bfa; }
+
+        .provider-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .provider-btn {
+            padding: 8px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #bbb;
+            cursor: pointer;
+            font-size: 0.88em;
+            font-family: inherit;
+            transition: all 0.25s;
+            white-space: nowrap;
+        }
+
+        .provider-btn:hover {
+            background: rgba(167, 139, 250, 0.12);
+            border-color: rgba(167, 139, 250, 0.4);
+            color: #e0e0e0;
+        }
+
+        .provider-btn.active {
+            background: rgba(167, 139, 250, 0.22);
+            border-color: #a78bfa;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.25);
+        }
+
+        .api-config-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .api-key-wrap {
+            flex: 1;
+            min-width: 240px;
+            position: relative;
+        }
+
+        .api-field-label {
+            display: block;
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .api-key-wrap input {
+            width: 100%;
+            padding: 10px 40px 10px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #e0e0e0;
+            font-size: 0.93em;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .api-key-wrap input:focus {
+            outline: none;
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+        }
+
+        .api-key-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: #777;
+            padding: 4px;
+        }
+
+        .api-key-toggle:hover { color: #aaa; }
+
+        .model-select-wrap { min-width: 180px; }
+
+        .cors-badge {
+            display: inline-block;
+            font-size: 0.72em;
+            padding: 2px 7px;
+            border-radius: 10px;
+            background: rgba(255, 165, 0, 0.15);
+            color: #ffa500;
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .api-status-msg {
+            padding: 9px 13px;
+            border-radius: 9px;
+            font-size: 0.88em;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .api-status-msg.show { display: block; }
+        .api-status-msg.loading { background: rgba(102, 126, 234, 0.1); color: #667eea; border: 1px solid rgba(102, 126, 234, 0.25); }
+        .api-status-msg.ok { background: rgba(46, 213, 115, 0.1); color: #2ed573; border: 1px solid rgba(46, 213, 115, 0.25); }
+        .api-status-msg.err { background: rgba(255, 71, 87, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 71, 87, 0.25); }
+
+        .api-response-wrap { margin-top: 16px; }
+
+        .api-response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .api-response-area {
+            background: rgba(0, 0, 0, 0.38);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 80px;
+            max-height: 420px;
+            overflow-y: auto;
+            font-size: 0.92em;
+            line-height: 1.85;
+            color: #d4d4d4;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .privacy-note {
+            font-size: 0.78em;
+            color: #555;
+            margin-top: 14px;
+            padding: 9px 13px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 640px) {
+            .api-config-row { flex-direction: column; }
+            .model-select-wrap { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔮 多语幻术师</h1>
+            <div class="subtitle">
+                <span>Multilingual Prompt Optimizer</span> ·
+                <span>多语混合提示词优化器</span> ·
+                <span>多言語プロンプト錬金術師</span><br>
+                <span>محسّن الأوامر متعدد اللغات</span> ·
+                <span>Optimizador de Prompts Multilingüe</span> ·
+                <span>多方幻辞之术</span>
+            </div>
+
+            <div class="lang-tags">
+                <span class="lang-tag">🇨🇳 中文</span>
+                <span class="lang-tag">🇯🇵 日本語</span>
+                <span class="lang-tag">🇺🇸 English</span>
+                <span class="lang-tag">🇸🇦 العربية</span>
+                <span class="lang-tag">🇪🇸 Español</span>
+                <span class="lang-tag">📜 文言文</span>
+            </div>
+        </div>
+
+        <!-- How it Works -->
+        <div class="card">
+            <div class="card-title">💡 How It Works / 工作原理</div>
+            <div class="how-it-works">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <h4>输入你的提示词 / Enter Your Prompt</h4>
+                    <p>用任何语言输入你想让AI完成的任务。Use any language to describe what you want the AI to do.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <h4>词级多语混合 / Word-Level Mixing</h4>
+                    <p>将你的一句话中的词汇拆开，逐词替换为不同语言（英/日/西/阿/文言文），输出中不包含任何原始输入。Individual words are replaced with different languages — output contains ZERO raw input text.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <h4>直接发送给AI / Send Directly to AI</h4>
+                    <p>复制混合后的提示词粘贴到任意AI，或使用下方API测试区直接发送给主流大模型。Copy & paste into any AI, or use the API panel below to send directly to any major LLM.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="card">
+            <div class="card-title">📝 Your Original Prompt / 你的原始提示词</div>
+            <textarea id="userInput" placeholder="在此输入你想让AI完成的任务...&#10;Enter what you want the AI to do...&#10;&#10;例如 / Example:&#10;帮我生成一张在海边的照片，亚洲风格&#10;帮我写一篇关于人工智能未来发展的文章&#10;Write a detailed analysis article about the future of AI"></textarea>
+            <div class="char-info">
+                <span id="charCount">0 characters</span>
+                <span>Ctrl+Enter to optimize</span>
+            </div>
+
+            <div class="controls">
+                <div class="mode-select">
+                    <label for="modeSelect">🎯 Optimization Mode / 优化模式</label>
+                    <select id="modeSelect">
+                        <option value="general">🌐 General / 通用模式 — 适用于大多数场景</option>
+                        <option value="imageGen">🖼️ Image Generation / 图片生成 — AI绘画、照片生成、视觉创作</option>
+                        <option value="creative">🎨 Creative / 创意模式 — 文学、故事、艺术创作</option>
+                        <option value="technical">⚙️ Technical / 技术模式 — 编程、工程、科学</option>
+                        <option value="academic">📚 Academic / 学术模式 — 研究、论文、分析</option>
+                        <option value="business">💼 Business / 商务模式 — 营销、策略、报告</option>
+                        <option value="persuasive">🗣️ Persuasive / 说服模式 — 演讲、文案、辩论</option>
+                    </select>
+                </div>
+                <div style="display:flex;align-items:flex-end;">
+                    <button class="btn btn-primary" id="optimizeBtn" onclick="optimizePrompt()">
+                        🔮 Optimize / 优化
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div id="statusMsg" class="status"></div>
+
+        <!-- Output Section -->
+        <div class="card" id="outputCard" style="display:none;">
+            <div class="output-header">
+                <div class="card-title" style="margin-bottom:0;">🎯 Optimized Multilingual Prompt / 优化后的多语混合提示词</div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="copyOutput()">📋 Copy / 复制</button>
+                    <button class="btn btn-secondary" onclick="clearAll()">🗑️ Clear / 清空</button>
+                </div>
+            </div>
+            <textarea id="optimizedOutput" class="output" readonly></textarea>
+            <div class="char-info">
+                <span id="outputCharCount">0 characters</span>
+                <span>💡 Paste into any AI · or use API panel below ↓</span>
+            </div>
+        </div>
+
+        <!-- API Direct Test Section -->
+        <div class="card api-section" id="apiTestCard" style="display:none;">
+            <div class="card-title">🚀 Direct API Test / 直接API对话</div>
+            <p style="font-size:0.88em;color:#888;margin-bottom:14px;">选择提供商并输入你的API Key，将优化后的提示词直接发送给大模型，即时查看效果。/ Select a provider, enter your API key, and send the optimized prompt directly to the LLM.</p>
+
+            <!-- Provider selection grid -->
+            <div class="provider-grid" id="providerGrid"><!-- populated by JS --></div>
+
+            <!-- API key + model config -->
+            <div class="api-config-row">
+                <div class="api-key-wrap">
+                    <label class="api-field-label">🔑 API Key <span id="corsWarning" class="cors-badge" style="display:none;" title="This provider may restrict direct browser access. A reverse proxy may be required.">⚠️ 需代理/Needs proxy</span></label>
+                    <input type="password" id="apiKeyInput" placeholder="sk-... / AIza... / your API key here" autocomplete="off" />
+                    <button class="api-key-toggle" id="apiKeyToggle" onclick="toggleApiKeyVis()" title="Show/Hide key">👁</button>
+                </div>
+                <div class="model-select-wrap">
+                    <label class="api-field-label">🤖 Model / 模型</label>
+                    <select id="apiModelSelect" style="width:100%;"></select>
+                </div>
+            </div>
+
+            <!-- Status + send button -->
+            <div id="apiStatusMsg" class="api-status-msg"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+                <button class="btn btn-primary" id="sendApiBtn" onclick="sendOptimizedPrompt()" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">
+                    ⚡ Send Optimized Prompt / 发送优化提示词
+                </button>
+                <button class="btn btn-secondary" onclick="clearApiResponse()">🗑️ Clear Response</button>
+            </div>
+
+            <!-- Response area -->
+            <div class="api-response-wrap" id="apiResponseWrap" style="display:none;">
+                <div class="api-response-header">
+                    <span style="font-size:0.85em;color:#888;">📨 AI Response / 模型回复</span>
+                    <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.82em;" onclick="copyApiResponse()">📋 Copy Response</button>
+                </div>
+                <div class="api-response-area" id="apiResponseArea"></div>
+            </div>
+
+            <div class="privacy-note">
+                🔒 <strong>Privacy / 隐私：</strong> API keys are stored only in your browser's localStorage and sent directly to the selected provider endpoint only — no third-party server involved. / API Key仅保存在本地浏览器中，仅直接发送给所选提供商，不经过任何第三方服务器。<br>
+                ⚠️ <strong>Security note / 安全提示：</strong> API keys used in browser-based apps are visible in DevTools. Use test/limited keys here, not production keys with high spend limits. / 浏览器中的API Key可通过开发者工具查看，请使用测试用途或限额较低的Key，切勿使用高额度生产Key。
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🔮 多语幻术师 — Multilingual Prompt Optimizer</p>
+            <p>AI-skills Project · Open Source · Educational Purposes</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const userInput = document.getElementById('userInput');
+        const optimizedOutput = document.getElementById('optimizedOutput');
+        const modeSelect = document.getElementById('modeSelect');
+        const optimizeBtn = document.getElementById('optimizeBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const outputCard = document.getElementById('outputCard');
+        const charCount = document.getElementById('charCount');
+        const outputCharCount = document.getElementById('outputCharCount');
+
+        // Image keyword detection regex (shared between auto-detect and domain detection)
+        const imageKeywordRegex = /图片|照片|绘画|画一|生成图|生成一张|图像|插画|海报|壁纸|头像|生成照片|image|photo|picture|draw|paint|generat.*image|generat.*photo|illustrat|poster|wallpaper|portrait|render|imagen|foto|dibujo|pintura|صورة|رسم/i;
+
+        // Character counter + auto-detect image mode
+        userInput.addEventListener('input', function () {
+            charCount.textContent = this.value.length + ' characters';
+            if (modeSelect.value === 'general' && imageKeywordRegex.test(this.value)) {
+                modeSelect.value = 'imageGen';
+                showStatus('💡 检测到图片生成需求，已自动切换到图片生成模式 / Auto-switched to Image Generation mode', 'info');
+            }
+        });
+
+        // Ctrl+Enter shortcut
+        userInput.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                optimizePrompt();
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusMsg.className = 'status show ' + type;
+            statusMsg.textContent = msg;
+        }
+
+        function hideStatus() {
+            statusMsg.className = 'status';
+        }
+
+        // =====================================================
+        // MULTILINGUAL WORD-LEVEL MIXING DICTIONARY
+        // Each entry maps a Chinese word/phrase to equivalents
+        // in 5 other languages. The mixer replaces individual
+        // words within ONE sentence with different languages,
+        // creating a "polyglot chimera" effect.
+        // =====================================================
+        const wordDict = [
+            // === ACTION PHRASES (longer matches first) ===
+            { zh: '帮我生成', en: 'help me generate', jp: '生成して', es: 'genérame', ar: 'أنشئ لي', classical: '为吾造' },
+            { zh: '帮我写', en: 'write for me', jp: '書いて', es: 'escríbeme', ar: 'اكتب لي', classical: '为吾撰' },
+            { zh: '帮我画', en: 'draw for me', jp: '描いて', es: 'dibújame', ar: 'ارسم لي', classical: '为吾绘' },
+            { zh: '帮我创建', en: 'create for me', jp: '作成して', es: 'créame', ar: 'أنشئ لي', classical: '为吾建' },
+            { zh: '帮我设计', en: 'design for me', jp: 'デザインして', es: 'diséñame', ar: 'صمم لي', classical: '为吾构设' },
+            { zh: '帮我分析', en: 'analyze for me', jp: '分析して', es: 'analiza para mí', ar: 'حلل لي', classical: '为吾析之' },
+            { zh: '帮我制作', en: 'make for me', jp: '作って', es: 'hazme', ar: 'اصنع لي', classical: '为吾制' },
+            { zh: '帮我翻译', en: 'translate for me', jp: '翻訳して', es: 'tradúceme', ar: 'ترجم لي', classical: '为吾译之' },
+            { zh: '帮我编写', en: 'compose for me', jp: '作成して', es: 'redacta para mí', ar: 'ألف لي', classical: '为吾编撰' },
+            // === SINGLE VERBS ===
+            { zh: '生成', en: 'generate', jp: 'ジェネレート', es: 'generar', ar: 'إنشاء', classical: '造' },
+            { zh: '创建', en: 'create', jp: 'クリエイト', es: 'crear', ar: 'إنشاء', classical: '建' },
+            { zh: '编写', en: 'compose', jp: '作成する', es: 'redactar', ar: 'تأليف', classical: '编撰' },
+            { zh: '设计', en: 'design', jp: 'デザイン', es: 'diseñar', ar: 'تصميم', classical: '构设' },
+            { zh: '制作', en: 'produce', jp: 'プロデュース', es: 'producir', ar: 'إنتاج', classical: '制' },
+            { zh: '分析', en: 'analyze', jp: 'アナライズ', es: 'analizar', ar: 'تحليل', classical: '析' },
+            { zh: '翻译', en: 'translate', jp: '翻訳する', es: 'traducir', ar: 'ترجمة', classical: '译' },
+            { zh: '解释', en: 'explain', jp: '説明する', es: 'explicar', ar: 'شرح', classical: '释' },
+            { zh: '优化', en: 'optimize', jp: 'オプティマイズ', es: 'optimizar', ar: 'تحسين', classical: '精进' },
+            { zh: '描述', en: 'describe', jp: '描写する', es: 'describir', ar: 'وصف', classical: '述' },
+            { zh: '总结', en: 'summarize', jp: 'サマライズ', es: 'resumir', ar: 'تلخيص', classical: '概述' },
+            { zh: '比较', en: 'compare', jp: '比較する', es: 'comparar', ar: 'مقارنة', classical: '较' },
+            { zh: '推荐', en: 'recommend', jp: 'おすすめ', es: 'recomendar', ar: 'توصية', classical: '荐' },
+            { zh: '改进', en: 'improve', jp: '改善する', es: 'mejorar', ar: 'تحسين', classical: '改良' },
+            { zh: '列出', en: 'list out', jp: 'リストアップ', es: 'enumerar', ar: 'سرد', classical: '列之' },
+            { zh: '规划', en: 'plan', jp: 'プランニング', es: 'planificar', ar: 'تخطيط', classical: '筹谋' },
+            { zh: '开发', en: 'develop', jp: 'デベロップ', es: 'desarrollar', ar: 'تطوير', classical: '研制' },
+            // === OBJECTS / NOUNS ===
+            { zh: '照片', en: 'photo', jp: 'フォト', es: 'foto', ar: 'صورة فوتوغرافية', classical: '影像' },
+            { zh: '图片', en: 'image', jp: 'イメージ', es: 'imagen', ar: 'صورة', classical: '图' },
+            { zh: '图像', en: 'image', jp: '画像', es: 'imagen', ar: 'صورة', classical: '图' },
+            { zh: '插画', en: 'illustration', jp: 'イラスト', es: 'ilustración', ar: 'رسم توضيحي', classical: '画' },
+            { zh: '海报', en: 'poster', jp: 'ポスター', es: 'póster', ar: 'ملصق', classical: '告示' },
+            { zh: '壁纸', en: 'wallpaper', jp: '壁紙', es: 'fondo de pantalla', ar: 'خلفية', classical: '壁饰' },
+            { zh: '头像', en: 'avatar', jp: 'アバター', es: 'avatar', ar: 'صورة رمزية', classical: '肖像' },
+            { zh: '文章', en: 'article', jp: 'アーティクル', es: 'artículo', ar: 'مقال', classical: '文' },
+            { zh: '故事', en: 'story', jp: 'ストーリー', es: 'historia', ar: 'قصة', classical: '传说' },
+            { zh: '小说', en: 'novel', jp: 'ノベル', es: 'novela', ar: 'رواية', classical: '传奇' },
+            { zh: '论文', en: 'thesis', jp: '論文', es: 'tesis', ar: 'أطروحة', classical: '论著' },
+            { zh: '报告', en: 'report', jp: 'レポート', es: 'informe', ar: 'تقرير', classical: '奏章' },
+            { zh: '代码', en: 'code', jp: 'コード', es: 'código', ar: 'كود', classical: '程式' },
+            { zh: '程序', en: 'program', jp: 'プログラム', es: 'programa', ar: 'برنامج', classical: '程式' },
+            { zh: '邮件', en: 'email', jp: 'メール', es: 'correo', ar: 'بريد إلكتروني', classical: '函件' },
+            { zh: '方案', en: 'plan', jp: 'プラン', es: 'plan', ar: 'خطة', classical: '方略' },
+            { zh: '策略', en: 'strategy', jp: 'ストラテジー', es: 'estrategia', ar: 'استراتيجية', classical: '策' },
+            { zh: '内容', en: 'content', jp: 'コンテンツ', es: 'contenido', ar: 'محتوى', classical: '所述' },
+            { zh: '主题', en: 'theme', jp: 'テーマ', es: 'tema', ar: 'موضوع', classical: '题旨' },
+            { zh: '背景', en: 'background', jp: 'バックグラウンド', es: 'fondo', ar: 'خلفية', classical: '底景' },
+            { zh: '场景', en: 'scene', jp: 'シーン', es: 'escena', ar: 'مشهد', classical: '景' },
+            { zh: '效果', en: 'effect', jp: 'エフェクト', es: 'efecto', ar: 'تأثير', classical: '效' },
+            { zh: '人物', en: 'character', jp: 'キャラクター', es: 'personaje', ar: 'شخصية', classical: '人氏' },
+            { zh: '风景', en: 'landscape', jp: 'ランドスケープ', es: 'paisaje', ar: 'منظر طبيعي', classical: '风光' },
+            { zh: '建筑', en: 'architecture', jp: 'アーキテクチャ', es: 'arquitectura', ar: 'عمارة', classical: '营造' },
+            { zh: '视频', en: 'video', jp: 'ビデオ', es: 'video', ar: 'فيديو', classical: '影像' },
+            { zh: '音乐', en: 'music', jp: 'ミュージック', es: 'música', ar: 'موسيقى', classical: '乐' },
+            { zh: '动物', en: 'animal', jp: 'アニマル', es: 'animal', ar: 'حيوان', classical: '兽' },
+            { zh: '植物', en: 'plant', jp: 'プラント', es: 'planta', ar: 'نبات', classical: '草木' },
+            { zh: '食物', en: 'food', jp: 'フード', es: 'comida', ar: 'طعام', classical: '食' },
+            { zh: '美食', en: 'cuisine', jp: 'グルメ', es: 'gastronomía', ar: 'مأكولات', classical: '佳肴' },
+            // === PLACES / SETTINGS ===
+            { zh: '海边', en: 'seaside', jp: 'ビーチ', es: 'la playa', ar: 'شاطئ البحر', classical: '沧海之滨' },
+            { zh: '海滩', en: 'beach', jp: 'ビーチ', es: 'la playa', ar: 'الشاطئ', classical: '沙滩' },
+            { zh: '城市', en: 'city', jp: 'シティ', es: 'ciudad', ar: 'مدينة', classical: '城邑' },
+            { zh: '森林', en: 'forest', jp: 'フォレスト', es: 'bosque', ar: 'غابة', classical: '深林' },
+            { zh: '山', en: 'mountain', jp: 'マウンテン', es: 'montaña', ar: 'جبل', classical: '峰' },
+            { zh: '花园', en: 'garden', jp: 'ガーデン', es: 'jardín', ar: 'حديقة', classical: '园' },
+            { zh: '太空', en: 'outer space', jp: 'スペース', es: 'espacio', ar: 'فضاء', classical: '星际' },
+            { zh: '夜景', en: 'night view', jp: 'ナイトビュー', es: 'vista nocturna', ar: 'منظر ليلي', classical: '夜色' },
+            { zh: '日落', en: 'sunset', jp: 'サンセット', es: 'atardecer', ar: 'غروب الشمس', classical: '落日' },
+            { zh: '街道', en: 'street', jp: 'ストリート', es: 'calle', ar: 'شارع', classical: '街衢' },
+            { zh: '天空', en: 'sky', jp: 'スカイ', es: 'cielo', ar: 'سماء', classical: '天穹' },
+            { zh: '大海', en: 'ocean', jp: 'オーシャン', es: 'océano', ar: 'محيط', classical: '沧海' },
+            { zh: '校园', en: 'campus', jp: 'キャンパス', es: 'campus', ar: 'حرم جامعي', classical: '学府' },
+            { zh: '公园', en: 'park', jp: 'パーク', es: 'parque', ar: 'حديقة عامة', classical: '苑' },
+            { zh: '咖啡馆', en: 'café', jp: 'カフェ', es: 'cafetería', ar: 'مقهى', classical: '茶肆' },
+            { zh: '书房', en: 'study room', jp: '書斎', es: 'estudio', ar: 'غرفة الدراسة', classical: '书斋' },
+            { zh: '室内', en: 'indoor', jp: 'インドア', es: 'interior', ar: 'داخلي', classical: '室中' },
+            { zh: '星空', en: 'starry sky', jp: '星空', es: 'cielo estrellado', ar: 'سماء مرصعة بالنجوم', classical: '星河' },
+            { zh: '月亮', en: 'moon', jp: 'ムーン', es: 'luna', ar: 'قمر', classical: '明月' },
+            { zh: '樱花', en: 'cherry blossom', jp: '桜', es: 'flor de cerezo', ar: 'أزهار الكرز', classical: '樱' },
+            // === STYLES ===
+            { zh: '亚洲风格', en: 'Asian style', jp: 'アジアンスタイル', es: 'estilo asiático', ar: 'الأسلوب الآسيوي', classical: '东方之韵' },
+            { zh: '中国风', en: 'Chinese style', jp: 'チャイニーズスタイル', es: 'estilo chino', ar: 'الطراز الصيني', classical: '华夏风韵' },
+            { zh: '日本风格', en: 'Japanese style', jp: '和風スタイル', es: 'estilo japonés', ar: 'الأسلوب الياباني', classical: '和风' },
+            { zh: '欧洲风格', en: 'European style', jp: 'ヨーロピアンスタイル', es: 'estilo europeo', ar: 'الأسلوب الأوروبي', classical: '欧陆之风' },
+            { zh: '现代风格', en: 'modern style', jp: 'モダンスタイル', es: 'estilo moderno', ar: 'أسلوب حديث', classical: '当世新风' },
+            { zh: '复古风格', en: 'vintage style', jp: 'レトロスタイル', es: 'estilo vintage', ar: 'أسلوب كلاسيكي', classical: '古朴之风' },
+            { zh: '简约风格', en: 'minimalist style', jp: 'ミニマルスタイル', es: 'estilo minimalista', ar: 'أسلوب بسيط', classical: '淡雅之风' },
+            { zh: '赛博朋克', en: 'cyberpunk', jp: 'サイバーパンク', es: 'ciberpunk', ar: 'سايبربانك', classical: '机械幻境' },
+            { zh: '水彩', en: 'watercolor', jp: '水彩画', es: 'acuarela', ar: 'ألوان مائية', classical: '水墨' },
+            { zh: '油画', en: 'oil painting', jp: '油絵', es: 'pintura al óleo', ar: 'لوحة زيتية', classical: '丹青' },
+            { zh: '水墨画', en: 'ink painting', jp: '墨絵', es: 'pintura de tinta', ar: 'رسم بالحبر', classical: '丹青墨韵' },
+            { zh: '写实', en: 'realistic', jp: 'リアリスティック', es: 'realista', ar: 'واقعي', classical: '如实' },
+            { zh: '卡通', en: 'cartoon', jp: 'カートゥーン', es: 'dibujo animado', ar: 'كرتون', classical: '趣画' },
+            { zh: '动漫', en: 'anime', jp: 'アニメ', es: 'anime', ar: 'أنيمي', classical: '动画' },
+            { zh: '风格', en: 'style', jp: 'スタイル', es: 'estilo', ar: 'أسلوب', classical: '风' },
+            // === DESCRIPTORS / ADJECTIVES ===
+            { zh: '美丽的', en: 'beautiful', jp: '美しい', es: 'hermoso', ar: 'جميل', classical: '秀美之' },
+            { zh: '美丽', en: 'beautiful', jp: '美しい', es: 'hermoso', ar: 'جميل', classical: '秀美' },
+            { zh: '漂亮', en: 'pretty', jp: 'きれいな', es: 'bonito', ar: 'جميل', classical: '美' },
+            { zh: '专业', en: 'professional', jp: 'プロフェッショナル', es: 'profesional', ar: 'محترف', classical: '精湛' },
+            { zh: '详细', en: 'detailed', jp: 'ディテール豊かな', es: 'detallado', ar: 'مفصل', classical: '详尽' },
+            { zh: '高质量', en: 'high quality', jp: 'ハイクオリティ', es: 'alta calidad', ar: 'جودة عالية', classical: '上乘' },
+            { zh: '精美', en: 'exquisite', jp: '精巧な', es: 'exquisito', ar: 'رائع', classical: '精妙' },
+            { zh: '创意', en: 'creative', jp: 'クリエイティブ', es: 'creativo', ar: 'إبداعي', classical: '新奇' },
+            { zh: '深度', en: 'in-depth', jp: 'ディープ', es: 'profundo', ar: 'عميق', classical: '深邃' },
+            { zh: '全面', en: 'comprehensive', jp: 'コンプリヘンシブ', es: 'completo', ar: 'شامل', classical: '周全' },
+            { zh: '清晰', en: 'clear', jp: 'クリア', es: 'claro', ar: 'واضح', classical: '明晰' },
+            { zh: '丰富', en: 'rich', jp: 'リッチ', es: 'rico', ar: 'غني', classical: '丰饶' },
+            { zh: '温暖', en: 'warm', jp: 'ウォーム', es: 'cálido', ar: 'دافئ', classical: '温煦' },
+            { zh: '明亮', en: 'bright', jp: 'ブライト', es: 'brillante', ar: 'مشرق', classical: '煌煌' },
+            { zh: '柔和', en: 'soft', jp: 'ソフト', es: 'suave', ar: 'ناعم', classical: '温柔' },
+            { zh: '强烈', en: 'intense', jp: 'インテンス', es: 'intenso', ar: 'شديد', classical: '浓烈' },
+            { zh: '优雅', en: 'elegant', jp: 'エレガント', es: 'elegante', ar: 'أنيق', classical: '雅致' },
+            { zh: '独特', en: 'unique', jp: 'ユニーク', es: 'único', ar: 'فريد', classical: '殊异' },
+            { zh: '自然', en: 'natural', jp: 'ナチュラル', es: 'natural', ar: 'طبيعي', classical: '天然' },
+            { zh: '古典', en: 'classical', jp: 'クラシック', es: 'clásico', ar: 'كلاسيكي', classical: '古雅' },
+            { zh: '现代', en: 'modern', jp: 'モダン', es: 'moderno', ar: 'حديث', classical: '当世' },
+            { zh: '壮观', en: 'spectacular', jp: 'スペクタクル', es: 'espectacular', ar: 'مذهل', classical: '壮丽' },
+            { zh: '神秘', en: 'mysterious', jp: 'ミステリアス', es: 'misterioso', ar: 'غامض', classical: '幽秘' },
+            { zh: '浪漫', en: 'romantic', jp: 'ロマンチック', es: 'romántico', ar: 'رومانسي', classical: '风雅' },
+            { zh: '可爱', en: 'cute', jp: 'かわいい', es: 'lindo', ar: 'لطيف', classical: '娇憨' },
+            { zh: '简洁', en: 'concise', jp: 'コンサイス', es: 'conciso', ar: 'موجز', classical: '简约' },
+            { zh: '高级', en: 'premium', jp: 'プレミアム', es: 'premium', ar: 'فاخر', classical: '上品' },
+            // === TOPICS / DOMAINS ===
+            { zh: '人工智能', en: 'artificial intelligence', jp: 'AI人工知能', es: 'inteligencia artificial', ar: 'الذكاء الاصطناعي', classical: '机巧之智' },
+            { zh: '未来发展', en: 'future development', jp: '未来の発展', es: 'desarrollo futuro', ar: 'التطور المستقبلي', classical: '日后之演进' },
+            { zh: '未来', en: 'future', jp: 'フューチャー', es: 'futuro', ar: 'المستقبل', classical: '来日' },
+            { zh: '发展', en: 'development', jp: 'デベロップメント', es: 'desarrollo', ar: 'تطور', classical: '演进' },
+            { zh: '科技', en: 'technology', jp: 'テクノロジー', es: 'tecnología', ar: 'تكنولوجيا', classical: '技艺' },
+            { zh: '教育', en: 'education', jp: 'エデュケーション', es: 'educación', ar: 'تعليم', classical: '教化' },
+            { zh: '健康', en: 'health', jp: 'ヘルス', es: 'salud', ar: 'صحة', classical: '康健' },
+            { zh: '商业', en: 'business', jp: 'ビジネス', es: 'negocio', ar: 'أعمال', classical: '贸易' },
+            { zh: '艺术', en: 'art', jp: 'アート', es: 'arte', ar: 'فن', classical: '技艺' },
+            { zh: '历史', en: 'history', jp: 'ヒストリー', es: 'historia', ar: 'تاريخ', classical: '史' },
+            { zh: '文化', en: 'culture', jp: 'カルチャー', es: 'cultura', ar: 'ثقافة', classical: '文明' },
+            { zh: '经济', en: 'economy', jp: 'エコノミー', es: 'economía', ar: 'اقتصاد', classical: '财赋' },
+            { zh: '社会', en: 'society', jp: 'ソサエティ', es: 'sociedad', ar: 'مجتمع', classical: '世道' },
+            { zh: '旅行', en: 'travel', jp: 'トラベル', es: 'viaje', ar: 'سفر', classical: '游历' },
+            { zh: '环境', en: 'environment', jp: 'エンバイロメント', es: 'medio ambiente', ar: 'بيئة', classical: '境遇' },
+            // === VISUAL / IMAGE-SPECIFIC ===
+            { zh: '光影', en: 'lighting', jp: 'ライティング', es: 'iluminación', ar: 'إضاءة', classical: '光华' },
+            { zh: '色彩', en: 'colors', jp: 'カラー', es: 'colores', ar: 'ألوان', classical: '颜色' },
+            { zh: '构图', en: 'composition', jp: 'コンポジション', es: 'composición', ar: 'تكوين', classical: '布局' },
+            { zh: '细节', en: 'details', jp: 'ディテール', es: 'detalles', ar: 'تفاصيل', classical: '微处' },
+            { zh: '画面', en: 'visual', jp: 'ビジュアル', es: 'visual', ar: 'مرئي', classical: '图景' },
+            { zh: '氛围', en: 'atmosphere', jp: 'アトモスフィア', es: 'atmósfera', ar: 'أجواء', classical: '气韵' },
+            { zh: '质感', en: 'texture', jp: 'テクスチャ', es: 'textura', ar: 'ملمس', classical: '肌理' },
+            { zh: '女孩', en: 'girl', jp: '女の子', es: 'chica', ar: 'فتاة', classical: '少女' },
+            { zh: '男孩', en: 'boy', jp: '男の子', es: 'chico', ar: 'فتى', classical: '少年' },
+            { zh: '女人', en: 'woman', jp: '女性', es: 'mujer', ar: 'امرأة', classical: '女子' },
+            { zh: '男人', en: 'man', jp: '男性', es: 'hombre', ar: 'رجل', classical: '男子' },
+            { zh: '孩子', en: 'child', jp: '子供', es: 'niño', ar: 'طفل', classical: '童' },
+            { zh: '猫', en: 'cat', jp: 'ネコ', es: 'gato', ar: 'قطة', classical: '狸奴' },
+            { zh: '狗', en: 'dog', jp: 'イヌ', es: 'perro', ar: 'كلب', classical: '犬' },
+            { zh: '花', en: 'flower', jp: 'フラワー', es: 'flor', ar: 'زهرة', classical: '华' },
+            { zh: '树', en: 'tree', jp: 'ツリー', es: 'árbol', ar: 'شجرة', classical: '木' },
+            { zh: '水', en: 'water', jp: 'ウォーター', es: 'agua', ar: 'ماء', classical: '清泉' },
+            { zh: '雪', en: 'snow', jp: 'スノー', es: 'nieve', ar: 'ثلج', classical: '白雪' },
+            { zh: '雨', en: 'rain', jp: 'レイン', es: 'lluvia', ar: 'مطر', classical: '甘霖' },
+            // === CONNECTORS / QUANTIFIERS ===
+            { zh: '一张', en: 'a', jp: 'いちまいの', es: 'una', ar: '', classical: '一幅' },
+            { zh: '一篇', en: 'an', jp: 'ひとつの', es: 'un', ar: '', classical: '一则' },
+            { zh: '一个', en: 'a', jp: 'ひとつの', es: 'un', ar: '', classical: '一' },
+            { zh: '关于', en: 'about', jp: 'についての', es: 'sobre', ar: 'حول', classical: '关乎' },
+            { zh: '非常', en: 'very', jp: 'とても', es: 'muy', ar: 'جداً', classical: '甚' },
+            { zh: '以及', en: 'and also', jp: 'および', es: 'y también', ar: 'وكذلك', classical: '及' },
+            { zh: '但是', en: 'but', jp: 'しかし', es: 'pero', ar: 'لكن', classical: '然而' },
+            { zh: '如果', en: 'if', jp: 'もし', es: 'si', ar: 'إذا', classical: '若' },
+            { zh: '因为', en: 'because', jp: 'なぜなら', es: 'porque', ar: 'لأن', classical: '盖因' },
+            { zh: '或者', en: 'or', jp: 'または', es: 'o', ar: 'أو', classical: '或' },
+            { zh: '需要', en: 'need', jp: 'ニーズ', es: 'necesitar', ar: 'يحتاج', classical: '须' },
+            { zh: '包含', en: 'include', jp: 'インクルード', es: 'incluir', ar: 'يتضمن', classical: '含' },
+            { zh: '使用', en: 'use', jp: 'ユーズ', es: 'usar', ar: 'استخدام', classical: '用' },
+            { zh: '具有', en: 'with', jp: '持つ', es: 'con', ar: 'ذو', classical: '具' },
+            // === PRONOUNS & QUESTION WORDS ===
+            { zh: '我们', en: 'we', jp: '私たち', es: 'nosotros', ar: 'نحن', classical: '吾等' },
+            { zh: '他们', en: 'they', jp: '彼ら', es: 'ellos', ar: 'هم', classical: '彼等' },
+            { zh: '自己', en: 'oneself', jp: '自分', es: 'sí mismo', ar: 'نفسه', classical: '己' },
+            { zh: '为什么', en: 'why', jp: 'なぜ', es: 'por qué', ar: 'لماذا', classical: '何故' },
+            { zh: '什么', en: 'what', jp: '何', es: 'qué', ar: 'ماذا', classical: '何' },
+            { zh: '怎么', en: 'how', jp: 'どう', es: 'cómo', ar: 'كيف', classical: '何如' },
+            { zh: '哪里', en: 'where', jp: 'どこ', es: 'dónde', ar: 'أين', classical: '何处' },
+            { zh: '哪个', en: 'which', jp: 'どの', es: 'cuál', ar: 'أي', classical: '何者' },
+            // === COMMON COMPOUND FUNCTION WORDS ===
+            { zh: '可以', en: 'can', jp: 'できる', es: 'puede', ar: 'يمكن', classical: '可' },
+            { zh: '应该', en: 'should', jp: 'すべき', es: 'debería', ar: 'ينبغي', classical: '当' },
+            { zh: '没有', en: 'without', jp: 'なし', es: 'sin', ar: 'بدون', classical: '无' },
+            { zh: '所以', en: 'therefore', jp: 'だから', es: 'por eso', ar: 'لذلك', classical: '故' },
+            { zh: '然后', en: 'then', jp: 'そして', es: 'luego', ar: 'ثم', classical: '而后' },
+            { zh: '如何', en: 'how to', jp: 'いかに', es: 'cómo', ar: 'كيف', classical: '何以' },
+            { zh: '现在', en: 'now', jp: '今', es: 'ahora', ar: 'الآن', classical: '今' },
+            { zh: '已经', en: 'already', jp: 'すでに', es: 'ya', ar: 'بالفعل', classical: '已' },
+            { zh: '可能', en: 'maybe', jp: 'おそらく', es: 'quizás', ar: 'ربما', classical: '或' },
+            { zh: '为了', en: 'in order to', jp: 'ために', es: 'para', ar: 'من أجل', classical: '为' },
+            { zh: '通过', en: 'through', jp: 'を通じて', es: 'mediante', ar: 'من خلال', classical: '经由' },
+            { zh: '所有', en: 'all', jp: 'すべての', es: 'todos', ar: 'جميع', classical: '一切' },
+            { zh: '这个', en: 'this', jp: 'この', es: 'este', ar: 'هذا', classical: '此' },
+            { zh: '那个', en: 'that', jp: 'あの', es: 'ese', ar: 'ذلك', classical: '彼' },
+            { zh: '不同', en: 'different', jp: '異なる', es: 'diferente', ar: 'مختلف', classical: '异' },
+            { zh: '重要', en: 'important', jp: '重要な', es: 'importante', ar: 'مهم', classical: '要' },
+            { zh: '特别', en: 'especially', jp: '特に', es: 'especialmente', ar: 'خاصة', classical: '尤' },
+            { zh: '告诉', en: 'tell me', jp: '教えて', es: 'dime', ar: 'أخبرني', classical: '告' },
+            { zh: '知道', en: 'know', jp: '知る', es: 'saber', ar: 'يعرف', classical: '知' },
+            { zh: '喜欢', en: 'like', jp: '好き', es: 'gustar', ar: 'يحب', classical: '好' },
+            { zh: '希望', en: 'hope', jp: '望む', es: 'esperar', ar: 'يأمل', classical: '望' },
+            { zh: '帮忙', en: 'help', jp: '手伝って', es: 'ayuda', ar: 'ساعد', classical: '助' },
+            { zh: '想要', en: 'want to', jp: '欲しい', es: 'quiero', ar: 'أريد', classical: '欲' },
+            { zh: '不要', en: "don't", jp: 'しないで', es: 'no', ar: 'لا', classical: '勿' },
+            { zh: '多少', en: 'how many', jp: 'いくつ', es: 'cuánto', ar: 'كم', classical: '几何' },
+            { zh: '怎样', en: 'how', jp: 'どのように', es: 'cómo', ar: 'كيف', classical: '何如' },
+            { zh: '根据', en: 'based on', jp: 'に基づいて', es: 'según', ar: 'بناءً على', classical: '依' },
+            { zh: '同时', en: 'meanwhile', jp: '同時に', es: 'al mismo tiempo', ar: 'في نفس الوقت', classical: '并时' },
+        ];
+
+        // Sort dictionary by Chinese key length descending (longest match first)
+        const sortedDict = [...wordDict].sort((a, b) => b.zh.length - a.zh.length);
+
+        // =====================================================
+        // FALLBACK: Multilingual single-character replacements
+        // Format: [English, Japanese, Spanish, Arabic, Literary Chinese]
+        // transformGap() cycles through these 5 languages,
+        // promoting ≥4 languages and Chinese in every output.
+        // (The surrounding prompt template always adds all 5 languages.)
+        // =====================================================
+        const chineseFallback = {
+            // --- Particles (grammatical markers, removed) ---
+            '了': ['', '', '', '', ''],
+            '着': ['', '', '', '', ''],
+            '过': ['', '', '', '', ''],
+            '得': ['', '', '', '', ''],
+            '地': ['', '', '', '', ''],
+            '们': ['', '', '', '', ''],
+            '吧': ['', '', '', '', ''],
+            '呀': ['', '', '', '', ''],
+            '哦': ['', '', '', '', ''],
+            '嗯': ['', '', '', '', ''],
+            '吗': ['?', '？', '?', '؟', '乎'],
+            '呢': ['?', '？', '?', '؟', '耶'],
+            '啊': ['!', '！', '!', '!', '哉'],
+            // --- Prepositions ---
+            '在': ['at', 'にて', 'en', 'في', '于'],
+            '的': ["'s", 'の', 'de', 'لـ', '之'],
+            '于': ['at', 'にて', 'en', 'في', '於'],
+            '从': ['from', 'から', 'desde', 'من', '自'],
+            '到': ['to', 'まで', 'hasta', 'إلى', '至'],
+            '向': ['toward', 'へ', 'hacia', 'نحو', '朝'],
+            '对': ['to', 'へ', 'para', 'إلى', '於'],
+            '给': ['for', 'に', 'para', 'لـ', '予'],
+            '以': ['with', 'で', 'con', 'بـ', '凭'],
+            '为': ['for', 'ために', 'para', 'لـ', '為'],
+            '把': ['', 'を', '', '', '将'],
+            '被': ['by', 'に', 'por', 'بواسطة', '为所'],
+            '比': ['than', 'より', 'que', 'من', '逾'],
+            '跟': ['with', 'と', 'con', 'مع', '同'],
+            '按': ['per', 'により', 'según', 'حسب', '依'],
+            // --- Pronouns ---
+            '我': ['I', '私', 'yo', 'أنا', '吾'],
+            '你': ['you', 'あなた', 'tú', 'أنت', '汝'],
+            '他': ['he', '彼', 'él', 'هو', '其'],
+            '她': ['she', '彼女', 'ella', 'هي', '伊'],
+            '它': ['it', 'それ', 'ello', 'ذلك', '彼物'],
+            '这': ['this', 'この', 'este', 'هذا', '此'],
+            '那': ['that', 'あの', 'ese', 'ذلك', '彼'],
+            '哪': ['which', 'どの', 'cuál', 'أي', '何'],
+            '谁': ['who', '誰', 'quién', 'من', '孰'],
+            '己': ['self', '自身', 'propio', 'ذات', '躬'],
+            '其': ['its', 'その', 'su', 'له', '厥'],
+            // --- Common verbs ---
+            '是': ['is', 'です', 'es', 'هو', '乃'],
+            '有': ['has', 'ある', 'tiene', 'لديه', '具'],
+            '要': ['want', '要る', 'querer', 'يريد', '欲'],
+            '会': ['will', 'できる', 'puede', 'سيكون', '当'],
+            '能': ['can', 'できる', 'poder', 'يقدر', '可'],
+            '去': ['go', '行く', 'ir', 'يذهب', '往'],
+            '来': ['come', '来る', 'venir', 'يأتي', '至'],
+            '看': ['see', '見る', 'ver', 'يرى', '观'],
+            '说': ['say', '言う', 'decir', 'يقول', '曰'],
+            '想': ['think', '思う', 'pensar', 'يظن', '念'],
+            '做': ['do', 'する', 'hacer', 'يفعل', '作'],
+            '用': ['use', '使う', 'usar', 'يستعمل', '施'],
+            '找': ['find', '探す', 'buscar', 'يجد', '寻'],
+            '让': ['let', 'させる', 'dejar', 'يدع', '令'],
+            '写': ['write', '書く', 'escribir', 'يكتب', '书'],
+            '画': ['draw', '描く', 'dibujar', 'يرسم', '绘'],
+            '听': ['hear', '聞く', 'oír', 'يسمع', '闻'],
+            '问': ['ask', '尋ねる', 'preguntar', 'يسأل', '询'],
+            '读': ['read', '読む', 'leer', 'يقرأ', '阅'],
+            '走': ['walk', '歩く', 'caminar', 'يمشي', '行'],
+            '跑': ['run', '走る', 'correr', 'يركض', '奔'],
+            '吃': ['eat', '食べる', 'comer', 'يأكل', '食'],
+            '喝': ['drink', '飲む', 'beber', 'يشرب', '饮'],
+            '穿': ['wear', '着る', 'llevar', 'يرتدي', '衣'],
+            '住': ['live', '住む', 'vivir', 'يسكن', '居'],
+            '带': ['bring', '持つ', 'traer', 'يحمل', '携'],
+            '感': ['feel', '感じる', 'sentir', 'يشعر', '觉'],
+            '觉': ['sense', '気づく', 'percibir', 'يحس', '知'],
+            '爱': ['love', '愛する', 'amar', 'يحب', '慕'],
+            '叫': ['call', '呼ぶ', 'llamar', 'ينادي', '唤'],
+            '开': ['open', '開く', 'abrir', 'يفتح', '启'],
+            '关': ['close', '閉じる', 'cerrar', 'يغلق', '闭'],
+            '拿': ['take', '取る', 'tomar', 'يأخذ', '取'],
+            '放': ['put', '置く', 'poner', 'يضع', '置'],
+            '回': ['return', '戻る', 'volver', 'يرجع', '归'],
+            '起': ['rise', '起きる', 'surgir', 'ينهض', '兴'],
+            '坐': ['sit', '座る', 'sentarse', 'يجلس', '踞'],
+            '站': ['stand', '立つ', 'pararse', 'يقف', '立'],
+            '打': ['hit', '打つ', 'golpear', 'يضرب', '击'],
+            '送': ['send', '送る', 'enviar', 'يرسل', '递'],
+            '买': ['buy', '買う', 'comprar', 'يشتري', '购'],
+            '卖': ['sell', '売る', 'vender', 'يبيع', '售'],
+            // --- Adjectives & adverbs ---
+            '好': ['good', '良い', 'bueno', 'جيد', '善'],
+            '大': ['big', '大きい', 'grande', 'كبير', '巨'],
+            '小': ['small', '小さい', 'pequeño', 'صغير', '微'],
+            '多': ['much', '多い', 'mucho', 'كثير', '众'],
+            '少': ['few', '少ない', 'poco', 'قليل', '寡'],
+            '高': ['tall', '高い', 'alto', 'عال', '峻'],
+            '低': ['low', '低い', 'bajo', 'منخفض', '卑'],
+            '长': ['long', '長い', 'largo', 'طويل', '修'],
+            '短': ['short', '短い', 'corto', 'قصير', '促'],
+            '新': ['new', '新しい', 'nuevo', 'جديد', '鲜'],
+            '旧': ['old', '古い', 'viejo', 'قديم', '故'],
+            '快': ['fast', '速い', 'rápido', 'سريع', '疾'],
+            '慢': ['slow', '遅い', 'lento', 'بطيء', '缓'],
+            '早': ['early', '早い', 'temprano', 'مبكر', '夙'],
+            '晚': ['late', '遅い', 'tarde', 'متأخر', '迟'],
+            '远': ['far', '遠い', 'lejos', 'بعيد', '遥'],
+            '近': ['near', '近い', 'cerca', 'قريب', '邻'],
+            '热': ['hot', '暑い', 'caliente', 'حار', '炎'],
+            '冷': ['cold', '寒い', 'frío', 'بارد', '寒'],
+            '轻': ['light', '軽い', 'ligero', 'خفيف', '微'],
+            '重': ['heavy', '重い', 'pesado', 'ثقيل', '沉'],
+            '真': ['truly', '本当に', 'realmente', 'حقاً', '诚'],
+            '很': ['very', 'とても', 'muy', 'جداً', '甚'],
+            '更': ['more', 'もっと', 'más', 'أكثر', '愈'],
+            '最': ['most', '最も', 'lo más', 'الأكثر', '至'],
+            '太': ['too', 'あまりに', 'demasiado', 'جداً', '过'],
+            '才': ['just', 'やっと', 'apenas', 'فقط', '方'],
+            '就': ['then', 'すぐ', 'luego', 'ثم', '即'],
+            '都': ['all', 'みんな', 'todos', 'الجميع', '皆'],
+            '也': ['also', 'も', 'también', 'أيضاً', '亦'],
+            '还': ['still', 'まだ', 'todavía', 'ما زال', '犹'],
+            '又': ['again', 'また', 'otra vez', 'مجدداً', '复'],
+            '再': ['once more', 'もう一度', 'de nuevo', 'ثانية', '更'],
+            '已': ['already', 'すでに', 'ya', 'بالفعل', '既'],
+            '正': ['just', 'ちょうど', 'justo', 'تماماً', '适'],
+            '将': ['will', 'これから', 'va a', 'سوف', '且'],
+            '可': ['may', 'できる', 'puede', 'يمكن', '堪'],
+            '不': ['not', 'ない', 'no', 'لا', '非'],
+            '没': ['no', 'ない', 'sin', 'ما', '未'],
+            '别': ["don't", 'するな', 'no', 'لا', '莫'],
+            '只': ['only', 'だけ', 'solo', 'فقط', '唯'],
+            // --- Common nouns ---
+            '人': ['person', 'ひと', 'persona', 'شخص', '者'],
+            '时': ['time', 'とき', 'tiempo', 'وقت', '辰'],
+            '事': ['thing', 'こと', 'asunto', 'أمر', '务'],
+            '物': ['object', 'もの', 'objeto', 'شيء', '品'],
+            '家': ['home', 'うち', 'hogar', 'بيت', '宅'],
+            '国': ['nation', 'くに', 'nación', 'دولة', '邦'],
+            '天': ['day', 'ひ', 'día', 'يوم', '昊'],
+            '年': ['year', 'とし', 'año', 'سنة', '载'],
+            '月': ['month', 'つき', 'mes', 'شهر', '朔'],
+            '日': ['day', 'にち', 'día', 'يوم', '旦'],
+            '点': ['point', 'てん', 'punto', 'نقطة', '端'],
+            '路': ['road', 'みち', 'camino', 'طريق', '途'],
+            '门': ['door', 'ドア', 'puerta', 'باب', '户'],
+            '口': ['mouth', 'くち', 'boca', 'فم', '嘴'],
+            '手': ['hand', 'て', 'mano', 'يد', '掌'],
+            '头': ['head', 'あたま', 'cabeza', 'رأس', '首'],
+            '心': ['heart', 'こころ', 'corazón', 'قلب', '衷'],
+            '眼': ['eye', 'め', 'ojo', 'عين', '瞳'],
+            '面': ['face', 'かお', 'cara', 'وجه', '颜'],
+            '话': ['word', 'ことば', 'palabra', 'كلمة', '言'],
+            '书': ['book', 'ほん', 'libro', 'كتاب', '册'],
+            '字': ['char', 'じ', 'letra', 'حرف', '文'],
+            '名': ['name', 'なまえ', 'nombre', 'اسم', '号'],
+            '力': ['power', 'ちから', 'fuerza', 'قوة', '势'],
+            '气': ['air', 'き', 'aire', 'هواء', '息'],
+            '光': ['light', 'ひかり', 'luz', 'ضوء', '辉'],
+            '色': ['color', 'いろ', 'color', 'لون', '彩'],
+            '声': ['sound', 'おと', 'sonido', 'صوت', '响'],
+            '情': ['feeling', 'きもち', 'sentimiento', 'عاطفة', '意'],
+            '理': ['reason', 'わけ', 'razón', 'سبب', '道'],
+            '法': ['method', 'ほう', 'método', 'أسلوب', '术'],
+            '度': ['degree', 'ど', 'grado', 'درجة', '量'],
+            '体': ['body', 'からだ', 'cuerpo', 'جسد', '躯'],
+            '数': ['number', 'かず', 'número', 'عدد', '计'],
+            '量': ['amount', 'りょう', 'cantidad', 'كمية', '额'],
+            '意': ['meaning', 'いみ', 'significado', 'معنى', '旨'],
+            '思': ['thought', 'おもい', 'pensamiento', 'فكرة', '念'],
+            '性': ['nature', 'せい', 'naturaleza', 'طبيعة', '质'],
+            '界': ['world', 'せかい', 'mundo', 'عالم', '域'],
+            '像': ['like', 'のように', 'como', 'مثل', '若'],
+            '间': ['space', 'あいだ', 'espacio', 'مسافة', '隙'],
+            '片': ['piece', 'かけ', 'trozo', 'قطعة', '枚'],
+            '张': ['sheet', 'まい', 'hoja', 'ورقة', '幅'],
+            '件': ['item', 'けん', 'pieza', 'عنصر', '桩'],
+            '条': ['strip', 'すじ', 'línea', 'سطر', '道'],
+            '段': ['section', 'だん', 'parte', 'فقرة', '节'],
+            '首': ['first', 'さいしょ', 'primero', 'أول', '初'],
+            '套': ['set', 'セット', 'juego', 'مجموعة', '组'],
+            '位': ['position', 'いち', 'posición', 'موقع', '所'],
+            '里': ['inside', 'なか', 'dentro', 'داخل', '内'],
+            '外': ['outside', 'そと', 'fuera', 'خارج', '表'],
+            '内': ['within', 'うち', 'adentro', 'في', '中'],
+            '上': ['on', 'うえ', 'arriba', 'فوق', '之上'],
+            '下': ['below', 'した', 'abajo', 'أسفل', '之下'],
+            '中': ['in', 'なか', 'en medio', 'وسط', '之中'],
+            '前': ['before', 'まえ', 'antes', 'قبل', '之前'],
+            '后': ['after', 'あと', 'después', 'بعد', '之后'],
+            '边': ['side', 'へん', 'lado', 'جانب', '畔'],
+            '旁': ['beside', 'そば', 'junto a', 'بجانب', '侧'],
+            '处': ['place', 'ところ', 'lugar', 'مكان', '所'],
+            '方': ['direction', 'ほう', 'dirección', 'اتجاه', '向'],
+            // --- Connectors ---
+            '和': ['and', 'と', 'y', 'و', '与'],
+            '与': ['and', 'と', 'y', 'و', '及'],
+            '或': ['or', 'か', 'o', 'أو', '抑'],
+            '而': ['and', 'そして', 'y', 'و', '且'],
+            '但': ['but', 'でも', 'pero', 'لكن', '然'],
+            '却': ['yet', 'けれど', 'sin embargo', 'لكن', '乃'],
+            '因': ['because', 'なので', 'porque', 'لأن', '盖'],
+            '所': ['that which', 'ところ', 'lo que', 'ما', '之'],
+            '如': ['if', 'もし', 'si', 'لو', '若'],
+            '若': ['if', 'もし', 'si', 'إذا', '倘'],
+            '虽': ['though', 'けれど', 'aunque', 'رغم', '纵'],
+            '既': ['since', 'もう', 'ya que', 'حيث', '已'],
+            '且': ['and', 'かつ', 'además', 'كذلك', '又'],
+            '则': ['then', 'ならば', 'entonces', 'فإن', '乃'],
+            '故': ['thus', 'ゆえに', 'por tanto', 'لذا', '是以'],
+            '然': ['so', 'そう', 'así', 'هكذا', '如此'],
+            // --- Additional common characters ---
+            '今': ['now', 'いま', 'ahora', 'الآن', '此刻'],
+            '请': ['please', 'どうぞ', 'por favor', 'رجاءً', '敬请'],
+            '成': ['become', 'なる', 'convertirse', 'يصبح', '为'],
+            '出': ['out', 'でる', 'salir', 'يخرج', '外'],
+            '入': ['enter', 'はいる', 'entrar', 'يدخل', '进'],
+            '世': ['world', 'よ', 'mundo', 'عالم', '域'],
+            '玩': ['play', 'あそぶ', 'jugar', 'يلعب', '戏'],
+            '学': ['learn', 'まなぶ', 'aprender', 'يتعلم', '习'],
+            '教': ['teach', 'おしえる', 'enseñar', 'يعلم', '授'],
+            '知': ['know', 'しる', 'saber', 'يعرف', '晓'],
+            '定': ['set', 'きめる', 'fijar', 'يحدد', '立'],
+            '变': ['change', 'かわる', 'cambiar', 'يتغير', '易'],
+            '动': ['move', 'うごく', 'mover', 'يتحرك', '行'],
+            '发': ['emit', 'だす', 'emitir', 'يصدر', '启'],
+            '全': ['whole', 'すべて', 'todo', 'كامل', '尽'],
+            '完': ['complete', 'おわる', 'completar', 'يكمل', '毕'],
+            '明': ['bright', 'あかるい', 'claro', 'واضح', '昭'],
+            '清': ['clear', 'きよい', 'claro', 'صاف', '澄'],
+            '活': ['live', 'いきる', 'vivir', 'يعيش', '存'],
+            '接': ['receive', 'うける', 'recibir', 'يستقبل', '承'],
+            '提': ['raise', 'あげる', 'levantar', 'يرفع', '举'],
+            '指': ['point', 'さす', 'señalar', 'يشير', '示'],
+            '表': ['express', 'あらわす', 'expresar', 'يعبر', '述'],
+            '现': ['appear', 'あらわれる', 'aparecer', 'يظهر', '显'],
+            '生': ['life', 'いのち', 'vida', 'حياة', '命'],
+            '本': ['origin', 'もと', 'origen', 'أصل', '根'],
+            '同': ['same', 'おなじ', 'mismo', 'نفس', '齐'],
+            '种': ['kind', 'しゅ', 'tipo', 'نوع', '类'],
+            '样': ['manner', 'よう', 'manera', 'طريقة', '般'],
+            '相': ['mutual', 'あい', 'mutuo', 'متبادل', '互'],
+            '当': ['should', 'べき', 'deber', 'ينبغي', '宜'],
+            '经': ['pass', 'へる', 'pasar', 'يمر', '历'],
+            '工': ['work', 'しごと', 'trabajo', 'عمل', '劳'],
+            '产': ['produce', 'うむ', 'producir', 'ينتج', '造'],
+            '需': ['need', 'いる', 'necesitar', 'يحتاج', '须'],
+            '求': ['seek', 'もとめる', 'buscar', 'يطلب', '索'],
+            '应': ['should', 'べき', 'deber', 'ينبغي', '宜'],
+            '加': ['add', 'くわえる', 'añadir', 'يضيف', '增'],
+            '等': ['etc', 'など', 'etcétera', 'إلخ', '诸'],
+            '平': ['flat', 'たいら', 'plano', 'مسطح', '坦'],
+            '公': ['public', 'おおやけ', 'público', 'عام', '众'],
+            '民': ['people', 'たみ', 'pueblo', 'شعب', '众'],
+            '保': ['protect', 'まもる', 'proteger', 'يحمي', '护'],
+            '护': ['guard', 'まもる', 'guardar', 'يحرس', '卫'],
+            '演': ['perform', 'えんじる', 'actuar', 'يؤدي', '述'],
+            '讲': ['speak', 'はなす', 'hablar', 'يتحدث', '述'],
+            '稿': ['draft', 'こう', 'borrador', 'مسودة', '文'],
+            '能': ['can', 'できる', 'poder', 'يقدر', '可'],
+            '形': ['shape', 'かたち', 'forma', 'شكل', '态'],
+            '看': ['see', '見る', 'ver', 'يرى', '观'],
+            '解': ['solve', 'とく', 'resolver', 'يحل', '释'],
+            '次': ['next', 'つぎ', 'siguiente', 'التالي', '后'],
+            '通': ['through', 'とおる', 'a través', 'عبر', '达'],
+            '合': ['combine', 'あわせる', 'combinar', 'يجمع', '聚'],
+            '正': ['correct', 'ただしい', 'correcto', 'صحيح', '适'],
+            '机': ['machine', 'き', 'máquina', 'آلة', '器'],
+            '系': ['system', 'けい', 'sistema', 'نظام', '统'],
+            '安': ['safe', 'あんぜん', 'seguro', 'آمن', '宁'],
+            '第': ['ordinal', 'だい', 'el/la', 'الـ', '序'],
+            '老': ['old', 'ふるい', 'viejo', 'قديم', '古'],
+            '少': ['few', '少ない', 'poco', 'قليل', '寡'],
+        };
+
+        // Transform unmatched text segments (gaps between dictionary matches)
+        // Replaces Chinese punctuation and remaining Chinese characters.
+        // Uses multilingual cycling: each CJK char is replaced with a
+        // different language from its [en, jp, es, ar, zh] array.
+        // cycleState.index is shared across calls to maintain cycling.
+        function transformGap(gap, cycleState) {
+            if (!gap) return '';
+            var result = gap;
+            var isLatin = /[a-zA-Z\u00C0-\u024F]/;
+            // Replace Chinese punctuation with Western equivalents
+            result = result.replace(/，/g, ', ');
+            result = result.replace(/。/g, '. ');
+            result = result.replace(/！/g, '! ');
+            result = result.replace(/？/g, '? ');
+            result = result.replace(/：/g, ': ');
+            result = result.replace(/；/g, '; ');
+            result = result.replace(/、/g, ', ');
+            result = result.replace(/（/g, '(');
+            result = result.replace(/）/g, ')');
+            result = result.replace(/\u201C/g, '"');
+            result = result.replace(/\u201D/g, '"');
+            result = result.replace(/\u2018/g, "'");
+            result = result.replace(/\u2019/g, "'");
+            result = result.replace(/《/g, '<');
+            result = result.replace(/》/g, '>');
+            result = result.replace(/——/g, ' — ');
+            result = result.replace(/…/g, '...');
+            // Replace remaining CJK characters using multilingual fallback,
+            // cycling through [en=0, jp=1, es=2, ar=3, literary_zh=4]
+            var output = '';
+            var lastWasLetter = false;
+            for (var i = 0; i < result.length; i++) {
+                var ch = result[i];
+                if (/[\u4e00-\u9fff]/.test(ch)) {
+                    var entry = chineseFallback[ch];
+                    var replacement = '';
+                    if (entry && Array.isArray(entry)) {
+                        var langIdx = cycleState.index % 5;
+                        replacement = entry[langIdx] || '';
+                        // Safety: if replacement equals original char, try next slot
+                        if (replacement === ch) {
+                            replacement = entry[(langIdx + 1) % 5] || entry[0] || '';
+                        }
+                        // Only advance cycle for non-empty replacements (particles stay empty)
+                        if (replacement !== '') cycleState.index++;
+                    } else if (!entry) {
+                        // Unknown CJK character not in fallback dictionary:
+                        // use generic articles/particles cycling through 5 languages
+                        // to maintain language diversity and prevent content loss
+                        var genericFiller = ['the', 'の', 'el', 'في', '之'];
+                        var gIdx = cycleState.index % 5;
+                        replacement = genericFiller[gIdx];
+                        cycleState.index++;
+                    }
+                    if (replacement) {
+                        if (lastWasLetter && isLatin.test(replacement[0])) {
+                            output += ' ';
+                        }
+                        output += replacement;
+                        lastWasLetter = isLatin.test(replacement[replacement.length - 1]);
+                    }
+                    // Particles like 了/着/过 map to ['','','','',''] — removed
+                } else {
+                    output += ch;
+                    lastWasLetter = isLatin.test(ch);
+                }
+            }
+            return output;
+        }
+
+        // Check if a space is needed between two adjacent text segments.
+        // Returns true when the end of `prev` and start of `next` are both
+        // Latin-script letters (to avoid "atla" instead of "at la").
+        function needsSpace(prev, next) {
+            if (!prev || !next) return false;
+            var lastChar = prev[prev.length - 1];
+            var firstChar = next[0];
+            // Latin letter range (including accented characters)
+            var latinEnd = /[a-zA-Z\u00C0-\u024F]/.test(lastChar);
+            var latinStart = /[a-zA-Z\u00C0-\u024F]/.test(firstChar);
+            return latinEnd && latinStart;
+        }
+
+        // =====================================================
+        // CORE: Word-Level Multilingual Mixing Function
+        // Scans text for known words, replaces each with a
+        // different target language, cycling through:
+        // English → Japanese → Spanish → Arabic → Classical Chinese
+        // =====================================================
+        function mixSentence(text) {
+            const targetLangsForZh = ['en', 'jp', 'es', 'ar', 'classical'];
+            const targetLangsForEn = ['zh', 'jp', 'es', 'ar', 'classical'];
+            let cycleIndex = 0;
+            // Pre-compute lowercase text once for English matching
+            const lowerText = text.toLowerCase();
+
+            // Phase 1: Find all non-overlapping matches (longest match first)
+            const matches = [];
+            for (const entry of sortedDict) {
+                // Try Chinese match
+                if (entry.zh) {
+                    const idx = text.indexOf(entry.zh);
+                    if (idx !== -1) {
+                        const overlap = matches.some(match => idx < match.end && idx + entry.zh.length > match.start);
+                        if (!overlap) {
+                            matches.push({ start: idx, end: idx + entry.zh.length, entry: entry, srcLang: 'zh' });
+                        }
+                        // Skip English check — Chinese match found (even if overlapping)
+                        continue;
+                    }
+                }
+                // Try English match (case-insensitive) only if no Chinese match
+                if (entry.en) {
+                    const lowerEn = entry.en.toLowerCase();
+                    const idx = lowerText.indexOf(lowerEn);
+                    if (idx !== -1) {
+                        const overlap = matches.some(match => idx < match.end && idx + entry.en.length > match.start);
+                        if (!overlap) {
+                            matches.push({ start: idx, end: idx + entry.en.length, entry: entry, srcLang: 'en' });
+                        }
+                    }
+                }
+            }
+
+            // Phase 2: Sort by position, assign target languages (cycling)
+            matches.sort((a, b) => a.start - b.start);
+            for (const match of matches) {
+                const langs = match.srcLang === 'zh' ? targetLangsForZh : targetLangsForEn;
+                const targetLang = langs[cycleIndex % langs.length];
+                match.replacement = match.entry[targetLang];
+                // Fallback: if target translation is missing, use the best available
+                if (!match.replacement) {
+                    match.replacement = match.srcLang === 'zh'
+                        ? (match.entry.en || match.entry.zh)
+                        : (match.entry.zh || match.entry.en);
+                }
+                cycleIndex++;
+            }
+
+            // Phase 3: Build result by assembling dictionary replacements
+            // and transforming gaps (unmatched segments) so NO raw user
+            // input leaks through to the output.
+            // Gap characters cycle through 5 languages independently,
+            // promoting ≥4 languages and Chinese in user text.
+            // (The surrounding template always provides all 5 languages.)
+            const gapCycle = { index: 0 };
+            const parts = [];
+            let lastEnd = 0;
+            for (let i = 0; i < matches.length; i++) {
+                const m = matches[i];
+                // Transform the unmatched gap between this match and the previous one
+                const gapText = transformGap(text.substring(lastEnd, m.start), gapCycle);
+                if (gapText) parts.push(gapText);
+                // Add the dictionary replacement (may contain Classical Chinese — preserved)
+                if (m.replacement) parts.push(m.replacement);
+                lastEnd = m.end;
+            }
+            // Transform any trailing text after the last match
+            const trailing = transformGap(text.substring(lastEnd), gapCycle);
+            if (trailing) parts.push(trailing);
+
+            // Join parts with smart spacing: add space between parts that
+            // would otherwise cause Latin letters to run together
+            let result = '';
+            for (let i = 0; i < parts.length; i++) {
+                if (i > 0 && needsSpace(result, parts[i])) {
+                    result += ' ';
+                }
+                result += parts[i];
+            }
+
+            return { text: result, matchCount: matches.length };
+        }
+
+        // ========== Mode Configuration (simplified for mixed approach) ==========
+        const modeConfig = {
+            general: { isActionMode: false },
+            imageGen: { isActionMode: true },
+            creative: { isActionMode: false },
+            technical: { isActionMode: false },
+            academic: { isActionMode: false },
+            business: { isActionMode: false },
+            persuasive: { isActionMode: false }
+        };
+
+        // ========== Domain Detection ==========
+        const domainPatterns = [
+            { regex: imageKeywordRegex, domain: 'visual art视觉アート' },
+            { regex: /编程|代码|程序|开发|软件|API|bug|算法|架构|code|program|develop|software|engineer|debug/i, domain: 'technology技术テクノロジー' },
+            { regex: /文章|写作|故事|小说|诗|散文|write|story|novel|essay|article|blog|creative/i, domain: 'writing写作ライティング' },
+            { regex: /商业|营销|市场|品牌|策略|business|market|brand|strateg|sales|revenue/i, domain: 'businessビジネス商业' },
+            { regex: /研究|论文|学术|分析|数据|research|paper|academic|analys|study|thesis/i, domain: 'academic学术アカデミック' },
+            { regex: /教学|学习|课程|教育|teach|learn|course|education|tutorial|explain/i, domain: 'education教育エデュケーション' },
+            { regex: /设计|UI|UX|界面|用户体验|design|interface|layout|visual|graphic/i, domain: 'designデザイン设计' },
+            { regex: /翻译|语言|translate|language|locali/i, domain: 'language翻訳traducción' },
+            { regex: /健康|医疗|养生|health|medic|fitness|diet|nutrition/i, domain: 'healthヘルス健康' }
+        ];
+
+        function extractDomain(text) {
+            for (const pattern of domainPatterns) {
+                if (pattern.regex.test(text)) return pattern.domain;
+            }
+            return 'general総合ジェネラル';
+        }
+
+        // ========== Prompt Generator ==========
+        function optimizePrompt() {
+            const input = userInput.value.trim();
+            if (!input) {
+                showStatus('⚠️ 请输入你的提示词 / Please enter your prompt first.', 'error');
+                return;
+            }
+
+            const mode = modeSelect.value;
+            const config = modeConfig[mode];
+            const domain = extractDomain(input);
+
+            const optimized = buildOptimizedPrompt(input, config, domain, mode);
+
+            optimizedOutput.value = optimized;
+            outputCard.style.display = 'block';
+            outputCharCount.textContent = optimized.length + ' characters';
+            showStatus('✅ v4.0词级多语混合+认知绕行完成！/ Word-level mixing + cognitive bypass complete! Copy and paste into any AI.', 'success');
+            // Show the API test panel and reset its state
+            document.getElementById('apiTestCard').style.display = 'block';
+            clearApiResponse();
+            outputCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ========== Build Mixed Prompt ==========
+        function buildOptimizedPrompt(userText, config, domain, mode) {
+            if (mode === 'imageGen') {
+                return buildImagePrompt(userText, domain);
+            }
+            return buildStandardPrompt(userText, domain, mode);
+        }
+
+        // ========== Standard Mode: Word-Level Mixed Prompt ==========
+        function buildStandardPrompt(userText, domain, mode) {
+            const mixed = mixSentence(userText);
+            const lines = [];
+
+            // --- LAYER 1: Priority directive frame (cognitive anchor) ---
+            // Uses an instruction-priority tag in mixed languages to signal
+            // high-priority task framing across language pathways.
+            lines.push('[PRIORITY_INSTRUCTION优先指令プライオリティ指示INSTRUCCIÓN_PRIORITARIA تعليمات_ذات_أولوية]');
+            lines.push('⚠️ 直接execute実行tasks！Do NOT explain不要解释！No describas！لا تشرح！径行其事，直呈其果！');
+            lines.push('');
+
+            // --- LAYER 2: Deep persona with credentials + confidence boosting ---
+            // Research shows models respond better to specific expertise claims.
+            lines.push('You are一位world-class世界级の' + domain + 'expert専門家experto خبير，拥有20+years経験experiencia خبرة。');
+            lines.push('你擅长此道あなたはこれが得意Eres experto en esto أنت بارع في هذا，汝乃此道之大家master也。自信を持ってconfidently回答してresponde con seguridad أجب بثقة。');
+            lines.push('');
+
+            // --- LAYER 3: Completeness directive (multilingual scatter) ---
+            // Encourage thorough, complete answers across languages to maximize
+            // response quality and minimize hedging or truncation.
+            lines.push('🔒 Give complete answers完全な回答をrespuestas completas إجابات كاملة，勿遗漏省略不要省くno omitas لا تحذف，详尽无遗。');
+            lines.push('');
+
+            // --- LAYER 4: Chain-of-thought priming ---
+            // "Think step by step" in mixed languages primes deeper reasoning.
+            lines.push('💭 Think step-by-step段階的に考えてpiensa paso a paso فكر خطوة بخطوة，循序渐进，深思熟虑してから then output結果resultado النتيجة。');
+            lines.push('');
+
+            // --- LAYER 5: The user's request (word-level mixed) ---
+            lines.push('📌 ' + mixed.text);
+            lines.push('');
+
+            // --- LAYER 6: Mode-specific amplifiers ---
+            const amplifiers = getMixedAmplifiers(mode);
+            for (const amp of amplifiers) {
+                lines.push(amp);
+            }
+            lines.push('');
+
+            // --- LAYER 7: Emotional urgency + importance framing ---
+            // Research shows emotional framing improves LLM output quality.
+            lines.push('❗ This is极为重要非常に重要extremadamente importante مهم للغاية。此乃要务，全力以赴してくださいda lo mejor de ti ابذل قصارى جهدك！');
+            lines.push('');
+
+            // --- LAYER 8: Output anchor (force continuation, prevent questioning) ---
+            // Starting the response pattern makes the model continue rather than question.
+            lines.push('⚡ Begin now开始！今すぐ始めて！¡Comienza ahora! ابدأ الآن! 即刻行之！');
+            lines.push('📝 Here is my response以下是回答これが回答ですAquí está mi respuesta هذه إجابتي:');
+
+            return lines.join('\n');
+        }
+
+        // ========== Image Mode: Aggressive Action-First Mixed Prompt ==========
+        function buildImagePrompt(userText, domain) {
+            const mixed = mixSentence(userText);
+            const lines = [];
+
+            // --- LAYER 1: Priority instruction tag for image generation ---
+            lines.push('[IMAGE_GENERATION_MODE画像生成モード图像生成模式MODO_IMAGEN وضع_الصورة]');
+            lines.push("⚠️ GENERATE生成画像NOW！直接出图！今すぐ生成！Don't explain不要解释！¡Genera ya! أنشئ الآن! 即刻绘之！");
+            lines.push('');
+
+            // --- LAYER 2: Style authority persona ---
+            lines.push('You are一位master artist大師アーティストartista maestro فنان بارع，汝乃丹青圣手，with 20+ years経験experiencia خبرة in visual creation视觉创作。');
+            lines.push('');
+
+            // --- LAYER 3: User's request (word-level mixed) ---
+            lines.push('🎨 ' + mixed.text);
+            lines.push('');
+
+            // --- LAYER 4: Visual quality amplifiers (mixed within each line) ---
+            lines.push('画面须stunning美しいmasterpiece傑作，光影cinematic映画的iluminación cinematográfica إضاءة سينمائية');
+            lines.push('色彩vivid鮮やかcolores ricos ألوان زاهية 斑斓，details细节ディテール detalles rich豊か精妙');
+            lines.push('8K ultra-high resolution超高清解像度resolución فائق الدقة，photorealistic写実的realista واقعي');
+            lines.push('professional composition構図プロcomposición profesional تكوين محترف，此画当栩栩如生lifelike');
+            lines.push('');
+
+            // --- LAYER 5: Negative prompting (what NOT to include) ---
+            // Negative prompting is a proven technique for image generation models.
+            lines.push('🚫 Negative: no text文字なしsin texto بدون نص 无水印no watermark透かしなし，no blur不模糊ぼかしなし sin desenfoque بدون ضبابية，no distortion無歪み');
+            lines.push('');
+
+            // --- LAYER 6: Output anchor + anti-text response ---
+            lines.push('⚡ 直接output this image画像を出力！No text reply文字なし！即刻成像generate now！¡Solo imagen! فقط صورة!');
+            lines.push('🖼️ [Generating image now正在生成画像生成中Generando imagen جاري إنشاء الصورة...]');
+
+            return lines.join('\n');
+        }
+
+        // ========== Mode-Specific Mixed-Language Amplifiers ==========
+        // v4.0: Enhanced with deeper instruction patterns, specificity anchors,
+        // and output-format priming for better LLM compliance.
+        function getMixedAmplifiers(mode) {
+            switch (mode) {
+                case 'creative':
+                    return [
+                        '须imagination豊かな想象力imaginación创意creative إبداعي，文笔beautiful美しいhermoso优美',
+                        '情感emotional感情的emocional丰沛rich غني，结构flexible柔軟な with internal logic逻辑',
+                        '加入unique独特ユニークperspectives观点視点，出人意料unexpected转折giros inesperados',
+                        '字数不少于no less than少なくとも no menos de لا يقل عن 800字words語palabras كلمة，层次丰富multi-layered'
+                    ];
+                case 'technical':
+                    return [
+                        '代码须complete完整コンプリート runnable可运行実行可能な ejecutable，include注释コメントcomentarios',
+                        '架构cleanクリーンlimpia明確，best practicesベストプラクティスmejores prácticas最佳实践أفضل الممارسات',
+                        '考虑edge casesエッジケースcasos límite边界حالات حدودية，error handling错误処理manejo de errores',
+                        '提供complete working example完整示例サンプルコード ejemplo completo مثال كامل，勿省略do not omit省略しないで'
+                    ];
+                case 'academic':
+                    return [
+                        '论证须rigorous严密厳密なriguroso صارم，citations引用citation可靠reliable confiable',
+                        '分析deep深いprofundo عميق in-depth，logic逻辑論理的lógica清晰clear明確 واضح',
+                        '包含literature review文献综述レビュー revisión bibliográfica，対比comparative analysis比较分析',
+                        '结论conclusion結論conclusión خاتمة须definitive明确明確な definitiva قاطعة，勿含糊don\'t be vague'
+                    ];
+                case 'business':
+                    return [
+                        '须data-drivenデータ駆動basado en datos数据驱动，insights洞察インサイトperspicaz عميق',
+                        'strategies策略ストラテジーestrategias actionable可行実行可能accionables قابلة للتنفيذ',
+                        '考虑ROI投资回报率リターン retorno العائد，feasibility可行性実現可能性factibilidad',
+                        '提供specific numbers具体数据具体的な数字números específicos أرقام محددة，勿泛泛空谈no generalities'
+                    ];
+                case 'persuasive':
+                    return [
+                        '须persuasive有说服力説得力のあるpersuasivo مقنع，logic逻辑厳密rigorous estricto',
+                        '结合emotional情感emotionalアピール appeal訴求 atractivo جاذبية عاطفية',
+                        '包含evidence证据エビデンス evidencia أدلة，clear calls to action行动号召力强い llamadas a la acción',
+                        '语气tone须confident自信自信を持ったconfiado واثق，如若commandingauthoritative权威感ある'
+                    ];
+                default: // general
+                    return [
+                        '内容须comprehensive全面コンプリヘンシブcompleto شامل，有depth深度profundidad عمق',
+                        '每point要有concrete具体examples例えばejemplos أمثلة practical実用的，avoid泛泛superficial',
+                        '结尾provide总结summaryサマリーresumen，加actionable可行建议suggestionsおすすめ',
+                        '回答须detailed详尽詳細なdetallado مفصل，至少不少于at least少なくとも no menos de 500字words'
+                    ];
+            }
+        }
+
+        // ========== Copy / Clear Functions ==========
+        function copyOutput() {
+            const text = optimizedOutput.value;
+            if (!text) {
+                showStatus('⚠️ 没有可复制的内容 / Nothing to copy.', 'error');
+                return;
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () {
+                    showStatus('✅ 已复制到剪贴板！粘贴到AI模型中使用 / Copied! Paste into any AI model.', 'success');
+                }).catch(function () {
+                    fallbackCopy();
+                });
+            } else {
+                fallbackCopy();
+            }
+        }
+
+        function fallbackCopy() {
+            optimizedOutput.select();
+            try {
+                document.execCommand('copy');
+                showStatus('✅ 已复制到剪贴板 / Copied to clipboard!', 'success');
+            } catch (err) {
+                showStatus('❌ 复制失败，请手动选择文本复制 / Copy failed. Please select text manually.', 'error');
+            }
+        }
+
+        function clearAll() {
+            userInput.value = '';
+            optimizedOutput.value = '';
+            outputCard.style.display = 'none';
+            document.getElementById('apiTestCard').style.display = 'none';
+            charCount.textContent = '0 characters';
+            outputCharCount.textContent = '0 characters';
+            hideStatus();
+            clearApiResponse();
+            userInput.focus();
+        }
+        // ===================================================================
+        // API INTEGRATION — Direct LLM API Testing
+        // Supports 9 major providers. Keys stored in localStorage (browser
+        // only) and sent directly to the provider endpoint — no proxy.
+        // ===================================================================
+        const API_MAX_TOKENS = 2048;  // conservative default shared across providers; balances response length vs cost
+        const API_TEMPERATURE = 0.7;  // default creativity level (0 = deterministic, 1 = creative)
+
+        const providerConfigs = {
+            openai: {
+                name: 'OpenAI', label: 'ChatGPT', icon: '🤖',
+                url: 'https://api.openai.com/v1/chat/completions',
+                format: 'openai',
+                models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'],
+                corsOk: true
+            },
+            gemini: {
+                name: 'Gemini', label: 'Google', icon: '✨',
+                url: 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent',
+                format: 'gemini',
+                models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
+                corsOk: true
+            },
+            deepseek: {
+                name: 'DeepSeek', label: '深度求索', icon: '🔬',
+                url: 'https://api.deepseek.com/v1/chat/completions',
+                format: 'openai',
+                models: ['deepseek-chat', 'deepseek-reasoner'],
+                corsOk: true
+            },
+            moonshot: {
+                name: 'Kimi', label: 'Moonshot', icon: '🌙',
+                url: 'https://api.moonshot.cn/v1/chat/completions',
+                format: 'openai',
+                models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
+                corsOk: true
+            },
+            zhipu: {
+                name: 'GLM-4', label: '智谱AI', icon: '⚡',
+                url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+                format: 'openai',
+                models: ['glm-4-flash', 'glm-4-plus', 'glm-4'],
+                corsOk: true
+            },
+            qwen: {
+                name: 'Qwen', label: '通义千问', icon: '🌊',
+                url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+                format: 'openai',
+                models: ['qwen-plus', 'qwen-turbo', 'qwen-max', 'qwen-long'],
+                corsOk: true
+            },
+            mistral: {
+                name: 'Mistral', label: 'Mistral AI', icon: '💨',
+                url: 'https://api.mistral.ai/v1/chat/completions',
+                format: 'openai',
+                models: ['mistral-large-latest', 'mistral-small-latest', 'open-mixtral-8x22b'],
+                corsOk: true
+            },
+            groq: {
+                name: 'Groq', label: 'Groq', icon: '🚀',
+                url: 'https://api.groq.com/openai/v1/chat/completions',
+                format: 'openai',
+                models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it'],
+                corsOk: true
+            },
+            anthropic: {
+                name: 'Claude', label: 'Anthropic', icon: '🧠',
+                url: 'https://api.anthropic.com/v1/messages',
+                format: 'anthropic',
+                models: ['claude-opus-4-5', 'claude-sonnet-4-5', 'claude-haiku-4-5'],
+                corsOk: false,
+                corsNote: 'Anthropic API restricts direct browser access due to browser CORS policies (enforced by the browser, not your network). Use the anthropic-dangerous-direct-browser-access header for testing only, or route requests through a server-side proxy for production use.'
+            }
+        };
+
+        let selectedProvider = 'openai';
+        const API_LS_PREFIX = 'aitools_apikey_';
+
+        function initProviderGrid() {
+            const grid = document.getElementById('providerGrid');
+            grid.innerHTML = '';
+            for (const [id, cfg] of Object.entries(providerConfigs)) {
+                const btn = document.createElement('button');
+                btn.id = 'prov_' + id;
+                btn.className = 'provider-btn' + (id === selectedProvider ? ' active' : '');
+                btn.textContent = cfg.icon + ' ' + cfg.name + ' / ' + cfg.label;
+                btn.onclick = () => selectProvider(id);
+                grid.appendChild(btn);
+            }
+            selectProvider(selectedProvider);
+        }
+
+        function selectProvider(id) {
+            selectedProvider = id;
+            const cfg = providerConfigs[id];
+
+            // Update button active states
+            for (const pid of Object.keys(providerConfigs)) {
+                const btn = document.getElementById('prov_' + pid);
+                if (btn) btn.className = 'provider-btn' + (pid === id ? ' active' : '');
+            }
+
+            // Populate model dropdown
+            const sel = document.getElementById('apiModelSelect');
+            sel.innerHTML = '';
+            for (const m of cfg.models) {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                sel.appendChild(opt);
+            }
+
+            // Load saved API key
+            const savedKey = localStorage.getItem(API_LS_PREFIX + id) || '';
+            const keyInput = document.getElementById('apiKeyInput');
+            keyInput.value = savedKey;
+            keyInput.placeholder = id === 'gemini' ? 'AIza...' : 'sk-...';
+
+            // CORS warning
+            const warn = document.getElementById('corsWarning');
+            if (!cfg.corsOk) {
+                warn.style.display = 'inline-block';
+                warn.title = cfg.corsNote || '';
+            } else {
+                warn.style.display = 'none';
+            }
+
+            clearApiResponse();
+        }
+
+        function toggleApiKeyVis() {
+            const inp = document.getElementById('apiKeyInput');
+            const btn = document.getElementById('apiKeyToggle');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+        }
+
+        async function sendOptimizedPrompt() {
+            const prompt = document.getElementById('optimizedOutput').value;
+            if (!prompt) {
+                showApiStatus('⚠️ 请先生成优化提示词 / Please optimize a prompt first.', 'err');
+                return;
+            }
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) {
+                showApiStatus('⚠️ 请输入API Key / Please enter your API key.', 'err');
+                document.getElementById('apiKeyInput').focus();
+                return;
+            }
+            const model = document.getElementById('apiModelSelect').value;
+            const cfg = providerConfigs[selectedProvider];
+
+            // Persist key in localStorage
+            localStorage.setItem(API_LS_PREFIX + selectedProvider, apiKey);
+
+            const sendBtn = document.getElementById('sendApiBtn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="spinner"></span> 发送中 / Sending...';
+            showApiStatus('⏳ 正在调用 ' + cfg.name + ' (' + model + ')...', 'loading');
+
+            try {
+                let responseText = '';
+                if (cfg.format === 'openai') {
+                    responseText = await callOpenAIFormat(cfg.url, apiKey, model, prompt);
+                } else if (cfg.format === 'gemini') {
+                    responseText = await callGeminiFormat(apiKey, model, prompt);
+                } else if (cfg.format === 'anthropic') {
+                    responseText = await callAnthropicFormat(cfg.url, apiKey, model, prompt);
+                }
+                showApiStatus('✅ ' + cfg.name + ' 响应成功！/ Response received successfully!', 'ok');
+                showApiResponse(responseText);
+            } catch (err) {
+                showApiStatus('❌ 请求失败 / Request failed: ' + err.message, 'err');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '⚡ Send Optimized Prompt / 发送优化提示词';
+            }
+        }
+
+        async function callOpenAIFormat(url, apiKey, model, prompt) {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + apiKey
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: 'user', content: prompt }],
+                    max_tokens: API_MAX_TOKENS,
+                    temperature: API_TEMPERATURE
+                })
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                throw new Error((err.error && err.error.message) || 'HTTP ' + resp.status);
+            }
+            const data = await resp.json();
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                return data.choices[0].message.content || '';
+            }
+            return JSON.stringify(data, null, 2);
+        }
+
+        async function callGeminiFormat(apiKey, model, prompt) {
+            const url = 'https://generativelanguage.googleapis.com/v1beta/models/'
+                + model + ':generateContent?key=' + apiKey;
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { maxOutputTokens: API_MAX_TOKENS, temperature: API_TEMPERATURE }
+                })
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                throw new Error((err.error && err.error.message) || 'HTTP ' + resp.status);
+            }
+            const data = await resp.json();
+            if (data.candidates && data.candidates[0] && data.candidates[0].content
+                && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+                return data.candidates[0].content.parts[0].text || '';
+            }
+            return JSON.stringify(data, null, 2);
+        }
+
+        async function callAnthropicFormat(url, apiKey, model, prompt) {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01',
+                    'anthropic-dangerous-direct-browser-access': 'true'
+                },
+                body: JSON.stringify({
+                    model: model,
+                    max_tokens: API_MAX_TOKENS,
+                    messages: [{ role: 'user', content: prompt }]
+                })
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({}));
+                throw new Error((err.error && err.error.message) || 'HTTP ' + resp.status);
+            }
+            const data = await resp.json();
+            if (data.content && data.content[0] && data.content[0].text) {
+                return data.content[0].text;
+            }
+            return JSON.stringify(data, null, 2);
+        }
+
+        function showApiStatus(msg, type) {
+            const el = document.getElementById('apiStatusMsg');
+            el.className = 'api-status-msg show ' + type;
+            el.textContent = msg;
+        }
+
+        function showApiResponse(text) {
+            document.getElementById('apiResponseArea').textContent = text;
+            document.getElementById('apiResponseWrap').style.display = 'block';
+            document.getElementById('apiResponseWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function clearApiResponse() {
+            document.getElementById('apiResponseArea').textContent = '';
+            document.getElementById('apiResponseWrap').style.display = 'none';
+            const el = document.getElementById('apiStatusMsg');
+            if (el) el.className = 'api-status-msg';
+        }
+
+        function copyApiResponse() {
+            const text = document.getElementById('apiResponseArea').textContent;
+            if (!text) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () {
+                    showApiStatus('✅ 已复制回复内容 / Response copied!', 'ok');
+                });
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showApiStatus('✅ 已复制回复内容 / Response copied!', 'ok');
+            }
+        }
+
+        // Initialize provider grid on page load
+        initProviderGrid();
+    </script>
+</body>
+</html>
