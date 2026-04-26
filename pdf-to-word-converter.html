@@ -115,6 +115,21 @@
     font-weight: 600;
   }
 
+  .remove-file-btn {
+    margin-left: auto;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #f87171;
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .remove-file-btn:hover {
+    background: rgba(239, 68, 68, 0.35);
+  }
+
   .file-list {
     list-style: none;
     padding: 0;
@@ -484,6 +499,7 @@
       <div class="file-selected-header">
         <span>✅</span>
         <span id="fileInfo">已选择文件 / File selected</span>
+        <button class="remove-file-btn" id="removeFileBtn" title="删除文件 / Remove file">✕ 删除 / Remove</button>
       </div>
       <ul class="file-list" id="fileList"></ul>
     </div>
@@ -736,6 +752,16 @@ function setFiles(files) {
   convertBtn.disabled = false;
 }
 
+// ─── Remove File ──────────────────────────────────────────────────────────────
+document.getElementById('removeFileBtn').addEventListener('click', () => {
+  selectedFiles = [];
+  fileInput.value = '';
+  fileInfo.textContent = '已选择文件 / File selected';
+  document.getElementById('fileList').innerHTML = '';
+  fileSelected.classList.remove('show');
+  convertBtn.disabled = true;
+});
+
 // ─── Logging ──────────────────────────────────────────────────────────────────
 function log(msg, type = 'info') {
   const div = document.createElement('div');
@@ -769,8 +795,8 @@ convertBtn.addEventListener('click', async () => {
   previewCard.style.display = 'none';
   resultCard.style.display = 'none';
   convertBtn.disabled = true;
-  // Scroll to progress section so the user can follow along
-  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  // Scroll to bottom after DOM reflows to include progressCard
+  setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 120);
 
   try {
     const apiKey = document.getElementById('apiKey').value.trim();
