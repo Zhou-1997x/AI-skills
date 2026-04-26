@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 代码助手 | AI Code Helper</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f17;--bg2:#151823;--bg3:#1d2030;--bg4:#252840;
+  --accent:#6c63ff;--accent2:#a78bfa;--accent3:#38bdf8;
+  --success:#22c55e;--warn:#f59e0b;--err:#ef4444;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --border:#2a2d3e;--radius:10px;--shadow:0 4px 24px rgba(0,0,0,.45)
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:12px}
+header .logo{font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header p{color:var(--text2);font-size:13px;margin-top:2px}
+
+main{flex:1;padding:28px 20px;max-width:1200px;width:100%;margin:0 auto}
+
+/* Top action bar */
+.action-bar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;align-items:center}
+.action-bar h1{font-size:16px;font-weight:700;color:var(--text);flex:1}
+
+/* Task selector */
+.tasks{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.task-btn{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text2);transition:.2s;display:flex;align-items:center;gap:6px}
+.task-btn:hover{border-color:var(--accent);color:var(--accent2)}
+.task-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Main grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--accent2);display:flex;align-items:center;gap:7px;justify-content:space-between}
+.card-title-left{display:flex;align-items:center;gap:7px}
+
+/* Language selector row */
+.lang-row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.lang-row>*{flex:1;min-width:100px}
+label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:500}
+select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:7px 10px;outline:none;transition:.2s}
+select:focus{border-color:var(--accent)}
+select option{background:var(--bg3)}
+
+/* Code editor */
+.code-editor{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;padding:14px;outline:none;transition:.2s;font-family:'Courier New','Fira Code',monospace;line-height:1.75;resize:vertical}
+.code-editor:focus{border-color:var(--accent);background:var(--bg4)}
+#input-code{min-height:280px}
+#output-code{min-height:320px}
+#output-text{min-height:200px;font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;line-height:1.75}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:.2s;white-space:nowrap}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff}
+.btn-primary:hover:not(:disabled){filter:brightness(1.12)}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover:not(:disabled){border-color:var(--accent);color:var(--accent2)}
+.btn-sm{padding:6px 12px;font-size:11px;border-radius:6px}
+.btn-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.full-width{width:100%;justify-content:center;font-size:14px;padding:12px}
+
+/* Processing */
+.processing{display:none;align-items:center;gap:10px;padding:12px 14px;background:var(--bg3);border-radius:var(--radius);margin:12px 0;font-size:13px;color:var(--text2)}
+.processing.show{display:flex}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Sections */
+.full-card{margin-top:18px}
+
+/* Prompt preview */
+.prompt-preview{margin-top:12px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:12px;font-size:11px;color:var(--text3);font-family:monospace;white-space:pre-wrap;max-height:150px;overflow-y:auto;line-height:1.65}
+.prompt-label{font-size:11px;color:var(--text3);margin-bottom:6px}
+
+/* Metrics row */
+.metrics{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:12px}
+.metric{font-size:11px;color:var(--text3)}
+.metric span{color:var(--accent3);font-weight:700}
+
+/* Quick actions panel */
+.quick-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px}
+.qa-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:.2s}
+.qa-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.qa-card h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.qa-card p{font-size:11px;color:var(--text2);line-height:1.5}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--bg4);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;font-size:13px;box-shadow:var(--shadow);z-index:9999;opacity:0;transform:translateY(12px);transition:.3s;pointer-events:none}
+#toast.show{opacity:1;transform:translateY(0)}
+
+footer{text-align:center;padding:16px;color:var(--text3);font-size:12px;border-top:1px solid var(--border)}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">💻 AI Code Helper</div>
+    <p>AI 代码助手 — 解释 · 审查 · 重构 · 调试 · 生成 · 转换 | Explain · Review · Refactor · Debug · Generate · Convert</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- Quick action cards -->
+  <div class="quick-actions" id="qa-section">
+    <div class="qa-card" onclick="setTask('explain')"><h4>🔍 代码解释</h4><p>理解代码逻辑和功能</p></div>
+    <div class="qa-card" onclick="setTask('review')"><h4>✅ 代码审查</h4><p>发现 Bug、安全问题和优化点</p></div>
+    <div class="qa-card" onclick="setTask('refactor')"><h4>♻️ 代码重构</h4><p>优化代码质量和可维护性</p></div>
+    <div class="qa-card" onclick="setTask('debug')"><h4>🐛 调试助手</h4><p>分析错误，提供修复方案</p></div>
+    <div class="qa-card" onclick="setTask('generate')"><h4>⚡ 代码生成</h4><p>用自然语言描述需求生成代码</p></div>
+    <div class="qa-card" onclick="setTask('convert')"><h4>🔄 语言转换</h4><p>将代码转换为另一种编程语言</p></div>
+    <div class="qa-card" onclick="setTask('test')"><h4>🧪 测试生成</h4><p>自动生成单元测试代码</p></div>
+    <div class="qa-card" onclick="setTask('document')"><h4>📄 文档生成</h4><p>生成注释和 API 文档</p></div>
+  </div>
+
+  <!-- Task tabs -->
+  <div class="tasks" id="tasks">
+    <button class="task-btn active" data-task="explain" onclick="setTask('explain',this)">🔍 解释</button>
+    <button class="task-btn" data-task="review" onclick="setTask('review',this)">✅ 审查</button>
+    <button class="task-btn" data-task="refactor" onclick="setTask('refactor',this)">♻️ 重构</button>
+    <button class="task-btn" data-task="debug" onclick="setTask('debug',this)">🐛 调试</button>
+    <button class="task-btn" data-task="generate" onclick="setTask('generate',this)">⚡ 生成</button>
+    <button class="task-btn" data-task="convert" onclick="setTask('convert',this)">🔄 转换</button>
+    <button class="task-btn" data-task="test" onclick="setTask('test',this)">🧪 测试</button>
+    <button class="task-btn" data-task="document" onclick="setTask('document',this)">📄 文档</button>
+  </div>
+
+  <!-- Main input/output grid -->
+  <div class="grid">
+    <!-- Input -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">📥 <span id="input-label">输入代码 / Input Code</span></div>
+        <div class="btn-group" style="margin:0">
+          <button class="btn btn-secondary btn-sm" onclick="clearInput()">🗑️</button>
+          <button class="btn btn-secondary btn-sm" onclick="loadSample()">📎 示例</button>
+        </div>
+      </div>
+
+      <div class="lang-row" id="lang-row">
+        <div>
+          <label>编程语言 / Language</label>
+          <select id="lang">
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Java">Java</option>
+            <option value="C++">C++</option>
+            <option value="C#">C#</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="PHP">PHP</option>
+            <option value="Ruby">Ruby</option>
+            <option value="Swift">Swift</option>
+            <option value="Kotlin">Kotlin</option>
+            <option value="SQL">SQL</option>
+            <option value="Shell">Shell/Bash</option>
+            <option value="其他">其他 / Other</option>
+          </select>
+        </div>
+        <div id="convert-to-wrap" style="display:none">
+          <label>转换目标语言</label>
+          <select id="convert-lang">
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Java">Java</option>
+            <option value="Go">Go</option>
+            <option value="C++">C++</option>
+            <option value="Rust">Rust</option>
+            <option value="C#">C#</option>
+          </select>
+        </div>
+      </div>
+
+      <textarea class="code-editor" id="input-code" placeholder="在此粘贴代码… / Paste your code here…" oninput="updateMetrics()"></textarea>
+      <div class="metrics" id="metrics">
+        <div class="metric">行数 Lines: <span id="line-count">0</span></div>
+        <div class="metric">字符 Chars: <span id="char-count">0</span></div>
+      </div>
+      <div id="debug-extra" style="display:none;margin-bottom:12px">
+        <label>错误信息 / Error Message</label>
+        <textarea class="code-editor" id="error-msg" style="min-height:80px;font-size:12px" placeholder="粘贴错误信息或堆栈跟踪… / Paste error message or stack trace…"></textarea>
+      </div>
+      <div id="generate-extra" style="display:none;margin-bottom:12px">
+        <label>需求描述 / Requirement</label>
+        <textarea class="code-editor" id="require-text" style="min-height:100px;font-family:inherit;font-size:13px" placeholder="用中文描述你想要实现的功能… / Describe what you want to build…"></textarea>
+      </div>
+      <button class="btn btn-primary full-width" id="process-btn" onclick="processCode()">
+        ⚡ 生成提示词 / Generate Prompt
+      </button>
+    </div>
+
+    <!-- Output -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-left">📤 <span id="output-label">分析结果 / Output</span></div>
+        <div class="btn-group" style="margin:0">
+          <button class="btn btn-secondary btn-sm" onclick="copyOutput()">📋 复制</button>
+          <button class="btn btn-secondary btn-sm" onclick="downloadOutput()">💾 下载</button>
+        </div>
+      </div>
+      <div class="processing" id="processing">
+        <div class="spinner"></div>
+        <span id="proc-label">正在分析… Analyzing…</span>
+      </div>
+      <textarea class="code-editor" id="output-code" readonly placeholder="AI 提示词将在这里生成，复制后粘贴到 ChatGPT/Claude/文心一言等工具中…&#10;The optimized prompt will appear here. Copy and paste to ChatGPT/Claude/etc."></textarea>
+      <div class="prompt-label" id="prompt-label" style="display:none">💡 使用说明：复制上方提示词，粘贴到任意 AI 对话工具即可获得完整结果</div>
+    </div>
+  </div>
+
+  <!-- Tips & tricks section -->
+  <div class="card full-card">
+    <div class="card-title"><div class="card-title-left">💡 代码助手使用技巧 / Tips</div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:6px">🔍 代码解释最佳实践</div>
+        <ul style="font-size:12px;color:var(--text2);line-height:1.9;padding-left:18px">
+          <li>粘贴完整函数或模块，而非片段</li>
+          <li>说明代码的运行环境和版本</li>
+          <li>如有特定困惑点，可在需求中说明</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent3);margin-bottom:6px">✅ 代码审查技巧</div>
+        <ul style="font-size:12px;color:var(--text2);line-height:1.9;padding-left:18px">
+          <li>包含相关的上下文代码</li>
+          <li>说明代码的业务场景</li>
+          <li>指定关注的安全或性能维度</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:6px">⚡ 代码生成技巧</div>
+        <ul style="font-size:12px;color:var(--text2);line-height:1.9;padding-left:18px">
+          <li>需求描述越具体，生成越精准</li>
+          <li>说明使用的框架和依赖</li>
+          <li>提供示例输入/输出有助提升质量</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--warn);margin-bottom:6px">🐛 调试技巧</div>
+        <ul style="font-size:12px;color:var(--text2);line-height:1.9;padding-left:18px">
+          <li>完整粘贴错误堆栈信息</li>
+          <li>说明触发错误的步骤</li>
+          <li>粘贴导致错误的最小可复现代码</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>AI Code Helper · AI 代码助手 · v1.0</footer>
+<div id="toast"></div>
+
+<script>
+const TASKS = {
+  explain:{
+    inputLabel:'输入代码 / Input Code',
+    outputLabel:'解释结果 / Explanation',
+    procLabel:'正在分析代码… Analyzing…',
+    showDebug:false, showGenerate:false, showConvert:false,
+    buildPrompt:(code,lang,extra)=>
+`你是一位经验丰富的${lang}开发者，请详细解释以下代码：
+
+\`\`\`${lang}
+${code}
+\`\`\`
+
+请按以下结构解释：
+1. **整体功能**：这段代码的作用是什么？
+2. **逐段解析**：逐行或逐块解释代码的逻辑
+3. **关键技术点**：使用了哪些重要的算法、数据结构或设计模式？
+4. **输入/输出**：这段代码接受什么输入，产生什么输出？
+5. **注意事项**：有哪些潜在问题或需要注意的边界情况？
+
+请用简洁易懂的语言，适合中级开发者理解。`
+  },
+  review:{
+    inputLabel:'输入代码 / Input Code',
+    outputLabel:'审查报告 / Review Report',
+    procLabel:'正在审查代码… Reviewing…',
+    showDebug:false, showGenerate:false, showConvert:false,
+    buildPrompt:(code,lang,extra)=>
+`你是一位资深${lang}代码审查专家，请对以下代码进行全面审查：
+
+\`\`\`${lang}
+${code}
+\`\`\`
+
+请按以下维度给出反馈（使用 ✅/⚠️/❌ 标注问题级别）：
+
+## 🐛 Bug 与潜在错误
+[列出所有可能的 Bug，含行号和修复建议]
+
+## 🔒 安全漏洞
+[SQL注入、XSS、越权、数据泄露等安全问题]
+
+## ⚡ 性能问题
+[时间复杂度、内存使用、不必要的循环等]
+
+## 📖 代码规范
+[命名、注释、格式、长度等可读性问题]
+
+## 🏗️ 架构与设计
+[设计模式、SOLID原则、代码复用等]
+
+## ✅ 优化后代码
+[提供修复了主要问题的改进版本]`
+  },
+  refactor:{
+    inputLabel:'输入代码 / Input Code',
+    outputLabel:'重构结果 / Refactored Code',
+    procLabel:'正在重构… Refactoring…',
+    showDebug:false, showGenerate:false, showConvert:false,
+    buildPrompt:(code,lang,extra)=>
+`你是一位专注代码质量的${lang}高级工程师，请重构以下代码：
+
+\`\`\`${lang}
+${code}
+\`\`\`
+
+重构要求：
+- 遵循 SOLID 原则和${lang}最佳实践
+- 消除重复代码（DRY 原则）
+- 改善变量/函数命名，提升可读性
+- 优化代码结构和逻辑
+- 提升可测试性
+- 添加必要的注释
+
+请输出：
+1. **重构说明**：列出主要改动点
+2. **重构后代码**：完整的改进版本
+3. **改进总结**：说明每项改进的收益`
+  },
+  debug:{
+    inputLabel:'出错代码 / Buggy Code',
+    outputLabel:'调试方案 / Debug Solution',
+    procLabel:'正在分析错误… Debugging…',
+    showDebug:true, showGenerate:false, showConvert:false,
+    buildPrompt:(code,lang,extra)=>
+`你是一位${lang}调试专家，请帮我分析并修复以下代码问题：
+
+**代码：**
+\`\`\`${lang}
+${code}
+\`\`\`
+
+**错误信息：**
+\`\`\`
+${extra||'[无错误信息提供]'}
+\`\`\`
+
+请提供：
+## 🔍 错误分析
+[说明错误的根本原因]
+
+## 🛠️ 修复方案
+[提供修复后的完整代码]
+
+## ✅ 验证建议
+[如何验证 Bug 已修复]
+
+## 🚀 预防措施
+[如何避免此类错误再次发生]`
+  },
+  generate:{
+    inputLabel:'参考代码（可选）/ Reference Code',
+    outputLabel:'生成结果 / Generated Code',
+    procLabel:'正在生成代码… Generating…',
+    showDebug:false, showGenerate:true, showConvert:false,
+    buildPrompt:(code,lang,extra)=>
+`你是一位专业的${lang}开发者，请根据以下需求生成代码：
+
+**需求描述：**
+${extra||'[未提供需求描述]'}
+
+${code?`**参考代码/上下文：**
+\`\`\`${lang}
+${code}
+\`\`\`
+`:''}
+请提供：
+1. **完整实现代码**（带详细注释）
+2. **使用说明**（如何调用/运行）
+3. **依赖说明**（需要安装的包/库）
+4. **测试示例**（展示输入输出）`
+  },
+  convert:{
+    inputLabel:'源代码 / Source Code',
+    outputLabel:'转换结果 / Converted Code',
+    procLabel:'正在转换… Converting…',
+    showDebug:false, showGenerate:false, showConvert:true,
+    buildPrompt:(code,lang,extra,convertLang)=>
+`你是一位精通多种编程语言的工程师，请将以下${lang}代码转换为${convertLang}：
+
+\`\`\`${lang}
+${code}
+\`\`\`
+
+转换要求：
+- 保持功能逻辑完全一致
+- 使用${convertLang}的惯用写法（idiomatic code）
+- 利用目标语言的特性优化实现
+- 添加必要的注释说明转换逻辑
+
+请输出：
+1. **转换后的${convertLang}代码**
+2. **注意事项**：两种语言的关键差异说明`
+  },
+  test:{
+    inputLabel:'输入代码 / Input Code',
+    outputLabel:'测试代码 / Test Code',
+    procLabel:'正在生成测试… Generating Tests…',
+    showDebug:false, showGenerate:false, showConvert:false,
+    buildPrompt:(code,lang,extra)=>
+`你是一位${lang}测试工程师，请为以下代码生成全面的单元测试：
+
+\`\`\`${lang}
+${code}
+\`\`\`
+
+测试要求：
+- 使用${lang}主流测试框架（Python: pytest, JS: Jest, Java: JUnit, etc.）
+- 覆盖正常路径（happy path）
+- 覆盖边界情况（空值、极值、类型错误等）
+- 覆盖异常处理路径
+- 每个测试用例有清晰的描述
+- 代码结构清晰，可直接运行
+
+请输出：
+1. **完整测试代码**
+2. **测试覆盖说明**（覆盖了哪些场景）`
+  },
+  document:{
+    inputLabel:'输入代码 / Input Code',
+    outputLabel:'文档结果 / Documentation',
+    procLabel:'正在生成文档… Documenting…',
+    showDebug:false, showGenerate:false, showConvert:false,
+    buildPrompt:(code,lang,extra)=>
+`你是一位注重文档的${lang}开发者，请为以下代码生成详细文档：
+
+\`\`\`${lang}
+${code}
+\`\`\`
+
+文档要求：
+- 为每个函数/类/方法添加标准格式的注释
+  - Python: docstring (Google/NumPy style)
+  - JavaScript/TypeScript: JSDoc
+  - Java: JavaDoc
+  - 其他：对应语言标准
+- 包含参数说明（名称、类型、描述）
+- 包含返回值说明
+- 包含使用示例
+- 如有 API，生成 Markdown 格式的接口文档
+
+请输出：
+1. **带完整注释的代码**
+2. **Markdown 格式 API 文档**`
+  }
+};
+
+const SAMPLES = {
+  Python:`def fibonacci(n):
+    if n <= 0:
+        return []
+    elif n == 1:
+        return [0]
+    
+    seq = [0, 1]
+    while len(seq) < n:
+        seq.append(seq[-1] + seq[-2])
+    return seq
+
+print(fibonacci(10))`,
+  JavaScript:`async function fetchUserData(userId) {
+  const response = await fetch(\`/api/users/\${userId}\`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch user');
+  }
+  const data = await response.json();
+  return data;
+}`,
+  Python_debug:`def calculate_average(numbers):
+    total = 0
+    for num in numbers:
+        total += num
+    return total / len(numbers)
+
+result = calculate_average([])
+print(result)`,
+  generate:'',
+};
+
+let currentTask = 'explain';
+
+function setTask(task, btn){
+  currentTask = task;
+  // Hide quick actions after selection
+  document.getElementById('qa-section').style.display='none';
+
+  // Update task buttons
+  document.querySelectorAll('.task-btn').forEach(b=>b.classList.remove('active'));
+  const activeBtn = btn || document.querySelector(`[data-task="${task}"]`);
+  if(activeBtn) activeBtn.classList.add('active');
+
+  const t = TASKS[task];
+  document.getElementById('input-label').textContent = t.inputLabel;
+  document.getElementById('output-label').textContent = t.outputLabel;
+  document.getElementById('debug-extra').style.display = t.showDebug ? 'block' : 'none';
+  document.getElementById('generate-extra').style.display = t.showGenerate ? 'block' : 'none';
+  document.getElementById('convert-to-wrap').style.display = t.showConvert ? 'block' : 'none';
+}
+
+function updateMetrics(){
+  const code = document.getElementById('input-code').value;
+  document.getElementById('line-count').textContent = code ? code.split('\n').length : 0;
+  document.getElementById('char-count').textContent = code.length;
+}
+
+function clearInput(){
+  document.getElementById('input-code').value='';
+  document.getElementById('error-msg').value='';
+  document.getElementById('require-text').value='';
+  updateMetrics();
+}
+
+function loadSample(){
+  const lang = document.getElementById('lang').value;
+  const key = currentTask === 'debug' ? 'Python_debug' : lang;
+  const sample = SAMPLES[key] || SAMPLES['Python'];
+  document.getElementById('input-code').value = sample;
+  document.getElementById('lang').value = 'Python';
+  updateMetrics();
+}
+
+function processCode(){
+  const code = document.getElementById('input-code').value.trim();
+  const lang = document.getElementById('lang').value;
+  const task = TASKS[currentTask];
+
+  if(currentTask !== 'generate' && !code){
+    showToast('⚠️ 请先输入代码！Please enter code first!');
+    return;
+  }
+
+  const errorMsg = document.getElementById('error-msg').value.trim();
+  const requireText = document.getElementById('require-text').value.trim();
+  const convertLang = document.getElementById('convert-lang').value;
+  const extra = errorMsg || requireText;
+
+  const prompt = task.buildPrompt(code, lang, extra, convertLang);
+
+  // Show processing
+  document.getElementById('processing').classList.add('show');
+  document.getElementById('process-btn').disabled = true;
+  document.getElementById('proc-label').textContent = task.procLabel;
+
+  setTimeout(()=>{
+    document.getElementById('processing').classList.remove('show');
+    document.getElementById('process-btn').disabled = false;
+    document.getElementById('output-code').value = prompt;
+    document.getElementById('prompt-label').style.display = 'block';
+    showToast('✅ 提示词已生成！Prompt generated!');
+  }, 600 + Math.random()*400);
+}
+
+function copyOutput(){
+  const v = document.getElementById('output-code').value;
+  if(!v){ showToast('⚠️ 没有可复制的内容'); return; }
+  navigator.clipboard.writeText(v).then(()=>showToast('✅ 已复制！Copied!')).catch(()=>{
+    const ta = document.createElement('textarea');
+    ta.value=v; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('✅ 已复制！');
+  });
+}
+
+function downloadOutput(){
+  const v = document.getElementById('output-code').value;
+  if(!v){ showToast('⚠️ 没有可下载的内容'); return; }
+  const blob = new Blob([v],{type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ai-code-${currentTask}-prompt-${Date.now()}.txt`;
+  a.click();
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// Init
+updateMetrics();
+</script>
+</body>
+</html>

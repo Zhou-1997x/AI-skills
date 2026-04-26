@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 写作助手 | AI Writing Assistant</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f17;--bg2:#151823;--bg3:#1d2030;--bg4:#252840;
+  --accent:#6c63ff;--accent2:#a78bfa;--accent3:#38bdf8;
+  --success:#22c55e;--warn:#f59e0b;--err:#ef4444;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --border:#2a2d3e;--radius:10px;--shadow:0 4px 24px rgba(0,0,0,.45)
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+/* Header */
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:12px}
+header .logo{font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header p{color:var(--text2);font-size:13px;margin-top:2px}
+
+/* Layout */
+main{flex:1;padding:28px 20px;max-width:1100px;width:100%;margin:0 auto}
+.layout{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+@media(max-width:800px){.layout{grid-template-columns:1fr}}
+
+/* Sidebar */
+.sidebar{display:flex;flex-direction:column;gap:14px}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--accent2);display:flex;align-items:center;gap:7px}
+
+/* Mode tabs */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode-btn{padding:10px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;text-align:center;font-size:12px;font-weight:600;transition:.2s;line-height:1.4}
+.mode-btn:hover{border-color:var(--accent);color:var(--accent2)}
+.mode-btn.active{background:rgba(108,99,255,.18);border-color:var(--accent);color:var(--accent2)}
+.mode-btn .icon{font-size:18px;display:block;margin-bottom:4px}
+
+/* Forms */
+label{font-size:12px;color:var(--text2);display:block;margin-bottom:5px;font-weight:500}
+select,input[type=range]{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;transition:.2s}
+select:focus{border-color:var(--accent)}
+.field{margin-bottom:12px}
+.range-row{display:flex;align-items:center;gap:10px}
+.range-row input{flex:1}
+.range-val{font-size:12px;color:var(--accent3);font-weight:700;min-width:30px;text-align:right}
+.hint{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* Editor */
+.editor-wrap{display:flex;flex-direction:column;gap:14px}
+.editor-header{display:flex;align-items:center;justify-content:space-between}
+.editor-header h2{font-size:15px;font-weight:700;color:var(--text)}
+.char-count{font-size:11px;color:var(--text3)}
+textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;padding:14px;outline:none;transition:.2s;font-family:inherit;line-height:1.75;resize:vertical}
+textarea:focus{border-color:var(--accent);background:var(--bg4)}
+#input-text{min-height:220px}
+#output-text{min-height:280px;background:var(--bg3)}
+#output-text:read-only{cursor:default}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:.2s;white-space:nowrap}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;width:100%;justify-content:center;font-size:14px;padding:12px}
+.btn-primary:hover:not(:disabled){filter:brightness(1.12)}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border);font-size:12px;padding:7px 13px}
+.btn-secondary:hover:not(:disabled){border-color:var(--accent);color:var(--accent2)}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px}
+.btn-group{display:flex;flex-wrap:wrap;gap:8px}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{filter:brightness(1.1)}
+
+/* Output section */
+.output-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.output-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.output-head h3{font-size:14px;font-weight:700;color:var(--accent2)}
+.output-stats{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
+.stat-item{font-size:11px;color:var(--text3)}
+.stat-item span{color:var(--accent3);font-weight:700}
+
+/* Processing indicator */
+.processing{display:none;align-items:center;gap:10px;padding:14px;background:var(--bg3);border-radius:var(--radius);margin-bottom:12px;font-size:13px;color:var(--text2)}
+.processing.show{display:flex}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Diff view */
+.diff-view{font-size:13px;line-height:1.75;white-space:pre-wrap;word-break:break-word}
+.diff-add{background:rgba(34,197,94,.18);color:#86efac;border-radius:2px}
+.diff-del{background:rgba(239,68,68,.18);color:#fca5a5;text-decoration:line-through;border-radius:2px}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--bg4);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;font-size:13px;box-shadow:var(--shadow);z-index:9999;opacity:0;transform:translateY(12px);transition:.3s;pointer-events:none}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* History */
+.history-list{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.history-item{padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text2);cursor:pointer;transition:.2s;line-height:1.5}
+.history-item:hover{border-color:var(--accent);color:var(--text)}
+.history-item strong{color:var(--accent2);font-size:10px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+footer{text-align:center;padding:16px;color:var(--text3);font-size:12px;border-top:1px solid var(--border);margin-top:auto}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">✍️ AI Writing Assistant</div>
+    <p>AI 写作助手 — 润色 · 摘要 · 扩写 · 改写 · 翻译 | Polish · Summarize · Expand · Rewrite · Translate</p>
+  </div>
+</header>
+
+<main>
+  <div class="layout">
+
+    <!-- Sidebar: controls -->
+    <div class="sidebar">
+      <div class="card">
+        <div class="card-title">⚡ 功能模式 / Mode</div>
+        <div class="mode-grid" id="mode-grid">
+          <button class="mode-btn active" data-mode="polish" onclick="setMode('polish',this)">
+            <span class="icon">💎</span>润色<br>Polish
+          </button>
+          <button class="mode-btn" data-mode="summary" onclick="setMode('summary',this)">
+            <span class="icon">📝</span>摘要<br>Summary
+          </button>
+          <button class="mode-btn" data-mode="expand" onclick="setMode('expand',this)">
+            <span class="icon">📖</span>扩写<br>Expand
+          </button>
+          <button class="mode-btn" data-mode="rewrite" onclick="setMode('rewrite',this)">
+            <span class="icon">🔄</span>改写<br>Rewrite
+          </button>
+          <button class="mode-btn" data-mode="formal" onclick="setMode('formal',this)">
+            <span class="icon">🎩</span>正式化<br>Formalize
+          </button>
+          <button class="mode-btn" data-mode="casual" onclick="setMode('casual',this)">
+            <span class="icon">😊</span>口语化<br>Casualize
+          </button>
+          <button class="mode-btn" data-mode="translate" onclick="setMode('translate',this)">
+            <span class="icon">🌐</span>翻译<br>Translate
+          </button>
+          <button class="mode-btn" data-mode="proofread" onclick="setMode('proofread',this)">
+            <span class="icon">✅</span>校对<br>Proofread
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⚙️ 参数设置 / Settings</div>
+
+        <div class="field">
+          <label>输出语言 / Output Language</label>
+          <select id="lang">
+            <option value="same">与输入相同 / Same as input</option>
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+            <option value="jp">日本語</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="ko">한국어</option>
+          </select>
+        </div>
+
+        <div class="field" id="field-tone">
+          <label>写作风格 / Writing Tone</label>
+          <select id="tone">
+            <option value="professional">专业正式 / Professional</option>
+            <option value="friendly">友好亲切 / Friendly</option>
+            <option value="academic">学术严谨 / Academic</option>
+            <option value="creative">创意生动 / Creative</option>
+            <option value="concise">简洁直接 / Concise</option>
+            <option value="persuasive">说服力强 / Persuasive</option>
+          </select>
+        </div>
+
+        <div class="field" id="field-length">
+          <label>输出长度 / Output Length</label>
+          <select id="length">
+            <option value="shorter">更短 / Shorter</option>
+            <option value="same" selected>与原文相近 / Similar</option>
+            <option value="longer">更长 / Longer</option>
+          </select>
+        </div>
+
+        <div class="field" id="field-target-lang" style="display:none">
+          <label>翻译目标语言 / Target Language</label>
+          <select id="target-lang">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="jp">日本語</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="ko">한국어</option>
+            <option value="ar">العربية</option>
+            <option value="pt">Português</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="card">
+        <div class="card-title">💡 提示 / Tips</div>
+        <div id="mode-tip" style="font-size:12px;color:var(--text2);line-height:1.7"></div>
+      </div>
+
+      <div class="card" id="history-card">
+        <div class="card-title">🕐 历史记录 / History <span style="font-size:11px;color:var(--text3);font-weight:400">(最近5条)</span></div>
+        <div class="history-list" id="history-list"></div>
+        <div style="margin-top:8px">
+          <button class="btn btn-secondary btn-sm" onclick="clearHistory()">🗑️ 清除 / Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main editor area -->
+    <div class="editor-wrap">
+      <div class="card">
+        <div class="editor-header">
+          <h2>输入文本 / Input Text</h2>
+          <span class="char-count"><span id="input-chars">0</span> 字符</span>
+        </div>
+        <textarea id="input-text" placeholder="在此输入或粘贴你的文本… / Paste or type your text here…" oninput="updateCharCount()"></textarea>
+        <div class="btn-group" style="margin-top:12px">
+          <button class="btn btn-primary" id="process-btn" onclick="processText()">
+            ⚡ 开始处理 / Process
+          </button>
+          <button class="btn btn-secondary" onclick="clearInput()">🗑️ 清空</button>
+          <button class="btn btn-secondary" onclick="pasteText()">📋 粘贴</button>
+        </div>
+      </div>
+
+      <div class="processing" id="processing">
+        <div class="spinner"></div>
+        <span id="processing-text">正在处理… Processing…</span>
+      </div>
+
+      <div class="output-card" id="output-section">
+        <div class="output-head">
+          <h3>📤 处理结果 / Output</h3>
+          <div class="btn-group">
+            <button class="btn btn-secondary btn-sm" onclick="copyOutput()">📋 复制</button>
+            <button class="btn btn-secondary btn-sm" onclick="useAsInput()">↩️ 作为输入</button>
+            <button class="btn btn-secondary btn-sm" onclick="downloadTxt()">💾 下载</button>
+          </div>
+        </div>
+        <div class="output-stats" id="output-stats" style="display:none">
+          <div class="stat-item">原文: <span id="stat-original">0</span> 字符</div>
+          <div class="stat-item">结果: <span id="stat-output">0</span> 字符</div>
+          <div class="stat-item">变化: <span id="stat-change">0%</span></div>
+        </div>
+        <textarea id="output-text" readonly placeholder="处理结果将显示在这里… / Results will appear here…" style="margin-top:12px;min-height:280px"></textarea>
+        <div id="prompt-preview" style="margin-top:12px;display:none">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">📎 发送给 AI 的提示词预览 / Prompt sent to AI:</div>
+          <div id="prompt-text" style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 12px;font-size:11px;color:var(--text3);font-family:monospace;white-space:pre-wrap;max-height:120px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>AI Writing Assistant · AI 写作助手 · v1.0</footer>
+<div id="toast"></div>
+
+<script>
+const MODES = {
+  polish: {
+    label:'润色 / Polish',
+    tip:'润色模式会优化文章的语法、句式和表达，使文本更加专业流畅，同时保留原文的意思和风格。',
+    buildPrompt: (text, tone, length, lang) =>
+`你是一位专业的文字编辑。请对以下文本进行润色，要求：
+- 修正语法、标点和表达错误
+- 优化句子结构，提升流畅度
+- 保持原文意思和${tone}风格
+- 输出长度：${length}
+- 输出语言：${lang}
+- 只输出润色后的文本，不要加任何说明
+
+原文：
+${text}`
+  },
+  summary: {
+    label:'摘要 / Summary',
+    tip:'摘要模式提取文章的核心内容，生成简洁的概括，适合快速了解长文章的要点。',
+    buildPrompt: (text, tone, length, lang) =>
+`你是一位专业的内容编辑。请为以下文章生成摘要，要求：
+- 提炼核心观点和关键信息
+- 语言${tone}
+- 长度：${length === 'shorter' ? '50-100字' : length === 'longer' ? '200-300字' : '100-150字'}
+- 输出语言：${lang}
+- 只输出摘要内容，不要加任何额外说明
+
+原文：
+${text}`
+  },
+  expand: {
+    label:'扩写 / Expand',
+    tip:'扩写模式将简短内容扩展为更详细、完整的文本，补充细节、论据和具体说明。',
+    buildPrompt: (text, tone, length, lang) =>
+`你是一位专业的内容创作者。请将以下内容进行扩写，要求：
+- 补充具体细节、案例或论据
+- 保持${tone}风格
+- 篇幅扩展为原文的${length === 'longer' ? '3-4' : '2-3'}倍
+- 输出语言：${lang}
+- 保持逻辑连贯，层次分明
+- 只输出扩写后的文本
+
+原文：
+${text}`
+  },
+  rewrite: {
+    label:'改写 / Rewrite',
+    tip:'改写模式用全新的表达方式重新叙述相同的内容，避免重复，产出独特版本。',
+    buildPrompt: (text, tone, length, lang) =>
+`你是一位专业的文字工作者。请用全新的表达方式改写以下内容，要求：
+- 保持原文的核心意思不变
+- 使用不同的句式和词汇
+- 风格：${tone}
+- 长度：${length}
+- 输出语言：${lang}
+- 只输出改写后的文本
+
+原文：
+${text}`
+  },
+  formal: {
+    label:'正式化 / Formalize',
+    tip:'正式化模式将非正式、口语化的文本转换为适合商务、学术或官方场合的正式表达。',
+    buildPrompt: (text, tone, length, lang) =>
+`请将以下口语化/非正式的文本转换为正式、专业的书面语，要求：
+- 替换口语词汇为正式用语
+- 完善句子结构
+- 保持原文意思
+- 适合商务/学术/官方场合
+- 输出语言：${lang}
+- 只输出转换后的文本
+
+原文：
+${text}`
+  },
+  casual: {
+    label:'口语化 / Casualize',
+    tip:'口语化模式将正式、生硬的文本转换为轻松、自然、亲切的表达，拉近与读者的距离。',
+    buildPrompt: (text, tone, length, lang) =>
+`请将以下正式/书面化的文本改写为轻松、自然、易读的口语化风格，要求：
+- 使用日常用语，避免过于正式的词汇
+- 句子简短，朗朗上口
+- 保持原文意思
+- 语气亲切友好
+- 输出语言：${lang}
+- 只输出改写后的文本
+
+原文：
+${text}`
+  },
+  translate: {
+    label:'翻译 / Translate',
+    tip:'翻译模式将文本翻译成指定语言，注重自然流畅，避免生硬的直译。',
+    buildPrompt: (text, tone, length, lang, targetLang) =>
+`请将以下文本翻译成${targetLang}，要求：
+- 准确传达原文意思
+- 使用目标语言的自然表达，避免翻译腔
+- 保持原文的语气和风格
+- 专业术语处理准确
+- 只输出翻译结果，不要加说明
+
+原文：
+${text}`
+  },
+  proofread: {
+    label:'校对 / Proofread',
+    tip:'校对模式发现并标注文本中的错误，包括错别字、语法错误、标点问题等，并给出修改建议。',
+    buildPrompt: (text, tone, length, lang) =>
+`你是一位专业的校对编辑。请对以下文本进行全面校对，要求：
+- 找出所有错别字、语法错误、标点问题
+- 检查表达是否清晰准确
+- 用以下格式输出：
+  1. 发现的问题列表（每条说明原文、错误类型、建议修改）
+  2. 分隔线"---"
+  3. 完整的校对后文本
+
+原文：
+${text}`
+  }
+};
+
+const LANG_NAMES = {
+  same:'保持原文语言',zh:'中文',en:'英语',jp:'日语',es:'西班牙语',
+  fr:'法语',de:'德语',ko:'韩语',ar:'阿拉伯语',pt:'葡萄牙语'
+};
+const TARGET_LANG_NAMES = {
+  en:'英语(English)',zh:'中文',jp:'日语(日本語)',es:'西班牙语(Español)',
+  fr:'法语(Français)',de:'德语(Deutsch)',ko:'韩语(한국어)',ar:'阿拉伯语(العربية)',pt:'葡萄牙语(Português)'
+};
+
+let currentMode = 'polish';
+let history = JSON.parse(localStorage.getItem('writing_history')||'[]');
+
+function setMode(mode, btn){
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('field-target-lang').style.display = mode==='translate' ? 'block' : 'none';
+  document.getElementById('mode-tip').textContent = MODES[mode].tip;
+}
+
+function updateCharCount(){
+  const v = document.getElementById('input-text').value;
+  document.getElementById('input-chars').textContent = v.length;
+}
+
+function clearInput(){
+  document.getElementById('input-text').value='';
+  document.getElementById('input-chars').textContent='0';
+}
+
+async function pasteText(){
+  try{
+    const t = await navigator.clipboard.readText();
+    document.getElementById('input-text').value = t;
+    updateCharCount();
+  } catch(e){ showToast('❌ 无法访问剪贴板，请手动粘贴'); }
+}
+
+function processText(){
+  const input = document.getElementById('input-text').value.trim();
+  if(!input){ showToast('⚠️ 请先输入文本！Please enter text first!'); return; }
+  if(input.length < 5){ showToast('⚠️ 文本太短，请输入更多内容！'); return; }
+
+  const tone = document.getElementById('tone').value;
+  const length = document.getElementById('length').value;
+  const lang = LANG_NAMES[document.getElementById('lang').value];
+  const targetLang = TARGET_LANG_NAMES[document.getElementById('target-lang').value];
+  const modeObj = MODES[currentMode];
+
+  const prompt = modeObj.buildPrompt(input, tone, length, lang, targetLang);
+
+  // Show prompt preview
+  document.getElementById('prompt-text').textContent = prompt;
+  document.getElementById('prompt-preview').style.display = 'block';
+
+  // Show processing
+  document.getElementById('processing').classList.add('show');
+  document.getElementById('process-btn').disabled = true;
+  document.getElementById('processing-text').textContent = `正在${modeObj.label}… Processing…`;
+
+  // Simulate processing with realistic delay (no API - generate a sample output)
+  setTimeout(()=>{
+    const output = generateOutput(input, currentMode, tone, length);
+    showOutput(input, output);
+  }, 800 + Math.random()*600);
+}
+
+function generateOutput(input, mode, tone, length){
+  // Since this is a client-side demo, we generate a structured prompt result
+  // that can be copied and pasted into any AI chatbot
+  const tips = {
+    polish: `【润色完成 - 本工具已生成优化提示词】\n\n以下是基于您输入生成的润色提示词，请复制到您使用的AI工具（如ChatGPT、Claude、文心一言等）中获取真实结果：\n\n${MODES.polish.buildPrompt(input,tone,length,'保持原文语言')}`,
+    summary: `【摘要生成 - 本工具已生成优化提示词】\n\n以下是基于您输入生成的摘要提示词，请复制到您使用的AI工具中获取真实结果：\n\n${MODES.summary.buildPrompt(input,tone,length,'保持原文语言')}`,
+    expand: `【扩写完成 - 本工具已生成优化提示词】\n\n以下是基于您输入生成的扩写提示词，请复制到您使用的AI工具中获取真实结果：\n\n${MODES.expand.buildPrompt(input,tone,length,'保持原文语言')}`,
+    rewrite: `【改写完成 - 本工具已生成优化提示词】\n\n以下是基于您输入生成的改写提示词，请复制到您使用的AI工具中获取真实结果：\n\n${MODES.rewrite.buildPrompt(input,tone,length,'保持原文语言')}`,
+    formal: `【正式化 - 本工具已生成优化提示词】\n\n${MODES.formal.buildPrompt(input,tone,length,'保持原文语言')}`,
+    casual: `【口语化 - 本工具已生成优化提示词】\n\n${MODES.casual.buildPrompt(input,tone,length,'保持原文语言')}`,
+    translate: `【翻译提示词】\n\n${MODES.translate.buildPrompt(input,tone,length,'保持原文语言','目标语言')}`,
+    proofread: `【校对提示词】\n\n${MODES.proofread.buildPrompt(input,tone,length,'保持原文语言')}`
+  };
+  return tips[mode] || input;
+}
+
+function showOutput(input, output){
+  document.getElementById('processing').classList.remove('show');
+  document.getElementById('process-btn').disabled = false;
+  document.getElementById('output-text').value = output;
+
+  const origLen = input.length;
+  const outLen = output.length;
+  const change = origLen > 0 ? Math.round((outLen - origLen)/origLen*100) : 0;
+  document.getElementById('stat-original').textContent = origLen;
+  document.getElementById('stat-output').textContent = outLen;
+  document.getElementById('stat-change').textContent = (change >= 0 ? '+' : '') + change + '%';
+  document.getElementById('output-stats').style.display = 'flex';
+
+  // Save to history
+  const entry = {
+    mode: MODES[currentMode].label,
+    input: input.substring(0,60)+'…',
+    output: output.substring(0,60)+'…',
+    time: new Date().toLocaleTimeString()
+  };
+  history.unshift(entry);
+  if(history.length > 5) history.pop();
+  localStorage.setItem('writing_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory(){
+  const el = document.getElementById('history-list');
+  if(!history.length){ el.innerHTML='<div style="font-size:11px;color:var(--text3)">暂无记录</div>'; return; }
+  el.innerHTML = history.map(h=>`
+    <div class="history-item">
+      <strong>${h.mode} · ${h.time}</strong><br>
+      ${h.input}
+    </div>`).join('');
+}
+
+function clearHistory(){
+  history=[];
+  localStorage.removeItem('writing_history');
+  renderHistory();
+}
+
+function copyOutput(){
+  const v = document.getElementById('output-text').value;
+  if(!v){ showToast('⚠️ 没有可复制的内容'); return; }
+  navigator.clipboard.writeText(v).then(()=>showToast('✅ 已复制！Copied!')).catch(()=>{
+    const ta = document.createElement('textarea');
+    ta.value=v; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('✅ 已复制！');
+  });
+}
+
+function useAsInput(){
+  const v = document.getElementById('output-text').value;
+  if(!v){ showToast('⚠️ 没有输出内容'); return; }
+  document.getElementById('input-text').value = v;
+  updateCharCount();
+  showToast('↩️ 已作为新输入！Used as new input!');
+}
+
+function downloadTxt(){
+  const v = document.getElementById('output-text').value;
+  if(!v){ showToast('⚠️ 没有可下载的内容'); return; }
+  const blob = new Blob([v],{type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ai-writing-${currentMode}-${Date.now()}.txt`;
+  a.click();
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// Init
+setMode('polish', document.querySelector('[data-mode="polish"]'));
+renderHistory();
+updateCharCount();
+</script>
+</body>
+</html>
