@@ -603,8 +603,11 @@ async function transcribeChunks(chunks) {
 
   const provider = document.getElementById('api-provider').value;
   const customBase = document.getElementById('api-base').value.trim().replace(/\/$/, '');
-  // Whisper uses an OpenAI-compatible endpoint; custom base URL overrides the default
-  const base = customBase || (PROVIDER_DEFAULTS[provider]?.base.includes('openai') ? PROVIDER_DEFAULTS[provider].base : 'https://api.openai.com/v1');
+  // Whisper uses an OpenAI-compatible endpoint.
+  // Priority: custom base URL > provider's own base (if OpenAI-compatible) > OpenAI default
+  const providerBase = PROVIDER_DEFAULTS[provider]?.base || '';
+  const isOpenAICompatible = providerBase.includes('openai') || providerBase.includes('groq') || providerBase.includes('deepseek');
+  const base = customBase || (isOpenAICompatible ? providerBase : 'https://api.openai.com/v1');
 
   const sourceLang = document.getElementById('source-lang').value;
   const allSegments = [];
