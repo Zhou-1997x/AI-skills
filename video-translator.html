@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>视频自动翻译器 | Video Auto-Translator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f17;--bg2:#151823;--bg3:#1d2030;--bg4:#252840;
+  --accent:#6c63ff;--accent2:#a78bfa;--accent3:#38bdf8;
+  --success:#22c55e;--warn:#f59e0b;--err:#ef4444;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --border:#2a2d3e;--radius:10px;--shadow:0 4px 24px rgba(0,0,0,.45)
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent2);text-decoration:none}
+
+/* ─── Header ─────────────────────────────────────────── */
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:12px}
+header .logo{font-size:22px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+header p{color:var(--text2);font-size:13px;margin-top:2px}
+
+/* ─── Layout ─────────────────────────────────────────── */
+main{flex:1;padding:28px 20px;max-width:1100px;width:100%;margin:0 auto}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+
+/* ─── Cards ──────────────────────────────────────────── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.card-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--accent2)}
+.card-title .badge{font-size:11px;background:var(--bg4);color:var(--text2);border-radius:20px;padding:2px 8px;font-weight:500}
+
+/* ─── Upload zone ─────────────────────────────────────── */
+#drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:44px 24px;text-align:center;cursor:pointer;transition:.2s;position:relative}
+#drop-zone:hover,#drop-zone.drag-over{border-color:var(--accent);background:rgba(108,99,255,.06)}
+#drop-zone .icon{font-size:42px;margin-bottom:12px}
+#drop-zone p{color:var(--text2);font-size:14px;line-height:1.7}
+#drop-zone strong{color:var(--text)}
+#file-input{display:none}
+#file-name{margin-top:12px;font-size:13px;color:var(--accent3);word-break:break-all}
+
+/* ─── Video player ─────────────────────────────────────── */
+#player-wrap{position:relative;background:#000;border-radius:var(--radius);overflow:hidden;line-height:0;display:none}
+#player-wrap video{width:100%;display:block;max-height:480px;object-fit:contain}
+#subtitle-overlay{position:absolute;bottom:54px;left:0;right:0;text-align:center;pointer-events:none}
+#subtitle-overlay span{
+  display:inline-block;background:rgba(0,0,0,.78);color:#fff;
+  font-size:17px;font-weight:500;line-height:1.55;
+  padding:4px 14px;border-radius:6px;max-width:90%;white-space:pre-wrap;
+  text-shadow:0 1px 3px rgba(0,0,0,.9)
+}
+#subtitle-overlay span:empty{display:none}
+
+/* ─── Form elements ─────────────────────────────────────── */
+label{font-size:13px;color:var(--text2);display:block;margin-bottom:5px}
+input[type=text],input[type=password],select,textarea{
+  width:100%;background:var(--bg3);border:1px solid var(--border);
+  border-radius:7px;color:var(--text);font-size:14px;padding:9px 12px;
+  outline:none;transition:.2s;font-family:inherit
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);background:var(--bg4)}
+select option{background:var(--bg3)}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.hint{font-size:11px;color:var(--text3);margin-top:4px}
+.field{margin-bottom:14px}
+
+/* ─── Buttons ─────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.2s;white-space:nowrap}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff}
+.btn-primary:hover:not(:disabled){filter:brightness(1.12)}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover:not(:disabled){border-color:var(--accent);color:var(--accent2)}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover:not(:disabled){filter:brightness(1.1)}
+.btn-warn{background:var(--warn);color:#000}
+.btn-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.btn-sm{padding:6px 13px;font-size:12px;border-radius:6px}
+
+/* ─── Progress ─────────────────────────────────────────── */
+.progress-wrap{margin-top:12px;display:none}
+.progress-label{font-size:12px;color:var(--text2);margin-bottom:5px;display:flex;justify-content:space-between}
+.progress-bar{height:6px;background:var(--bg4);border-radius:10px;overflow:hidden}
+.progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent3));transition:width .3s}
+
+/* ─── Log / status ─────────────────────────────────────── */
+#log{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:12px;font-family:'Courier New',monospace;line-height:1.7;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;display:none;margin-top:14px}
+.log-ok{color:var(--success)}
+.log-err{color:var(--err)}
+.log-info{color:var(--accent3)}
+.log-warn{color:var(--warn)}
+
+/* ─── Subtitle editor ─────────────────────────────────── */
+#subs-table-wrap{margin-top:10px;max-height:300px;overflow-y:auto;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--bg4);color:var(--text2);padding:8px 10px;text-align:left;position:sticky;top:0;z-index:1;font-weight:600}
+td{padding:7px 10px;border-top:1px solid var(--border);vertical-align:top}
+td.time{white-space:nowrap;color:var(--text3);font-family:monospace;font-size:11px}
+td.original{color:var(--text2)}
+td.translated textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;resize:vertical;min-height:36px;padding:4px 7px;font-family:inherit}
+tr:hover td{background:rgba(108,99,255,.06)}
+
+/* ─── Tabs ─────────────────────────────────────────── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tab{padding:8px 18px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
+
+/* ─── Section visibility ───────────────────────────────── */
+.section{margin-bottom:24px}
+.collapsed{display:none}
+
+/* ─── Toast ─────────────────────────────────────────── */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--bg4);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;font-size:13px;box-shadow:var(--shadow);z-index:9999;opacity:0;transform:translateY(12px);transition:.3s;pointer-events:none;max-width:320px}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* ─── Footer ─────────────────────────────────────────── */
+footer{text-align:center;padding:18px;color:var(--text3);font-size:12px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">🎬 视频自动翻译器</div>
+    <p>Video Auto-Translator — 自动识别 · 多语言翻译 · 字幕内嵌</p>
+  </div>
+</header>
+
+<main>
+
+<!-- ══ STEP 1: Upload ══════════════════════════════════ -->
+<div class="section" id="sec-upload">
+  <div class="card">
+    <div class="card-title">📁 第一步：上传视频 <span class="badge">Step 1</span></div>
+    <div id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <div class="icon">🎞️</div>
+      <p><strong>点击选择</strong>或拖拽视频文件到这里</p>
+      <p>支持格式：MP4 · WebM · MOV · MKV · AVI · FLV · OGG · M4V · TS · 3GP</p>
+      <div id="file-name"></div>
+    </div>
+    <input type="file" id="file-input" accept="video/*,.mkv,.avi,.flv,.ts,.3gp,.m4v">
+    <div id="player-wrap" style="margin-top:16px">
+      <video id="video" controls crossorigin="anonymous"></video>
+      <div id="subtitle-overlay"><span id="sub-text"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STEP 2: API Config ══════════════════════════════ -->
+<div class="section" id="sec-api">
+  <div class="card">
+    <div class="card-title">🔑 第二步：配置 API <span class="badge">Step 2</span></div>
+    <div class="grid">
+      <!-- Transcription -->
+      <div>
+        <p style="font-size:13px;color:var(--accent3);font-weight:600;margin-bottom:12px">🎙️ 语音识别 (Whisper)</p>
+        <div class="field">
+          <label>Whisper 端点</label>
+          <select id="whisper-provider" onchange="onWhisperProviderChange()">
+            <option value="openai">OpenAI (api.openai.com)</option>
+            <option value="custom">自定义端点</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>API Key</label>
+          <input type="password" id="whisper-key" placeholder="sk-..." autocomplete="off">
+          <div class="hint">Whisper API 密钥，用于视频语音转文字</div>
+        </div>
+        <div class="field" id="whisper-custom-wrap" style="display:none">
+          <label>自定义 Base URL</label>
+          <input type="text" id="whisper-base" placeholder="https://your-endpoint.com/v1">
+        </div>
+        <div class="field">
+          <label>视频原始语言 <span style="color:var(--text3)">(留空=自动检测)</span></label>
+          <select id="source-lang">
+            <option value="">自动检测</option>
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="es">Español</option>
+            <option value="ru">Русский</option>
+            <option value="ar">العربية</option>
+            <option value="pt">Português</option>
+            <option value="it">Italiano</option>
+            <option value="th">ภาษาไทย</option>
+            <option value="vi">Tiếng Việt</option>
+          </select>
+        </div>
+      </div>
+      <!-- Translation -->
+      <div>
+        <p style="font-size:13px;color:var(--accent3);font-weight:600;margin-bottom:12px">🌐 翻译引擎</p>
+        <div class="field">
+          <label>翻译服务商</label>
+          <select id="trans-provider" onchange="onTransProviderChange()">
+            <option value="openai">OpenAI (GPT-4o-mini)</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="moonshot">Kimi / Moonshot</option>
+            <option value="glm">GLM-4 / Zhipu</option>
+            <option value="qwen">通义千问 Qwen</option>
+            <option value="mistral">Mistral</option>
+            <option value="groq">Groq</option>
+            <option value="claude">Claude (Anthropic)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>API Key</label>
+          <input type="password" id="trans-key" placeholder="API Key..." autocomplete="off">
+        </div>
+        <div class="field" id="trans-model-wrap">
+          <label>模型</label>
+          <input type="text" id="trans-model" placeholder="自动填入...">
+        </div>
+        <div class="field">
+          <label>目标翻译语言</label>
+          <select id="target-lang">
+            <option value="简体中文">简体中文</option>
+            <option value="繁體中文">繁體中文</option>
+            <option value="English">English</option>
+            <option value="日本語">日本語</option>
+            <option value="한국어">한국어</option>
+            <option value="Français">Français</option>
+            <option value="Deutsch">Deutsch</option>
+            <option value="Español">Español</option>
+            <option value="Русский">Русский</option>
+            <option value="العربية">العربية</option>
+            <option value="Português">Português</option>
+            <option value="Italiano">Italiano</option>
+            <option value="Nederlands">Nederlands</option>
+            <option value="हिन्दी">हिन्दी</option>
+            <option value="ภาษาไทย">ภาษาไทย</option>
+            <option value="Tiếng Việt">Tiếng Việt</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="saveApiKeys()">💾 保存密钥到本地</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STEP 3: Process ═════════════════════════════════ -->
+<div class="section" id="sec-process">
+  <div class="card">
+    <div class="card-title">⚙️ 第三步：识别 &amp; 翻译 <span class="badge">Step 3</span></div>
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btn-run" onclick="runPipeline()" disabled>
+        ▶ 开始识别 &amp; 翻译
+      </button>
+      <button class="btn btn-secondary" id="btn-trans-only" onclick="translateOnly()" disabled>
+        🌐 仅重新翻译
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleLog()">📋 显示日志</button>
+    </div>
+
+    <div class="progress-wrap" id="prog-audio">
+      <div class="progress-label"><span>音频提取中…</span><span id="prog-audio-pct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-audio-fill" style="width:0"></div></div>
+    </div>
+    <div class="progress-wrap" id="prog-whisper">
+      <div class="progress-label"><span>语音识别中…</span><span id="prog-whisper-pct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-whisper-fill" style="width:0"></div></div>
+    </div>
+    <div class="progress-wrap" id="prog-trans">
+      <div class="progress-label"><span>翻译中…</span><span id="prog-trans-pct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-trans-fill" style="width:0"></div></div>
+    </div>
+
+    <div id="log"></div>
+  </div>
+</div>
+
+<!-- ══ STEP 4: Subtitle Editor & Preview ══════════════ -->
+<div class="section collapsed" id="sec-subs">
+  <div class="card">
+    <div class="card-title">📝 第四步：字幕预览 &amp; 编辑 <span class="badge">Step 4</span></div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('editor')">字幕编辑</div>
+      <div class="tab" onclick="switchTab('preview')">视频预览</div>
+    </div>
+    <div id="tab-editor">
+      <div id="subs-table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>时间轴</th><th>原文</th><th>译文 (可编辑)</th></tr></thead>
+          <tbody id="subs-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-preview" style="display:none">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px">在上方视频播放器中播放即可预览字幕叠加效果。</p>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary btn-sm" onclick="scrollVideoIntoView()">🎬 回到播放器</button>
+      <button class="btn btn-secondary btn-sm" onclick="applyEditsToPlayer()">🔄 应用编辑到播放器</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STEP 5: Download ════════════════════════════════ -->
+<div class="section collapsed" id="sec-dl">
+  <div class="card">
+    <div class="card-title">⬇️ 第五步：下载 <span class="badge">Step 5</span></div>
+    <div class="grid">
+      <div>
+        <p style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--accent2)">字幕文件</p>
+        <div class="btn-group" style="flex-direction:column;gap:8px">
+          <button class="btn btn-secondary" onclick="downloadSRT()">📄 下载 SRT 字幕文件</button>
+          <button class="btn btn-secondary" onclick="downloadVTT()">📄 下载 WebVTT 字幕文件</button>
+        </div>
+        <p style="font-size:11px;color:var(--text3);margin-top:10px">SRT/VTT 文件可用 VLC、PotPlayer 等播放器加载</p>
+      </div>
+      <div>
+        <p style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--accent2)">含字幕视频</p>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">将字幕烧录到视频画面中，导出为 WebM 文件。<br>播放时长即导出时长，请耐心等待。</p>
+        <div class="btn-group" style="flex-direction:column;gap:8px">
+          <button class="btn btn-primary" id="btn-burn" onclick="burnSubtitles()">🔥 导出含字幕视频 (WebM)</button>
+        </div>
+        <div class="progress-wrap" id="prog-burn" style="margin-top:10px">
+          <div class="progress-label"><span>导出中，请勿关闭页面…</span><span id="prog-burn-pct">0%</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="prog-burn-fill" style="width:0"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer>视频自动翻译器 · 所有处理均在本地浏览器内完成，视频和 API Key 不会上传到任何服务器</footer>
+<div id="toast"></div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════
+//  Constants & State
+// ═══════════════════════════════════════════════════════
+const PROVIDER_DEFAULTS = {
+  openai:   { base:'https://api.openai.com/v1',              model:'gpt-4o-mini' },
+  deepseek: { base:'https://api.deepseek.com/v1',            model:'deepseek-chat' },
+  gemini:   { base:'https://generativelanguage.googleapis.com', model:'gemini-2.0-flash' },
+  moonshot: { base:'https://api.moonshot.cn/v1',             model:'moonshot-v1-8k' },
+  glm:      { base:'https://open.bigmodel.cn/api/paas/v4',   model:'glm-4-flash' },
+  qwen:     { base:'https://dashscope.aliyuncs.com/compatible-mode/v1', model:'qwen-turbo' },
+  mistral:  { base:'https://api.mistral.ai/v1',              model:'mistral-small-latest' },
+  groq:     { base:'https://api.groq.com/openai/v1',         model:'llama3-8b-8192' },
+  claude:   { base:'https://api.anthropic.com',              model:'claude-3-haiku-20240307' },
+};
+
+const LS_PREFIX = 'videotrans_';
+let videoFile = null;
+let segments = [];   // [{start, end, text, translated}]
+let vttBlobUrl = null;
+
+// ═══════════════════════════════════════════════════════
+//  Init
+// ═══════════════════════════════════════════════════════
+(function init() {
+  loadSavedKeys();
+  onTransProviderChange();
+
+  const dz = document.getElementById('drop-zone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) loadVideo(f);
+  });
+  document.getElementById('file-input').addEventListener('change', e => {
+    if (e.target.files[0]) loadVideo(e.target.files[0]);
+  });
+})();
+
+// ═══════════════════════════════════════════════════════
+//  Video Load
+// ═══════════════════════════════════════════════════════
+function loadVideo(file) {
+  videoFile = file;
+  document.getElementById('file-name').textContent = `✅ ${file.name}  (${fmtSize(file.size)})`;
+  const url = URL.createObjectURL(file);
+  const vid = document.getElementById('video');
+  vid.src = url;
+  document.getElementById('player-wrap').style.display = 'block';
+  document.getElementById('btn-run').disabled = false;
+  vid.addEventListener('timeupdate', onTimeUpdate);
+  toast('视频已加载：' + file.name);
+}
+
+function onTimeUpdate() {
+  if (!segments.length) return;
+  const t = document.getElementById('video').currentTime;
+  const seg = segments.find(s => t >= s.start && t < s.end);
+  document.getElementById('sub-text').textContent = seg ? (seg.translated || seg.text) : '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  UI Helpers
+// ═══════════════════════════════════════════════════════
+function onWhisperProviderChange() {
+  const v = document.getElementById('whisper-provider').value;
+  document.getElementById('whisper-custom-wrap').style.display = v === 'custom' ? 'block' : 'none';
+}
+
+function onTransProviderChange() {
+  const p = document.getElementById('trans-provider').value;
+  const d = PROVIDER_DEFAULTS[p];
+  document.getElementById('trans-model').value = d ? d.model : '';
+  // Load saved key
+  const saved = localStorage.getItem(LS_PREFIX + 'transkey_' + p);
+  if (saved) document.getElementById('trans-key').value = saved;
+}
+
+function saveApiKeys() {
+  const p = document.getElementById('trans-provider').value;
+  localStorage.setItem(LS_PREFIX + 'transkey_' + p, document.getElementById('trans-key').value);
+  localStorage.setItem(LS_PREFIX + 'whisperkey', document.getElementById('whisper-key').value);
+  localStorage.setItem(LS_PREFIX + 'whisperbase', document.getElementById('whisper-base').value);
+  toast('✅ API Key 已保存到本地');
+}
+
+function loadSavedKeys() {
+  const wk = localStorage.getItem(LS_PREFIX + 'whisperkey');
+  const wb = localStorage.getItem(LS_PREFIX + 'whisperbase');
+  if (wk) document.getElementById('whisper-key').value = wk;
+  if (wb) document.getElementById('whisper-base').value = wb;
+  // trans key will be loaded on provider change
+}
+
+function toggleLog() {
+  const el = document.getElementById('log');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function log(msg, type = 'info') {
+  const el = document.getElementById('log');
+  el.style.display = 'block';
+  const cls = { ok:'log-ok', err:'log-err', info:'log-info', warn:'log-warn' }[type] || '';
+  el.innerHTML += `<span class="${cls}">[${new Date().toLocaleTimeString()}] ${escHtml(msg)}</span>\n`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function setProgress(id, pct) {
+  document.getElementById(id + '-wrap').style.display = 'block';
+  document.getElementById(id + '-fill').style.width = pct + '%';
+  document.getElementById(id + '-pct').textContent = Math.round(pct) + '%';
+}
+
+function hideProgress(id) {
+  document.getElementById(id + '-wrap').style.display = 'none';
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['editor','preview'][i] === name));
+  document.getElementById('tab-editor').style.display = name === 'editor' ? '' : 'none';
+  document.getElementById('tab-preview').style.display = name === 'preview' ? '' : 'none';
+}
+
+function show(id) { document.getElementById(id).classList.remove('collapsed'); }
+function scrollVideoIntoView() { document.getElementById('player-wrap').scrollIntoView({ behavior:'smooth' }); }
+
+function toast(msg, ms = 3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function fmtSize(n) {
+  if (n > 1e9) return (n/1e9).toFixed(1) + ' GB';
+  if (n > 1e6) return (n/1e6).toFixed(1) + ' MB';
+  return (n/1e3).toFixed(0) + ' KB';
+}
+
+function fmtTime(s, sep = ',') {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = Math.floor(s % 60);
+  const ms = Math.round((s - Math.floor(s)) * 1000);
+  return `${pad(h)}:${pad(m)}:${pad(sec)}${sep}${String(ms).padStart(3,'0')}`;
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+
+// ═══════════════════════════════════════════════════════
+//  Audio Extraction & WAV Encoding
+// ═══════════════════════════════════════════════════════
+async function extractAudioChunks(file, chunkDuration = 280) {
+  // Returns array of {blob, startTime} WAV blobs at 16kHz mono
+  log('📦 读取音频数据…');
+  setProgress('prog-audio', 5);
+
+  const arrayBuffer = await file.arrayBuffer();
+  setProgress('prog-audio', 20);
+
+  const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+  log('🔊 解码音频…');
+  const decoded = await ctx.decodeAudioData(arrayBuffer);
+  await ctx.close();
+  setProgress('prog-audio', 50);
+
+  const targetSR = 16000;
+  const duration = decoded.duration;
+  log(`✅ 音频时长：${duration.toFixed(1)}s，采样率：${decoded.sampleRate}Hz`);
+
+  // Resample to 16kHz mono via OfflineAudioContext
+  log('🔄 重采样至 16kHz Mono…');
+  const numFrames = Math.ceil(duration * targetSR);
+  const offCtx = new OfflineAudioContext(1, numFrames, targetSR);
+  const src = offCtx.createBufferSource();
+  src.buffer = decoded;
+  src.connect(offCtx.destination);
+  src.start(0);
+  const resampled = await offCtx.startRendering();
+  setProgress('prog-audio', 80);
+
+  // Split into chunks
+  const chunkSamples = chunkDuration * targetSR;
+  const totalSamples = resampled.length;
+  const chunks = [];
+  let offset = 0;
+  while (offset < totalSamples) {
+    const end = Math.min(offset + chunkSamples, totalSamples);
+    const chunkBuf = offCtx.createBuffer ? null : null; // use slice below
+    const slice = resampled.getChannelData(0).slice(offset, end);
+    const blob = pcmToWavBlob(slice, targetSR);
+    chunks.push({ blob, startTime: offset / targetSR });
+    offset = end;
+  }
+  setProgress('prog-audio', 100);
+  log(`✅ 音频分割完成：${chunks.length} 段`);
+  return chunks;
+}
+
+function pcmToWavBlob(float32, sampleRate) {
+  const numSamples = float32.length;
+  const buf = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buf);
+  const ws = str => { for (let i = 0; i < str.length; i++) view.setUint8(4 + i - 4 + (view._off = view._off || 0), str.charCodeAt(i)); };
+  // Write WAV header manually
+  function w(offset, val, size, le = true) {
+    if (size === 4) view.setUint32(offset, val, le);
+    else if (size === 2) view.setUint16(offset, val, le);
+    else view.setUint8(offset, val);
+  }
+  function wStr(offset, s) { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); }
+  wStr(0, 'RIFF');
+  w(4, 36 + numSamples * 2, 4);
+  wStr(8, 'WAVE');
+  wStr(12, 'fmt ');
+  w(16, 16, 4); w(20, 1, 2); w(22, 1, 2);
+  w(24, sampleRate, 4); w(28, sampleRate * 2, 4);
+  w(32, 2, 2); w(34, 16, 2);
+  wStr(36, 'data');
+  w(40, numSamples * 2, 4);
+  const samples = new Int16Array(buf, 44);
+  for (let i = 0; i < numSamples; i++) {
+    const s = Math.max(-1, Math.min(1, float32[i]));
+    samples[i] = s < 0 ? s * 32768 : s * 32767;
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+// ═══════════════════════════════════════════════════════
+//  Whisper Transcription
+// ═══════════════════════════════════════════════════════
+async function transcribeChunks(chunks) {
+  const apiKey = document.getElementById('whisper-key').value.trim();
+  if (!apiKey) throw new Error('请填写 Whisper API Key');
+
+  const provider = document.getElementById('whisper-provider').value;
+  let base = provider === 'custom'
+    ? document.getElementById('whisper-base').value.trim().replace(/\/$/, '')
+    : 'https://api.openai.com/v1';
+
+  const sourceLang = document.getElementById('source-lang').value;
+  const allSegments = [];
+
+  for (let i = 0; i < chunks.length; i++) {
+    const { blob, startTime } = chunks[i];
+    const pct = ((i + 1) / chunks.length) * 100;
+    setProgress('prog-whisper', pct);
+    log(`🎙️ 识别第 ${i + 1}/${chunks.length} 段 (起始 ${startTime.toFixed(1)}s)…`);
+
+    const fd = new FormData();
+    fd.append('file', blob, 'audio.wav');
+    fd.append('model', 'whisper-1');
+    fd.append('response_format', 'verbose_json');
+    fd.append('timestamp_granularities[]', 'segment');
+    if (sourceLang) fd.append('language', sourceLang);
+
+    const resp = await fetch(`${base}/audio/transcriptions`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: fd
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Whisper API 错误 (${resp.status}): ${errText.slice(0, 200)}`);
+    }
+
+    const data = await resp.json();
+    const segs = data.segments || [];
+    for (const s of segs) {
+      allSegments.push({
+        start: s.start + startTime,
+        end:   s.end   + startTime,
+        text:  s.text.trim(),
+        translated: ''
+      });
+    }
+    log(`✅ 第 ${i + 1} 段识别完成，获得 ${segs.length} 条字幕`, 'ok');
+  }
+  return allSegments;
+}
+
+// ═══════════════════════════════════════════════════════
+//  Translation
+// ═══════════════════════════════════════════════════════
+async function translateSegments(segs, batchSize = 30) {
+  const provider  = document.getElementById('trans-provider').value;
+  const apiKey    = document.getElementById('trans-key').value.trim();
+  const model     = document.getElementById('trans-model').value.trim() || PROVIDER_DEFAULTS[provider]?.model;
+  const targetLang = document.getElementById('target-lang').value;
+
+  if (!apiKey) throw new Error('请填写翻译 API Key');
+
+  log(`🌐 开始翻译 → ${targetLang}，共 ${segs.length} 条，批次大小 ${batchSize}`);
+
+  const totalBatches = Math.ceil(segs.length / batchSize);
+  for (let b = 0; b < totalBatches; b++) {
+    const slice = segs.slice(b * batchSize, (b + 1) * batchSize);
+    setProgress('prog-trans', ((b + 1) / totalBatches) * 100);
+    log(`🔄 翻译第 ${b + 1}/${totalBatches} 批 (${slice.length} 条)…`);
+
+    const prompt = buildTranslationPrompt(slice, targetLang);
+    const reply  = await callTranslationAPI(provider, apiKey, model, prompt);
+    const parsed = parseTranslationReply(reply, slice.length);
+
+    for (let i = 0; i < slice.length; i++) {
+      slice[i].translated = parsed[i] || slice[i].text;
+    }
+    log(`✅ 第 ${b + 1} 批翻译完成`, 'ok');
+  }
+}
+
+function buildTranslationPrompt(segs, targetLang) {
+  const lines = segs.map((s, i) => `[${i + 1}] ${s.text}`).join('\n');
+  return `你是专业字幕翻译员。请将以下字幕逐条翻译成${targetLang}。\n` +
+    `严格保持序号格式 [n]，每行只输出对应译文，不加任何解释或额外内容。\n\n${lines}`;
+}
+
+function parseTranslationReply(reply, count) {
+  const result = [];
+  const lines = reply.split('\n');
+  for (let i = 1; i <= count; i++) {
+    const re = new RegExp(`^\\[${i}\\]\\s*(.+)`);
+    const line = lines.find(l => re.test(l.trim()));
+    result.push(line ? line.trim().match(re)[1].trim() : '');
+  }
+  // Fallback: if parsing failed, split by lines
+  if (result.every(r => !r)) {
+    const nonEmpty = lines.filter(l => l.trim());
+    for (let i = 0; i < count; i++) result[i] = nonEmpty[i] || '';
+  }
+  return result;
+}
+
+async function callTranslationAPI(provider, apiKey, model, prompt) {
+  if (provider === 'gemini') return callGemini(apiKey, model, prompt);
+  if (provider === 'claude') return callClaude(apiKey, model, prompt);
+  return callOpenAIFormat(provider, apiKey, model, prompt);
+}
+
+async function callOpenAIFormat(provider, apiKey, model, prompt) {
+  const base = PROVIDER_DEFAULTS[provider]?.base || 'https://api.openai.com/v1';
+  const resp = await fetch(`${base}/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      max_tokens: 4096
+    })
+  });
+  if (!resp.ok) {
+    const t = await resp.text();
+    throw new Error(`翻译 API 错误 (${resp.status}): ${t.slice(0, 200)}`);
+  }
+  const data = await resp.json();
+  return data.choices[0].message.content;
+}
+
+async function callGemini(apiKey, model, prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+  });
+  if (!resp.ok) {
+    const t = await resp.text();
+    throw new Error(`Gemini API 错误 (${resp.status}): ${t.slice(0, 200)}`);
+  }
+  const data = await resp.json();
+  return data.candidates[0].content.parts[0].text;
+}
+
+async function callClaude(apiKey, model, prompt) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!resp.ok) {
+    const t = await resp.text();
+    throw new Error(`Claude API 错误 (${resp.status}): ${t.slice(0, 200)}`);
+  }
+  const data = await resp.json();
+  return data.content[0].text;
+}
+
+// ═══════════════════════════════════════════════════════
+//  Main Pipeline
+// ═══════════════════════════════════════════════════════
+async function runPipeline() {
+  if (!videoFile) return toast('⚠️ 请先上传视频');
+  const btn = document.getElementById('btn-run');
+  btn.disabled = true;
+  btn.textContent = '⏳ 处理中…';
+
+  try {
+    // Step A: Extract audio
+    const chunks = await extractAudioChunks(videoFile);
+    hideProgress('prog-audio');
+
+    // Step B: Transcribe
+    segments = await transcribeChunks(chunks);
+    hideProgress('prog-whisper');
+    log(`✅ 识别完成：共 ${segments.length} 条字幕`, 'ok');
+
+    if (!segments.length) throw new Error('未能识别到任何语音内容，请检查视频是否含有音频');
+
+    // Step C: Translate
+    await translateSegments(segments);
+    hideProgress('prog-trans');
+    log(`✅ 翻译完成！`, 'ok');
+
+    // Step D: Render
+    renderSubtitleTable();
+    applyToVideoPlayer();
+    show('sec-subs');
+    show('sec-dl');
+    document.getElementById('btn-trans-only').disabled = false;
+    toast('🎉 完成！请在下方预览字幕');
+
+  } catch (err) {
+    log('❌ 错误：' + err.message, 'err');
+    toast('❌ ' + err.message, 5000);
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶ 开始识别 & 翻译';
+  }
+}
+
+async function translateOnly() {
+  if (!segments.length) return toast('⚠️ 请先完成语音识别');
+  const btn = document.getElementById('btn-trans-only');
+  btn.disabled = true;
+  btn.textContent = '⏳ 翻译中…';
+  try {
+    await translateSegments(segments);
+    renderSubtitleTable();
+    applyToVideoPlayer();
+    toast('✅ 重新翻译完成');
+  } catch (err) {
+    log('❌ 翻译错误：' + err.message, 'err');
+    toast('❌ ' + err.message, 5000);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🌐 仅重新翻译';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  Subtitle Rendering
+// ═══════════════════════════════════════════════════════
+function applyToVideoPlayer() {
+  const vtt = buildVTT(segments);
+  if (vttBlobUrl) URL.revokeObjectURL(vttBlobUrl);
+  const blob = new Blob([vtt], { type: 'text/vtt' });
+  vttBlobUrl = URL.createObjectURL(blob);
+
+  const vid = document.getElementById('video');
+  // Remove existing tracks
+  while (vid.firstChild && vid.firstChild.tagName === 'TRACK') vid.removeChild(vid.firstChild);
+  const track = document.createElement('track');
+  track.kind = 'subtitles';
+  track.label = document.getElementById('target-lang').value;
+  track.src = vttBlobUrl;
+  track.default = true;
+  vid.appendChild(track);
+}
+
+function buildVTT(segs) {
+  let out = 'WEBVTT\n\n';
+  segs.forEach((s, i) => {
+    out += `${i + 1}\n`;
+    out += `${fmtTime(s.start, '.')} --> ${fmtTime(s.end, '.')}\n`;
+    out += `${(s.translated || s.text)}\n\n`;
+  });
+  return out;
+}
+
+function buildSRT(segs) {
+  let out = '';
+  segs.forEach((s, i) => {
+    out += `${i + 1}\n`;
+    out += `${fmtTime(s.start)} --> ${fmtTime(s.end)}\n`;
+    out += `${(s.translated || s.text)}\n\n`;
+  });
+  return out;
+}
+
+function renderSubtitleTable() {
+  const tbody = document.getElementById('subs-tbody');
+  tbody.innerHTML = '';
+  segments.forEach((s, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td class="time">${fmtTime(s.start,'.')}<br>${fmtTime(s.end,'.')}</td>
+      <td class="original">${escHtml(s.text)}</td>
+      <td class="translated"><textarea data-idx="${i}" rows="2">${escHtml(s.translated || s.text)}</textarea></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('textarea').forEach(ta => {
+    ta.addEventListener('input', () => {
+      segments[+ta.dataset.idx].translated = ta.value;
+    });
+  });
+}
+
+function applyEditsToPlayer() {
+  applyToVideoPlayer();
+  toast('✅ 已应用到播放器');
+}
+
+// ═══════════════════════════════════════════════════════
+//  Downloads
+// ═══════════════════════════════════════════════════════
+function downloadSRT() {
+  if (!segments.length) return toast('⚠️ 暂无字幕数据');
+  const content = buildSRT(segments);
+  dlFile(content, 'subtitles.srt', 'text/plain');
+}
+
+function downloadVTT() {
+  if (!segments.length) return toast('⚠️ 暂无字幕数据');
+  const content = buildVTT(segments);
+  dlFile(content, 'subtitles.vtt', 'text/vtt');
+}
+
+function dlFile(content, name, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+  a.download = name;
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════
+//  Canvas-based Video Burn
+// ═══════════════════════════════════════════════════════
+async function burnSubtitles() {
+  if (!videoFile) return toast('⚠️ 请先上传视频');
+  if (!segments.length) return toast('⚠️ 请先完成识别和翻译');
+
+  const btn = document.getElementById('btn-burn');
+  btn.disabled = true;
+
+  const progWrap = document.getElementById('prog-burn');
+  progWrap.style.display = 'block';
+
+  try {
+    const vid = document.getElementById('video');
+    vid.pause();
+    vid.currentTime = 0;
+
+    await new Promise(r => vid.addEventListener('seeked', r, { once: true }));
+
+    const canvas = document.createElement('canvas');
+    canvas.width  = vid.videoWidth  || 1280;
+    canvas.height = vid.videoHeight || 720;
+    const ctx = canvas.getContext('2d');
+
+    // Get streams
+    const canvasStream = canvas.captureStream(30);
+    let audioTracks = [];
+    try {
+      const vs = vid.captureStream ? vid.captureStream() : vid.mozCaptureStream();
+      audioTracks = vs.getAudioTracks();
+    } catch (_) {}
+
+    const combined = new MediaStream([...canvasStream.getVideoTracks(), ...audioTracks]);
+
+    // Pick best supported codec
+    const mimeTypes = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm'
+    ];
+    const mimeType = mimeTypes.find(m => MediaRecorder.isTypeSupported(m)) || 'video/webm';
+
+    const recorder = new MediaRecorder(combined, { mimeType, videoBitsPerSecond: 4_000_000 });
+    const chunks = [];
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+    const duration = vid.duration;
+    let rafId;
+    let startRealTime;
+
+    function drawFrame() {
+      const t = vid.currentTime;
+      ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+      drawSubtitle(ctx, t, canvas.width, canvas.height);
+      setProgress('prog-burn', (t / duration) * 100);
+      if (!vid.ended && !vid.paused) {
+        rafId = requestAnimationFrame(drawFrame);
+      }
+    }
+
+    const donePromise = new Promise((resolve, reject) => {
+      recorder.onstop = () => {
+        cancelAnimationFrame(rafId);
+        const blob = new Blob(chunks, { type: mimeType });
+        dlFile(URL.createObjectURL(blob), 'video-with-subtitles.webm', mimeType);
+        resolve();
+      };
+      recorder.onerror = reject;
+      vid.onerror = reject;
+    });
+
+    recorder.start(200);
+    vid.play();
+    startRealTime = Date.now();
+
+    vid.onended = () => {
+      vid.pause();
+      cancelAnimationFrame(rafId);
+      recorder.stop();
+    };
+
+    drawFrame();
+    await donePromise;
+
+    toast('✅ 含字幕视频已下载！');
+
+  } catch (err) {
+    log('❌ 导出错误：' + err.message, 'err');
+    toast('❌ ' + err.message, 5000);
+  } finally {
+    btn.disabled = false;
+    progWrap.style.display = 'none';
+    document.getElementById('video').onended = null;
+  }
+}
+
+function drawSubtitle(ctx, t, w, h) {
+  const seg = segments.find(s => t >= s.start && t < s.end);
+  if (!seg) return;
+  const text = seg.translated || seg.text;
+  if (!text) return;
+
+  const fontSize = Math.max(24, Math.round(h * 0.045));
+  ctx.font = `bold ${fontSize}px 'Segoe UI', sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+
+  const maxW = w * 0.88;
+  const lineH = fontSize * 1.35;
+  const lines = wrapText(ctx, text, maxW);
+  const totalH = lines.length * lineH;
+  const y = h - fontSize * 1.4;
+
+  // Background box
+  const boxPad = fontSize * 0.35;
+  const boxW = Math.min(maxW, lines.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0)) + boxPad * 2;
+  const boxH = totalH + boxPad;
+  ctx.fillStyle = 'rgba(0,0,0,0.72)';
+  ctx.beginPath();
+  const bx = (w - boxW) / 2;
+  const by = y - totalH - boxPad / 2;
+  ctx.roundRect(bx, by, boxW, boxH + boxPad / 2, 6);
+  ctx.fill();
+
+  // Text
+  lines.forEach((line, i) => {
+    const ly = y - (lines.length - 1 - i) * lineH;
+    ctx.fillStyle = '#000';
+    ctx.fillText(line, w / 2 + 1, ly + 1);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(line, w / 2, ly);
+  });
+}
+
+function wrapText(ctx, text, maxWidth) {
+  const words = text.split(' ');
+  const lines = [];
+  // CJK text: wrap by character count
+  if (/[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]/.test(text)) {
+    const charsPerLine = Math.floor(maxWidth / (ctx.measureText('中').width + 1));
+    for (let i = 0; i < text.length; i += charsPerLine) {
+      lines.push(text.slice(i, i + charsPerLine));
+    }
+    return lines;
+  }
+  // Latin text: wrap by word
+  let current = '';
+  for (const word of words) {
+    const test = current ? current + ' ' + word : word;
+    if (ctx.measureText(test).width > maxWidth && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = test;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+</script>
+</body>
+</html>
