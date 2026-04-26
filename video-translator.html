@@ -529,7 +529,6 @@ async function extractAudioChunks(file, chunkDuration = 280) {
   let offset = 0;
   while (offset < totalSamples) {
     const end = Math.min(offset + chunkSamples, totalSamples);
-    const chunkBuf = offCtx.createBuffer ? null : null; // use slice below
     const slice = resampled.getChannelData(0).slice(offset, end);
     const blob = pcmToWavBlob(slice, targetSR);
     chunks.push({ blob, startTime: offset / targetSR });
@@ -544,7 +543,6 @@ function pcmToWavBlob(float32, sampleRate) {
   const numSamples = float32.length;
   const buf = new ArrayBuffer(44 + numSamples * 2);
   const view = new DataView(buf);
-  const ws = str => { for (let i = 0; i < str.length; i++) view.setUint8(4 + i - 4 + (view._off = view._off || 0), str.charCodeAt(i)); };
   // Write WAV header manually
   function w(offset, val, size, le = true) {
     if (size === 4) view.setUint32(offset, val, le);
@@ -939,7 +937,7 @@ async function burnSubtitles() {
 
     const duration = vid.duration;
     let rafId;
-    let startRealTime;
+
 
     function drawFrame() {
       const t = vid.currentTime;
@@ -964,7 +962,6 @@ async function burnSubtitles() {
 
     recorder.start(200);
     vid.play();
-    startRealTime = Date.now();
 
     vid.onended = () => {
       vid.pause();
