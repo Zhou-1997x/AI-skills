@@ -1096,6 +1096,11 @@ convertBtn.addEventListener('click', async () => {
 
     setProgress(100, abortRequested ? '已停止 / Stopped' : '全部完成！/ All done!');
 
+    // Scroll the page so the download button is visible after conversion
+    requestAnimationFrame(() => requestAnimationFrame(() =>
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+    ));
+
     // Refresh preview to first file
     activeFileIndex = 0;
     renderPreviewTabs();
