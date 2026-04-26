@@ -868,8 +868,10 @@ convertBtn.addEventListener('click', async () => {
   stopBtn.disabled = false;
   stopBtn.textContent = '⏹ 停止 / Stop';
   stopBtn.style.display = 'inline-block';
-  // Scroll to the very bottom of the page after progress card renders
-  setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 80);
+  // Wait for the browser to finish layout (2 rAF cycles = at least 1 full paint) before measuring
+  requestAnimationFrame(() => requestAnimationFrame(() =>
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+  ));
 
   try {
     const apiKey = document.getElementById('apiKey').value.trim();
