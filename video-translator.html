@@ -116,10 +116,33 @@ tr:hover td{background:rgba(108,99,255,.06)}
 #toast.show{opacity:1;transform:translateY(0)}
 
 /* ─── Footer ─────────────────────────────────────────── */
-footer{text-align:center;padding:18px;color:var(--text3);font-size:12px;border-top:1px solid var(--border)}
+footer{text-align:center;padding:18px;color:var(--text3);font-size:12px;border-top:1px solid var(--border);position:relative;z-index:1}
+
+/* ─── Danger button ───────────────────────────────────── */
+.btn-danger{background:rgba(239,68,68,.12);color:var(--err);border:1px solid rgba(239,68,68,.3)}
+.btn-danger:hover:not(:disabled){background:rgba(239,68,68,.22);border-color:var(--err)}
+
+/* ─── Background animation ────────────────────────────── */
+body{background:var(--bg);background-image:radial-gradient(rgba(255,255,255,.022) 1px,transparent 1px);background-size:30px 30px;overflow-x:hidden}
+header,main,footer{position:relative;z-index:1}
+.card{transition:box-shadow .25s}
+.card:hover{box-shadow:0 6px 36px rgba(108,99,255,.2)}
+#bg-orbs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(100px);animation:orbDrift ease-in-out infinite alternate}
+@keyframes orbDrift{from{transform:translate(0,0) scale(1)}to{transform:translate(var(--dx),var(--dy)) scale(var(--ds))}}
+header{position:relative;overflow:hidden}
+header::after{content:'';position:absolute;top:0;left:-120%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(108,99,255,.08),transparent);animation:headerShimmer 7s ease-in-out infinite;pointer-events:none}
+@keyframes headerShimmer{0%,100%{left:-120%}50%{left:160%}}
 </style>
 </head>
 <body>
+
+<!-- Background animated orbs -->
+<div id="bg-orbs" aria-hidden="true">
+  <div class="bg-orb" style="--dx:70px;--dy:90px;--ds:1.18;width:700px;height:700px;background:radial-gradient(circle,rgba(108,99,255,.22) 0%,transparent 70%);top:-220px;left:-180px;animation-duration:22s"></div>
+  <div class="bg-orb" style="--dx:-60px;--dy:-80px;--ds:1.12;width:620px;height:620px;background:radial-gradient(circle,rgba(56,189,248,.18) 0%,transparent 70%);top:35%;right:-200px;animation-duration:28s;animation-delay:-11s"></div>
+  <div class="bg-orb" style="--dx:-45px;--dy:55px;--ds:0.88;width:540px;height:540px;background:radial-gradient(circle,rgba(168,85,247,.16) 0%,transparent 70%);bottom:-160px;left:38%;animation-duration:20s;animation-delay:-6s"></div>
+</div>
 
 <header>
   <div>
@@ -145,33 +168,50 @@ footer{text-align:center;padding:18px;color:var(--text3);font-size:12px;border-t
       <video id="video" controls crossorigin="anonymous"></video>
       <div id="subtitle-overlay"><span id="sub-text"></span></div>
     </div>
+    <div id="player-actions" style="display:none;margin-top:10px">
+      <button class="btn btn-danger btn-sm" onclick="removeVideo()">🗑️ 删除视频</button>
+    </div>
   </div>
 </div>
 
 <!-- ══ STEP 2: API Config ══════════════════════════════ -->
 <div class="section" id="sec-api">
   <div class="card">
-    <div class="card-title">🔑 第二步：配置 API <span class="badge">Step 2</span></div>
+    <div class="card-title">🔑 第二步：配置 API <span class="badge">Step 2 · 识别 &amp; 翻译共用同一密钥</span></div>
     <div class="grid">
-      <!-- Transcription -->
+      <!-- Left: Provider + Key + Model + Base URL -->
       <div>
-        <p style="font-size:13px;color:var(--accent3);font-weight:600;margin-bottom:12px">🎙️ 语音识别 (Whisper)</p>
         <div class="field">
-          <label>Whisper 端点</label>
-          <select id="whisper-provider" onchange="onWhisperProviderChange()">
-            <option value="openai">OpenAI (api.openai.com)</option>
-            <option value="custom">自定义端点</option>
+          <label>API 服务商 <span style="color:var(--text3)">(Whisper 识别 &amp; 翻译共用)</span></label>
+          <select id="api-provider" onchange="onProviderChange()">
+            <option value="openai">OpenAI</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="moonshot">Kimi / Moonshot</option>
+            <option value="glm">GLM-4 / Zhipu</option>
+            <option value="qwen">通义千问 Qwen</option>
+            <option value="mistral">Mistral</option>
+            <option value="groq">Groq</option>
+            <option value="claude">Claude (Anthropic)</option>
           </select>
         </div>
         <div class="field">
           <label>API Key</label>
-          <input type="password" id="whisper-key" placeholder="sk-..." autocomplete="off">
-          <div class="hint">Whisper API 密钥，用于视频语音转文字</div>
+          <input type="password" id="api-key" placeholder="API Key…" autocomplete="off">
+          <div class="hint">语音识别 (Whisper) 与翻译共用同一密钥</div>
         </div>
-        <div class="field" id="whisper-custom-wrap" style="display:none">
-          <label>自定义 Base URL</label>
-          <input type="text" id="whisper-base" placeholder="https://your-endpoint.com/v1">
+        <div class="field">
+          <label>翻译模型</label>
+          <input type="text" id="api-trans-model" placeholder="自动填入…">
         </div>
+        <div class="field">
+          <label>自定义 Base URL <span style="color:var(--text3)">(可选，空则用默认端点)</span></label>
+          <input type="text" id="api-base" placeholder="https://your-endpoint.com/v1">
+          <div class="hint">非 OpenAI 服务商使用自定义 Whisper 兼容端点时填写</div>
+        </div>
+      </div>
+      <!-- Right: Languages + Save -->
+      <div>
         <div class="field">
           <label>视频原始语言 <span style="color:var(--text3)">(留空=自动检测)</span></label>
           <select id="source-lang">
@@ -190,32 +230,6 @@ footer{text-align:center;padding:18px;color:var(--text3);font-size:12px;border-t
             <option value="th">ภาษาไทย</option>
             <option value="vi">Tiếng Việt</option>
           </select>
-        </div>
-      </div>
-      <!-- Translation -->
-      <div>
-        <p style="font-size:13px;color:var(--accent3);font-weight:600;margin-bottom:12px">🌐 翻译引擎</p>
-        <div class="field">
-          <label>翻译服务商</label>
-          <select id="trans-provider" onchange="onTransProviderChange()">
-            <option value="openai">OpenAI (GPT-4o-mini)</option>
-            <option value="deepseek">DeepSeek</option>
-            <option value="gemini">Google Gemini</option>
-            <option value="moonshot">Kimi / Moonshot</option>
-            <option value="glm">GLM-4 / Zhipu</option>
-            <option value="qwen">通义千问 Qwen</option>
-            <option value="mistral">Mistral</option>
-            <option value="groq">Groq</option>
-            <option value="claude">Claude (Anthropic)</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>API Key</label>
-          <input type="password" id="trans-key" placeholder="API Key..." autocomplete="off">
-        </div>
-        <div class="field" id="trans-model-wrap">
-          <label>模型</label>
-          <input type="text" id="trans-model" placeholder="自动填入...">
         </div>
         <div class="field">
           <label>目标翻译语言</label>
@@ -361,7 +375,7 @@ let vttBlobUrl = null;
 // ═══════════════════════════════════════════════════════
 (function init() {
   loadSavedKeys();
-  onTransProviderChange();
+  onProviderChange();
 
   const dz = document.getElementById('drop-zone');
   dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
@@ -387,6 +401,7 @@ function loadVideo(file) {
   const vid = document.getElementById('video');
   vid.src = url;
   document.getElementById('player-wrap').style.display = 'block';
+  document.getElementById('player-actions').style.display = 'block';
   document.getElementById('btn-run').disabled = false;
   vid.addEventListener('timeupdate', onTimeUpdate);
   toast('视频已加载：' + file.name);
@@ -399,37 +414,49 @@ function onTimeUpdate() {
   document.getElementById('sub-text').textContent = seg ? (seg.translated || seg.text) : '';
 }
 
+function removeVideo() {
+  const vid = document.getElementById('video');
+  vid.pause();
+  vid.removeEventListener('timeupdate', onTimeUpdate);
+  vid.src = '';
+  videoFile = null;
+  segments = [];
+  if (vttBlobUrl) { URL.revokeObjectURL(vttBlobUrl); vttBlobUrl = null; }
+  document.getElementById('file-name').textContent = '';
+  document.getElementById('player-wrap').style.display = 'none';
+  document.getElementById('player-actions').style.display = 'none';
+  document.getElementById('btn-run').disabled = true;
+  document.getElementById('btn-trans-only').disabled = true;
+  document.getElementById('sub-text').textContent = '';
+  document.getElementById('sec-subs').classList.add('collapsed');
+  document.getElementById('sec-dl').classList.add('collapsed');
+  document.getElementById('subs-tbody').innerHTML = '';
+  document.getElementById('file-input').value = '';
+  toast('🗑️ 视频已删除');
+}
+
 // ═══════════════════════════════════════════════════════
 //  UI Helpers
 // ═══════════════════════════════════════════════════════
-function onWhisperProviderChange() {
-  const v = document.getElementById('whisper-provider').value;
-  document.getElementById('whisper-custom-wrap').style.display = v === 'custom' ? 'block' : 'none';
-}
-
-function onTransProviderChange() {
-  const p = document.getElementById('trans-provider').value;
+function onProviderChange() {
+  const p = document.getElementById('api-provider').value;
   const d = PROVIDER_DEFAULTS[p];
-  document.getElementById('trans-model').value = d ? d.model : '';
-  // Load saved key
-  const saved = localStorage.getItem(LS_PREFIX + 'transkey_' + p);
-  if (saved) document.getElementById('trans-key').value = saved;
+  document.getElementById('api-trans-model').value = d ? d.model : '';
+  const saved = localStorage.getItem(LS_PREFIX + 'apikey_' + p);
+  if (saved) document.getElementById('api-key').value = saved;
 }
 
 function saveApiKeys() {
-  const p = document.getElementById('trans-provider').value;
-  localStorage.setItem(LS_PREFIX + 'transkey_' + p, document.getElementById('trans-key').value);
-  localStorage.setItem(LS_PREFIX + 'whisperkey', document.getElementById('whisper-key').value);
-  localStorage.setItem(LS_PREFIX + 'whisperbase', document.getElementById('whisper-base').value);
+  const p = document.getElementById('api-provider').value;
+  localStorage.setItem(LS_PREFIX + 'apikey_' + p, document.getElementById('api-key').value);
+  localStorage.setItem(LS_PREFIX + 'apibase', document.getElementById('api-base').value);
   toast('✅ API Key 已保存到本地');
 }
 
 function loadSavedKeys() {
-  const wk = localStorage.getItem(LS_PREFIX + 'whisperkey');
-  const wb = localStorage.getItem(LS_PREFIX + 'whisperbase');
-  if (wk) document.getElementById('whisper-key').value = wk;
-  if (wb) document.getElementById('whisper-base').value = wb;
-  // trans key will be loaded on provider change
+  const ab = localStorage.getItem(LS_PREFIX + 'apibase');
+  if (ab) document.getElementById('api-base').value = ab;
+  // provider-specific key loaded on provider change
 }
 
 function toggleLog() {
@@ -571,13 +598,13 @@ function pcmToWavBlob(float32, sampleRate) {
 //  Whisper Transcription
 // ═══════════════════════════════════════════════════════
 async function transcribeChunks(chunks) {
-  const apiKey = document.getElementById('whisper-key').value.trim();
-  if (!apiKey) throw new Error('请填写 Whisper API Key');
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!apiKey) throw new Error('请填写 API Key');
 
-  const provider = document.getElementById('whisper-provider').value;
-  let base = provider === 'custom'
-    ? document.getElementById('whisper-base').value.trim().replace(/\/$/, '')
-    : 'https://api.openai.com/v1';
+  const provider = document.getElementById('api-provider').value;
+  const customBase = document.getElementById('api-base').value.trim().replace(/\/$/, '');
+  // Whisper uses an OpenAI-compatible endpoint; custom base URL overrides the default
+  const base = customBase || (PROVIDER_DEFAULTS[provider]?.base.includes('openai') ? PROVIDER_DEFAULTS[provider].base : 'https://api.openai.com/v1');
 
   const sourceLang = document.getElementById('source-lang').value;
   const allSegments = [];
@@ -625,12 +652,12 @@ async function transcribeChunks(chunks) {
 //  Translation
 // ═══════════════════════════════════════════════════════
 async function translateSegments(segs, batchSize = 30) {
-  const provider  = document.getElementById('trans-provider').value;
-  const apiKey    = document.getElementById('trans-key').value.trim();
-  const model     = document.getElementById('trans-model').value.trim() || PROVIDER_DEFAULTS[provider]?.model;
+  const provider   = document.getElementById('api-provider').value;
+  const apiKey     = document.getElementById('api-key').value.trim();
+  const model      = document.getElementById('api-trans-model').value.trim() || PROVIDER_DEFAULTS[provider]?.model;
   const targetLang = document.getElementById('target-lang').value;
 
-  if (!apiKey) throw new Error('请填写翻译 API Key');
+  if (!apiKey) throw new Error('请填写 API Key');
 
   log(`🌐 开始翻译 → ${targetLang}，共 ${segs.length} 条，批次大小 ${batchSize}`);
 
@@ -680,7 +707,8 @@ async function callTranslationAPI(provider, apiKey, model, prompt) {
 }
 
 async function callOpenAIFormat(provider, apiKey, model, prompt) {
-  const base = PROVIDER_DEFAULTS[provider]?.base || 'https://api.openai.com/v1';
+  const customBase = document.getElementById('api-base').value.trim().replace(/\/$/, '');
+  const base = customBase || PROVIDER_DEFAULTS[provider]?.base || 'https://api.openai.com/v1';
   const resp = await fetch(`${base}/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
