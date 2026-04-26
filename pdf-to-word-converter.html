@@ -140,10 +140,42 @@
     font-size: 0.82rem;
     color: #86efac;
     line-height: 1.6;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .file-list li .file-name {
+    flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .file-list li .remove-item-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: #f87171;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0 2px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .file-list li .remove-item-btn:hover { opacity: 1; }
+
+  .stop-btn {
+    margin-top: 10px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    color: #f87171;
+    border-radius: 8px;
+    padding: 6px 18px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .stop-btn:hover:not(:disabled) { background: rgba(239, 68, 68, 0.3); }
+  .stop-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
   /* Inputs */
   label {
@@ -499,7 +531,7 @@
       <div class="file-selected-header">
         <span>✅</span>
         <span id="fileInfo">已选择文件 / File selected</span>
-        <button class="remove-file-btn" id="removeFileBtn" title="删除文件 / Remove file">✕ 删除 / Remove</button>
+        <button class="remove-file-btn" id="removeFileBtn" title="清空全部 / Clear all files">✕ 清空 / Clear All</button>
       </div>
       <ul class="file-list" id="fileList"></ul>
     </div>
@@ -593,6 +625,7 @@
     <div class="progress-bar-wrap">
       <div class="progress-bar" id="progressBar"></div>
     </div>
+    <button class="stop-btn" id="stopBtn" style="display:none">⏹ 停止 / Stop</button>
     <div class="log-box" id="logBox"></div>
   </div>
 
@@ -657,6 +690,15 @@ const lightboxClose  = document.getElementById('lightboxClose');
 const lightboxPrev   = document.getElementById('lightboxPrev');
 const lightboxNext   = document.getElementById('lightboxNext');
 const lightboxCounter= document.getElementById('lightboxCounter');
+const stopBtn        = document.getElementById('stopBtn');
+
+// ─── Abort flag ───────────────────────────────────────────────────────────────
+let abortRequested = false;
+stopBtn.addEventListener('click', () => {
+  abortRequested = true;
+  stopBtn.disabled = true;
+  stopBtn.textContent = '正在停止... / Stopping...';
+});
 
 // ─── AI Provider Meta ─────────────────────────────────────────────────────────
 const AI_PROVIDER_META = {
@@ -732,22 +774,44 @@ fileInput.addEventListener('change', () => {
 function setFiles(files) {
   selectedFiles = files.filter(f => f.type === 'application/pdf');
   if (selectedFiles.length === 0) return;
+  refreshFileList();
+}
+
+function refreshFileList() {
   const totalMB = (selectedFiles.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(2);
   if (selectedFiles.length === 1) {
     fileInfo.textContent = `${selectedFiles[0].name}  (${totalMB} MB)`;
   } else {
     fileInfo.textContent = `已选择 / Selected ${selectedFiles.length} 个 PDF 文件（共 / total ${totalMB} MB）`;
   }
-  // Render numbered file list
+  // Render per-file list with individual ✕ delete buttons
   const fileListEl = document.getElementById('fileList');
   fileListEl.innerHTML = '';
-  if (selectedFiles.length > 1) {
-    selectedFiles.forEach((f, i) => {
-      const li = document.createElement('li');
-      li.textContent = `${i + 1}. ${f.name}  (${(f.size / 1024 / 1024).toFixed(2)} MB)`;
-      fileListEl.appendChild(li);
+  selectedFiles.forEach((f, i) => {
+    const li = document.createElement('li');
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'file-name';
+    nameSpan.textContent = `${i + 1}. ${f.name}  (${(f.size / 1024 / 1024).toFixed(2)} MB)`;
+    const delBtn = document.createElement('button');
+    delBtn.className = 'remove-item-btn';
+    delBtn.title = '删除此文件 / Remove this file';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', () => {
+      selectedFiles.splice(i, 1);
+      if (selectedFiles.length === 0) {
+        fileInput.value = '';
+        fileInfo.textContent = '已选择文件 / File selected';
+        fileListEl.innerHTML = '';
+        fileSelected.classList.remove('show');
+        convertBtn.disabled = true;
+      } else {
+        refreshFileList();
+      }
     });
-  }
+    li.appendChild(nameSpan);
+    li.appendChild(delBtn);
+    fileListEl.appendChild(li);
+  });
   fileSelected.classList.add('show');
   convertBtn.disabled = false;
 }
@@ -795,8 +859,14 @@ convertBtn.addEventListener('click', async () => {
   previewCard.style.display = 'none';
   resultCard.style.display = 'none';
   convertBtn.disabled = true;
-  // Scroll to bottom after DOM reflows to include progressCard
-  setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 120);
+  abortRequested = false;
+  stopBtn.disabled = false;
+  stopBtn.textContent = '⏹ 停止 / Stop';
+  stopBtn.style.display = 'inline-block';
+  // Scroll to progress card after DOM reflow
+  requestAnimationFrame(() => requestAnimationFrame(() =>
+    progressCard.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  ));
 
   try {
     const apiKey = document.getElementById('apiKey').value.trim();
@@ -906,6 +976,12 @@ convertBtn.addEventListener('click', async () => {
           img.addEventListener('click', () => { activeFileIndex = partialIdx; openLightbox(pageIdx); });
           thumbnails.appendChild(img);
         }
+
+        // Check abort after each page
+        if (abortRequested) {
+          log(`${fp}⏹ 已停止 / Stopped by user`, 'warn');
+          break;
+        }
       }
 
       allResults[partialIdx].docTitle = docTitleCurrent;
@@ -1001,24 +1077,31 @@ convertBtn.addEventListener('click', async () => {
       allResults[partialIdx].summary = summary;
       allResults[partialIdx].summaryMode = summaryMode;
       allResults[partialIdx].detectedLang = detectedLang;
+
+      // ── Show result card immediately after each file completes ───────────────
+      renderDownloadButtons();
+      resultCard.style.display = 'block';
+
+      // Check abort between files
+      if (abortRequested) {
+        log('⏹ 已停止 / Processing stopped by user', 'warn');
+        break;
+      }
     }
 
-    setProgress(100, '全部完成！/ All done!');
+    setProgress(100, abortRequested ? '已停止 / Stopped' : '全部完成！/ All done!');
 
     // Refresh preview to first file
     activeFileIndex = 0;
     renderPreviewTabs();
     showFilePreview(0);
 
-    // Show results
-    renderDownloadButtons();
-    resultCard.style.display = 'block';
-
   } catch (e) {
     log(`❌ 错误 / Error: ${e.message}`, 'err');
     console.error(e);
   } finally {
     convertBtn.disabled = false;
+    stopBtn.style.display = 'none';
   }
 });
 
