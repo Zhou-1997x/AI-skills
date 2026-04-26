@@ -770,7 +770,7 @@ convertBtn.addEventListener('click', async () => {
   resultCard.style.display = 'none';
   convertBtn.disabled = true;
   // Scroll to progress section so the user can follow along
-  progressCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 
   try {
     const apiKey = document.getElementById('apiKey').value.trim();
