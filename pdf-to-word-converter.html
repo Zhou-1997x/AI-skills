@@ -1844,6 +1844,15 @@ function extractStructuredText(textContent) {
     ? fontSizes.reduce((a, b) => a + b) / fontSizes.length
     : 12;
 
+  // Page y-extent (used to detect header/footer margin zones)
+  const yValues = items.map(i => i.transform[5]);
+  const pageYMin = Math.min(...yValues);
+  const pageYMax = Math.max(...yValues);
+  const pageYRange = pageYMax - pageYMin || 1;
+  const MARGIN_RATIO = 0.08; // top/bottom 8% of page height
+  const topZoneThreshold    = pageYMax - pageYRange * MARGIN_RATIO;
+  const bottomZoneThreshold = pageYMin + pageYRange * MARGIN_RATIO;
+
   // Tolerance for grouping items onto the same line
   const lineTolerance = Math.max(2, avgFontSize * 0.45);
 
@@ -1877,6 +1886,13 @@ function extractStructuredText(textContent) {
     if (!lineText) continue;
 
     const lineFontSize = line.items.reduce((s, i) => s + Math.abs(i.transform[3]), 0) / line.items.length;
+
+    // Skip PPT/PDF template boilerplate: lines with small font (< 65% avg) located in
+    // the top or bottom 8% margin zone — these are typically slide numbers, institution
+    // names, conference labels and other repeated decorative elements.
+    const isSmallFont = lineFontSize < avgFontSize * 0.65;
+    const inMarginZone = line.y >= topZoneThreshold || line.y <= bottomZoneThreshold;
+    if (isSmallFont && inMarginZone) continue;
 
     // Insert paragraph-break marker when vertical gap exceeds ~1.8 line heights
     if (prevY !== null) {
