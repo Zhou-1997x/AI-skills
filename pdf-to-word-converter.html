@@ -1041,7 +1041,21 @@ convertBtn.addEventListener('click', async () => {
           const pg = renderedPagesCurrent[i];
           if (pg.text) {
             try {
-              pg.translatedText = await translateText(pg.text, detectedLang, translateLang, apiKey, aiProvider);
+              // Build a newline-delimited version of the page text so that the
+              // translator can preserve per-line structure (headings, categories).
+              const meaningfulLines = (pg.lines || []).filter(l => l.text && !isDataLine(l.text));
+              const linesText = meaningfulLines.length > 0
+                ? meaningfulLines.map(l => l.text).join('\n')
+                : pg.text;
+              pg.translatedText = await translateText(linesText, detectedLang, translateLang, apiKey, aiProvider);
+              // Map translated lines back to original line structure so buildDocx
+              // can restore heading/category formatting in the translation section.
+              const tLines = pg.translatedText.split('\n');
+              pg.translatedLines = meaningfulLines.map((origLine, idx) => ({
+                text: (tLines[idx] || '').trim(),
+                isHeading: origLine.isHeading,
+                fontSize: origLine.fontSize || 0,
+              })).filter(l => l.text);
               if (translateText._aiFailed && i === 0) {
                 const isBalance = /balance|quota|insufficient|credit/i.test(translateText._aiFailed);
                 const meta = AI_PROVIDER_META[aiProvider] || {};
@@ -1472,7 +1486,7 @@ async function translateText(text, srcLang, tgtLang, apiKey, aiProvider = 'opena
 
   if (apiKey) {
     const langNames = { zh: 'Simplified Chinese', en: 'English', ja: 'Japanese', fr: 'French', es: 'Spanish' };
-    const sysPrompt = `You are a professional translator. Translate the following text to ${langNames[tgtLang] || tgtLang}. Output ONLY the translated text, preserving the original structure and meaning.`;
+    const sysPrompt = `You are a professional translator. Translate the following text to ${langNames[tgtLang] || tgtLang}. The input may contain multiple lines — translate each line independently and output the SAME number of lines in the SAME order. Do NOT merge, split, or reorder lines. Output ONLY the translated text.`;
     try {
       return await _callAI(aiProvider, apiKey, sysPrompt, text.substring(0, 2000), { maxTokens: 2000, temperature: 0.3 });
     } catch (aiErr) {
@@ -1724,7 +1738,7 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
         }));
       }
 
-      // Translated text (flat – translation is done on flattened text)
+      // Translated text – render with structure if line mapping is available
       if (translateLang && translateLang !== 'none' && page.translatedText) {
         const tgtLabel = langDisplayNames[translateLang] || translateLang;
         children.push(new Paragraph({
@@ -1733,14 +1747,33 @@ async function buildDocx({ fileName, docTitle, pages, summary, summaryMode, incl
             new TextRun({ text: `🌐 译文（${tgtLabel}）：`, bold: true, size: 18, color: '2563EB' }),
           ],
         }));
-        const tChunks = chunkText(page.translatedText, 500);
-        for (const chunk of tChunks) {
-          children.push(new Paragraph({
-            spacing: { after: 60 },
-            children: [
-              new TextRun({ text: chunk, size: 18, color: '1E40AF', font: 'Microsoft YaHei' }),
-            ],
-          }));
+        if (page.translatedLines && page.translatedLines.length > 0) {
+          // Structured rendering: mirror original heading/category hierarchy
+          for (const tLine of page.translatedLines) {
+            if (!tLine.text) continue;
+            const isH = tLine.isHeading;
+            children.push(new Paragraph({
+              spacing: { before: isH ? 80 : 0, after: isH ? 40 : 0, ...SINGLE_SPACING },
+              children: [new TextRun({
+                text: tLine.text,
+                size: BODY_SIZE,
+                bold: isH,
+                color: isH ? '1E3A5F' : '1E40AF',
+                font: 'Microsoft YaHei',
+              })],
+            }));
+          }
+        } else {
+          // Fallback: flat rendering for MyMemory / short pages
+          const tChunks = chunkText(page.translatedText, 500);
+          for (const chunk of tChunks) {
+            children.push(new Paragraph({
+              spacing: { after: 60 },
+              children: [
+                new TextRun({ text: chunk, size: 18, color: '1E40AF', font: 'Microsoft YaHei' }),
+              ],
+            }));
+          }
         }
       }
     }
