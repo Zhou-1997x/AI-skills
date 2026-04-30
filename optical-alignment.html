@@ -387,13 +387,13 @@ function multiply(A, B) {
 
 /** 3×3 矩阵逆（伴随矩阵法） */
 function inv3(M) {
-  const [[a,b,c],[d,e,f],[g,h,ii]] = M;
-  const det = a*(e*ii - f*h) - b*(d*ii - f*g) + c*(d*h - e*g);
-  if (Math.abs(det) < 1e-14) throw new Error('矩阵奇异，无法求逆');
+  const [[a,b,c],[d,e,f],[g,h,m22]] = M;  // m22 = M[2][2] element
+  const det = a*(e*m22 - f*h) - b*(d*m22 - f*g) + c*(d*h - e*g);
+  if (Math.abs(det) < 1e-14) throw new Error(`矩阵奇异，无法求逆（行列式: ${det}）`);
   return [
-    [ (e*ii-f*h)/det, -(b*ii-c*h)/det,  (b*f-c*e)/det ],
-    [-(d*ii-f*g)/det,  (a*ii-c*g)/det, -(a*f-c*d)/det ],
-    [ (d*h-e*g)/det,  -(a*h-b*g)/det,   (a*e-b*d)/det ],
+    [ (e*m22-f*h)/det, -(b*m22-c*h)/det,  (b*f-c*e)/det ],
+    [-(d*m22-f*g)/det,  (a*m22-c*g)/det, -(a*f-c*d)/det ],
+    [ (d*h-e*g)/det,   -(a*h-b*g)/det,    (a*e-b*d)/det ],
   ];
 }
 
@@ -456,8 +456,16 @@ try {
 })();
 
 // ─────────────────────────────────────────────
-//  计算按钮回调
+//  距离归一化常量（基于数据集 Z7/Z8 实际范围）和
+//  最近邻可靠性阈值
 // ─────────────────────────────────────────────
+const Z7_RANGE = Math.max(...DATASET.map(d => d.z7)) - Math.min(...DATASET.map(d => d.z7)); // ≈ 134
+const Z8_RANGE = Math.max(...DATASET.map(d => d.z8)) - Math.min(...DATASET.map(d => d.z8)); // ≈ 199
+
+const DISTANCE_THRESHOLD_RELIABLE = 0.25;  // 归一化距离 < 此值：可信度高
+const DISTANCE_THRESHOLD_MODERATE = 0.60;  // 归一化距离 < 此值：可信度中等
+
+
 function calculate() {
   const z7Raw = document.getElementById('z7Input').value.trim();
   const z8Raw = document.getElementById('z8Input').value.trim();
@@ -494,8 +502,8 @@ function calculate() {
 
   // ── 最近邻距离（在 Z7-Z8 空间） ──
   const dists = DATASET.map(d => {
-    const dz7 = (d.z7 - z7) / 140;   // 归一化（Z7 范围约 140）
-    const dz8 = (d.z8 - z8) / 200;   // 归一化（Z8 范围约 200）
+    const dz7 = (d.z7 - z7) / Z7_RANGE;  // 按数据集实际范围归一化
+    const dz8 = (d.z8 - z8) / Z8_RANGE;
     return { sample: d, dist: Math.sqrt(dz7*dz7 + dz8*dz8) };
   });
   dists.sort((a, b) => a.dist - b.dist);
@@ -547,10 +555,10 @@ function renderResults(z7, z8, predicted, target, adj, nearest) {
 
   // 最近邻提示
   const d = nearest.dist;
-  if (d < 0.25) {
+  if (d < DISTANCE_THRESHOLD_RELIABLE) {
     nearMsg.className = 'warning ok';
     nearMsg.innerHTML = `✅ 输入点（Z7=${z7}, Z8=${z8}）与<strong>${nearest.sample.label}</strong>（RMS=${nearest.sample.rms} nm）距离较近（归一化距离 ${d.toFixed(3)}），模型估计可信度较高。`;
-  } else if (d < 0.6) {
+  } else if (d < DISTANCE_THRESHOLD_MODERATE) {
     nearMsg.className = 'warning';
     nearMsg.innerHTML = `⚠️ 输入点与最近样本<strong>${nearest.sample.label}</strong>（RMS=${nearest.sample.rms} nm）距离中等（归一化距离 ${d.toFixed(3)}），建议采用较小步长因子（λ ≤ 0.3）进行调节。`;
   } else {
@@ -558,7 +566,8 @@ function renderResults(z7, z8, predicted, target, adj, nearest) {
     nearMsg.innerHTML = `🔴 输入点（Z7=${z7}, Z8=${z8}）距离所有已知样本较远（最近归一化距离 ${d.toFixed(3)}），处于数据集外推区域，模型精度有限，请谨慎使用，建议步长因子 λ ≤ 0.2，并密切关注实测 RMS 变化。`;
   }
 
-  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  card.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
 }
 </script>
 </body>
