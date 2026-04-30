@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>光学装调辅助计算工具</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin: 0 0 4px;
+      color: #1a365d;
+    }
+    .subtitle {
+      color: #4a5568;
+      margin: 0 0 24px;
+      font-size: 0.95rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 1.1rem;
+      color: #2d3748;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .input-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    .input-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.92rem;
+      color: #2d3748;
+    }
+    .input-group input[type="number"] {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    .input-group input[type="number"]:focus {
+      outline: none;
+      border-color: #3182ce;
+    }
+    .btn-calc {
+      display: inline-block;
+      background: #3182ce;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-calc:hover { background: #2b6cb0; }
+    .btn-calc:active { background: #2c5282; }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .result-item {
+      background: #ebf8ff;
+      border: 1.5px solid #bee3f8;
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .result-item .param-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #2b6cb0;
+    }
+    .result-item .param-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a365d;
+      margin: 4px 0;
+    }
+    .result-item .param-unit {
+      font-size: 0.78rem;
+      color: #4a5568;
+    }
+    .result-item.positive .param-value { color: #276749; }
+    .result-item.negative .param-value { color: #9b2c2c; }
+    .info-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .info-box {
+      flex: 1;
+      min-width: 200px;
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+    }
+    .info-box strong { color: #2d3748; }
+    .warning {
+      background: #fffbeb;
+      border: 1.5px solid #f6e05e;
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: #744210;
+      font-size: 0.88rem;
+      margin-top: 12px;
+    }
+    .warning.ok {
+      background: #f0fff4;
+      border-color: #9ae6b4;
+      color: #22543d;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th {
+      background: #edf2f7;
+      text-align: center;
+      padding: 7px 10px;
+      font-weight: 600;
+      color: #2d3748;
+      white-space: nowrap;
+    }
+    td {
+      padding: 6px 10px;
+      text-align: right;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    td:first-child { text-align: center; font-weight: 600; }
+    tr.best-row td { background: #f0fff4; color: #276749; font-weight: 600; }
+    tr:hover td { background: #f7fafc; }
+    .coef-label { font-size: 0.78rem; color: #718096; }
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #2b6cb0;
+      padding: 4px 0;
+      user-select: none;
+    }
+    details[open] summary { margin-bottom: 12px; }
+    .limit-list li { margin-bottom: 6px; line-height: 1.6; }
+    .step-list { counter-reset: step-counter; list-style: none; padding-left: 0; }
+    .step-list li {
+      counter-increment: step-counter;
+      padding: 6px 0 6px 36px;
+      position: relative;
+      line-height: 1.6;
+    }
+    .step-list li::before {
+      content: counter(step-counter);
+      position: absolute; left: 0;
+      background: #3182ce; color: #fff;
+      border-radius: 50%;
+      width: 24px; height: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700;
+      top: 8px;
+    }
+    .tag {
+      display: inline-block;
+      background: #bee3f8;
+      color: #2b6cb0;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .hidden { display: none; }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.3rem; }
+      .result-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ───── 标题 ───── -->
+  <h1>🔭 光学装调辅助计算工具</h1>
+  <p class="subtitle">
+    基于 Zernike Z7／Z8 的姿态修正指导 &nbsp;|&nbsp;
+    数据驱动线性回归模型 &nbsp;|&nbsp;
+    仅供参考，使用前请阅读底部局限性说明
+  </p>
+
+  <!-- ───── 输入区 ───── -->
+  <div class="card">
+    <h2>📊 输入当前 Zernike 测量值</h2>
+    <div class="input-row">
+      <div class="input-group">
+        <label for="z7Input">Z7（慧差 X / Coma X，单位 nm）</label>
+        <input type="number" id="z7Input" step="0.01" placeholder="例如：30.5" />
+      </div>
+      <div class="input-group">
+        <label for="z8Input">Z8（慧差 Y / Coma Y，单位 nm）</label>
+        <input type="number" id="z8Input" step="0.01" placeholder="例如：-50.2" />
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calculate()">⚙️ 计算建议调节量</button>
+  </div>
+
+  <!-- ───── 结果区（默认隐藏） ───── -->
+  <div class="card hidden" id="resultsCard">
+    <h2>🎯 建议调节量（相对于当前推算姿态）</h2>
+    <div class="result-grid" id="resultGrid"></div>
+
+    <div class="info-row">
+      <div class="info-box" id="currentPosBox">
+        <strong>推算当前姿态（由 Z7/Z8 反推）</strong><br/>
+        <span id="currentPosText">–</span>
+      </div>
+      <div class="info-box">
+        <strong>目标姿态（数据集最优点）</strong><br/>
+        X = −1.4943 mm，Y = 1.94394 mm，Z = −2.7404 mm<br/>
+        RX = 0.33418 rad，RY = −0.1842 rad<br/>
+        <span class="tag">样本 6，RMS = 6.78 nm</span>
+      </div>
+    </div>
+
+    <div id="nearestMsg" class="warning"></div>
+  </div>
+
+  <!-- ───── 参考数据集 ───── -->
+  <div class="card">
+    <h2>📋 嵌入参考数据集（共 6 个样本）</h2>
+    <p style="font-size:0.88rem;color:#4a5568;margin-top:0">
+      数据来源于实际装调过程，从初始状态（样本 1，RMS=88 nm）逐步优化至最佳状态（样本 6，RMS=6.78 nm）。
+      样本 4–6 处于最优区域，模型在该区域可靠性最高。
+    </p>
+    <div style="overflow-x:auto">
+    <table id="datasetTable">
+      <thead>
+        <tr>
+          <th>样本</th>
+          <th>X (mm)</th><th>Y (mm)</th><th>Z (mm)</th>
+          <th>RX (rad)</th><th>RY (rad)</th>
+          <th>Z7 (nm)</th><th>Z8 (nm)</th>
+          <th>RMS (nm)</th>
+        </tr>
+      </thead>
+      <tbody id="datasetTbody"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- ───── 模型系数（可展开） ───── -->
+  <div class="card">
+    <details>
+      <summary>🔢 查看回归模型系数（灵敏度矩阵，3×5）</summary>
+      <p style="font-size:0.88rem;color:#4a5568;margin-top:0">
+        模型形式：<strong>姿态参数 = a · Z7 + b · Z8 + c</strong>（最小二乘拟合，6 个样本）<br/>
+        建议调节量 = −a · Z7<sub>input</sub> − b · Z8<sub>input</sub>
+      </p>
+      <div style="overflow-x:auto">
+      <table id="coefTable">
+        <thead>
+          <tr>
+            <th>系数</th><th>X</th><th>Y</th><th>Z</th><th>RX</th><th>RY</th>
+          </tr>
+        </thead>
+        <tbody id="coefTbody"></tbody>
+      </table>
+      </div>
+    </details>
+  </div>
+
+  <!-- ───── 使用说明 ───── -->
+  <div class="card">
+    <h2>📖 使用说明</h2>
+    <ol class="step-list">
+      <li>在上方输入框中填写当前测量得到的 Zernike Z7 和 Z8 数值（单位：nm）。</li>
+      <li>点击"计算建议调节量"按钮。</li>
+      <li>查看结果区的建议调节量：正值表示正方向增加，负值表示需要减小。</li>
+      <li>按建议量的 20%–50% 进行小步调节（步长因子 λ = 0.2–0.5），避免过调。</li>
+      <li>重新测量 Z7、Z8，重复上述步骤，直到 RMS 满足要求。</li>
+    </ol>
+  </div>
+
+  <!-- ───── 局限性说明 ───── -->
+  <div class="card">
+    <h2>⚠️ 局限性说明（请认真阅读）</h2>
+    <ul class="limit-list">
+      <li>
+        <strong>仅使用 Z7 和 Z8 作为输入。</strong>
+        系统实际有 5 个姿态自由度（X、Y、Z、RX、RY），而本工具仅接受 2 个 Zernike
+        系数作为输入，信息不完整，无法对所有自由度做全解耦估计。
+      </li>
+      <li>
+        <strong>数据集稀疏，样本数量有限。</strong>
+        全部模型来自 6 个样本，且样本并非单自由度扰动实验（各样本同时改变了多个姿态参数），
+        因此无法完整构建严格的 8×5 解耦灵敏度矩阵。
+      </li>
+      <li>
+        <strong>线性假设。</strong>
+        本工具采用线性回归模型，仅在数据集覆盖范围内（特别是样本 4–6 附近区域）有较好精度；
+        在远离数据集的区域，线性外推误差会显著增大。
+      </li>
+      <li>
+        <strong>目标为数据集最优点（样本 6）。</strong>
+        建议调节量指向样本 6 对应的姿态位置，该位置 RMS = 6.78 nm。
+        若实际系统与数据集存在差异，建议将调节量乘以 0.2–0.5 的步长因子，小步迭代。
+      </li>
+      <li>
+        <strong>本工具仅作辅助参考。</strong>
+        最终装调决策应结合实际光学测量结果及操作人员经验，不可完全依赖本工具的输出。
+      </li>
+      <li>
+        <strong>如需更准确的模型，</strong>建议在接近最优状态的区域进行单自由度扰动实验
+        （每次只动一个自由度），重新拟合更完整的灵敏度矩阵。
+      </li>
+    </ul>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ─────────────────────────────────────────────
+//  嵌入数据集
+// ─────────────────────────────────────────────
+const DATASET = [
+  { label:'样本 1', X:0,       Y:0,       Z:0,       RX:0,       RY:0,       z7:134.715, z8:-201,    rms:88   },
+  { label:'样本 2', X:-1.248,  Y:0,       Z:-0.915,  RX:-0.0016, RY:-0.1291, z7:34.35,   z8:-200.99, rms:74   },
+  { label:'样本 3', X:-1.4099, Y:0.50101, Z:-1.6376, RX:0.08712, RY:-0.1757, z7:4.02,    z8:-146.16, rms:53   },
+  { label:'样本 4', X:-1.4099, Y:1.71221, Z:-2.505,  RX:0.29413, RY:-0.1758, z7:2.21,    z8:-23.87,  rms:11   },
+  { label:'样本 5', X:-1.4099, Y:1.95951, Z:-2.6857, RX:0.33816, RY:-0.1757, z7:5.58,    z8:-2.09,   rms:6.9  },
+  { label:'样本 6', X:-1.4943, Y:1.94394, Z:-2.7404, RX:0.33418, RY:-0.1842, z7:0.66,    z8:-2.55,   rms:6.78 },
+];
+
+// 最优样本（RMS 最小）
+const BEST = DATASET.reduce((b, d) => d.rms < b.rms ? d : b);
+
+// ─────────────────────────────────────────────
+//  矩阵辅助函数
+// ─────────────────────────────────────────────
+
+/** 矩阵转置 */
+function transpose(A) {
+  return A[0].map((_, j) => A.map(row => row[j]));
+}
+
+/** 矩阵乘法 A(m×k) × B(k×n) → C(m×n) */
+function multiply(A, B) {
+  const m = A.length, k = B.length, n = B[0].length;
+  return Array.from({ length: m }, (_, i) =>
+    Array.from({ length: n }, (_, j) =>
+      A[i].reduce((s, _, l) => s + A[i][l] * B[l][j], 0)
+    )
+  );
+}
+
+/** 3×3 矩阵逆（伴随矩阵法） */
+function inv3(M) {
+  const [[a,b,c],[d,e,f],[g,h,m]] = M;  // m = M[2][2]
+  const det = a*(e*m - f*h) - b*(d*m - f*g) + c*(d*h - e*g);
+  if (Math.abs(det) < 1e-14) throw new Error(`矩阵奇异，无法求逆（行列式: ${det}）`);
+  return [
+    [ (e*m-f*h)/det, -(b*m-c*h)/det,  (b*f-c*e)/det ],
+    [-(d*m-f*g)/det,  (a*m-c*g)/det, -(a*f-c*d)/det ],
+    [ (d*h-e*g)/det,  -(a*h-b*g)/det,  (a*e-b*d)/det ],
+  ];
+}
+
+// ─────────────────────────────────────────────
+//  最小二乘回归：姿态 = A_coef · [Z7, Z8, 1]^T
+//  A_coef 为 3×5，行顺序：[Z7系数, Z8系数, 截距]
+// ─────────────────────────────────────────────
+function fitModel(data) {
+  // 特征矩阵 Xm (n×3)，目标矩阵 Ym (n×5)
+  const Xm = data.map(d => [d.z7, d.z8, 1]);
+  const Ym = data.map(d => [d.X, d.Y, d.Z, d.RX, d.RY]);
+
+  const Xt   = transpose(Xm);   // 3×n
+  const XtX  = multiply(Xt, Xm); // 3×3
+  const XtY  = multiply(Xt, Ym); // 3×5
+  const XtXi = inv3(XtX);        // 3×3
+  return multiply(XtXi, XtY);    // 3×5  = A_coef
+}
+
+// 预计算模型系数
+let A_COEF;
+try {
+  A_COEF = fitModel(DATASET);
+} catch(e) {
+  A_COEF = null;
+}
+
+// ─────────────────────────────────────────────
+//  渲染数据集表格
+// ─────────────────────────────────────────────
+(function renderDataset() {
+  const tbody = document.getElementById('datasetTbody');
+  DATASET.forEach(d => {
+    const tr = document.createElement('tr');
+    if (d === BEST) tr.classList.add('best-row');
+    const fmt = v => v.toFixed(5);
+    tr.innerHTML = `
+      <td>${d.label}${d === BEST ? ' ⭐' : ''}</td>
+      <td>${fmt(d.X)}</td><td>${fmt(d.Y)}</td><td>${fmt(d.Z)}</td>
+      <td>${fmt(d.RX)}</td><td>${fmt(d.RY)}</td>
+      <td>${d.z7}</td><td>${d.z8}</td>
+      <td>${d.rms}</td>`;
+    tbody.appendChild(tr);
+  });
+})();
+
+// ─────────────────────────────────────────────
+//  渲染模型系数表格
+// ─────────────────────────────────────────────
+(function renderCoef() {
+  if (!A_COEF) return;
+  const tbody = document.getElementById('coefTbody');
+  const rowLabels = ['a (Z7系数)', 'b (Z8系数)', 'c (截距)'];
+  A_COEF.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${rowLabels[i]}</td>` +
+      row.map(v => `<td>${v.toExponential(4)}</td>`).join('');
+    tbody.appendChild(tr);
+  });
+})();
+
+// ─────────────────────────────────────────────
+//  距离归一化常量（基于数据集 Z7/Z8 实际范围，单次遍历）和
+//  最近邻可靠性阈值
+// ─────────────────────────────────────────────
+const { z7Min, z7Max, z8Min, z8Max } = DATASET.reduce((acc, d) => ({
+  z7Min: Math.min(acc.z7Min, d.z7),
+  z7Max: Math.max(acc.z7Max, d.z7),
+  z8Min: Math.min(acc.z8Min, d.z8),
+  z8Max: Math.max(acc.z8Max, d.z8),
+}), { z7Min: Infinity, z7Max: -Infinity, z8Min: Infinity, z8Max: -Infinity });
+const Z7_RANGE = z7Max - z7Min;  // 数据集 Z7 范围
+const Z8_RANGE = z8Max - z8Min;  // 数据集 Z8 范围
+
+const DISTANCE_THRESHOLD_RELIABLE = 0.25;  // 归一化距离 < 此值：可信度高
+const DISTANCE_THRESHOLD_MODERATE = 0.60;  // 归一化距离 < 此值：可信度中等
+
+
+function calculate() {
+  const z7Raw = document.getElementById('z7Input').value.trim();
+  const z8Raw = document.getElementById('z8Input').value.trim();
+
+  if (z7Raw === '' || z8Raw === '') {
+    alert('请输入 Z7 和 Z8 的测量值！');
+    return;
+  }
+
+  const z7 = parseFloat(z7Raw);
+  const z8 = parseFloat(z8Raw);
+
+  if (!isFinite(z7) || !isFinite(z8)) {
+    alert('输入值无效，请检查！');
+    return;
+  }
+
+  if (!A_COEF) {
+    alert('模型初始化失败，请刷新页面重试。');
+    return;
+  }
+
+  // ── 推算当前姿态 ──
+  // predicted[j] = z7*A[0][j] + z8*A[1][j] + A[2][j]
+  const predicted = A_COEF[0].map((_, j) =>
+    z7 * A_COEF[0][j] + z8 * A_COEF[1][j] + A_COEF[2][j]
+  );
+
+  // ── 目标姿态（最优样本） ──
+  const target = [BEST.X, BEST.Y, BEST.Z, BEST.RX, BEST.RY];
+
+  // ── 建议调节量 ──
+  const adj = target.map((t, i) => t - predicted[i]);
+
+  // ── 最近邻距离（在 Z7-Z8 空间） ──
+  const dists = DATASET.map(d => {
+    const dz7 = (d.z7 - z7) / Z7_RANGE;  // 按数据集实际范围归一化
+    const dz8 = (d.z8 - z8) / Z8_RANGE;
+    return { sample: d, dist: Math.sqrt(dz7*dz7 + dz8*dz8) };
+  });
+  dists.sort((a, b) => a.dist - b.dist);
+  const nearest = dists[0];
+
+  // ── 渲染结果 ──
+  renderResults(z7, z8, predicted, target, adj, nearest);
+}
+
+// ─────────────────────────────────────────────
+//  渲染结果区
+// ─────────────────────────────────────────────
+function renderResults(z7, z8, predicted, target, adj, nearest) {
+  const card  = document.getElementById('resultsCard');
+  const grid  = document.getElementById('resultGrid');
+  const cpBox = document.getElementById('currentPosText');
+  const nearMsg = document.getElementById('nearestMsg');
+
+  card.classList.remove('hidden');
+
+  // 结果格子
+  const PARAMS = [
+    { name:'X',  unit:'mm',  idx:0 },
+    { name:'Y',  unit:'mm',  idx:1 },
+    { name:'Z',  unit:'mm',  idx:2 },
+    { name:'RX', unit:'rad', idx:3 },
+    { name:'RY', unit:'rad', idx:4 },
+  ];
+
+  grid.innerHTML = '';
+  PARAMS.forEach(p => {
+    const v = adj[p.idx];
+    const sign = v > 0 ? 'positive' : (v < 0 ? 'negative' : '');
+    const prefix = v > 0 ? '+' : '';
+    const item = document.createElement('div');
+    item.className = `result-item ${sign}`;
+    item.innerHTML = `
+      <div class="param-name">${p.name}</div>
+      <div class="param-value">${prefix}${v.toFixed(4)}</div>
+      <div class="param-unit">${p.unit}</div>`;
+    grid.appendChild(item);
+  });
+
+  // 推算当前姿态
+  cpBox.innerHTML =
+    `X = ${predicted[0].toFixed(4)} mm，Y = ${predicted[1].toFixed(4)} mm，` +
+    `Z = ${predicted[2].toFixed(4)} mm<br/>` +
+    `RX = ${predicted[3].toFixed(5)} rad，RY = ${predicted[4].toFixed(5)} rad`;
+
+  // 最近邻提示
+  const d = nearest.dist;
+  if (d < DISTANCE_THRESHOLD_RELIABLE) {
+    nearMsg.className = 'warning ok';
+    nearMsg.innerHTML = `✅ 输入点（Z7=${z7}, Z8=${z8}）与<strong>${nearest.sample.label}</strong>（RMS=${nearest.sample.rms} nm）距离较近（归一化距离 ${d.toFixed(3)}），模型估计可信度较高。`;
+  } else if (d < DISTANCE_THRESHOLD_MODERATE) {
+    nearMsg.className = 'warning';
+    nearMsg.innerHTML = `⚠️ 输入点与最近样本<strong>${nearest.sample.label}</strong>（RMS=${nearest.sample.rms} nm）距离中等（归一化距离 ${d.toFixed(3)}），建议采用较小步长因子（λ ≤ 0.3）进行调节。`;
+  } else {
+    nearMsg.className = 'warning';
+    nearMsg.innerHTML = `🔴 输入点（Z7=${z7}, Z8=${z8}）距离所有已知样本较远（最近归一化距离 ${d.toFixed(3)}），处于数据集外推区域，模型精度有限，请谨慎使用，建议步长因子 λ ≤ 0.2，并密切关注实测 RMS 变化。`;
+  }
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  card.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
