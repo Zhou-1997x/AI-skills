@@ -1,0 +1,12 @@
+Sample ID,Group,Status,X (mm),Y (mm),Z (mm),RX,RY,Z1 (nm),Z2 (nm),Z3 (nm),Z4 (nm),Z5 (nm),Z6 (nm),Z7 (nm),Z8 (nm),Surface RMS (nm),Note
+S00,Base,Done,0,0,0,0,0,1000,200,-150,-45,12,-23,-110,210,100,Position 1 - initial state
+S01,X+,Planned,0.02,0,0,0,0,,,,,,,,,,X positive perturbation (fill in measured values)
+S02,X-,Planned,-0.02,0,0,0,0,,,,,,,,,,X negative perturbation (fill in measured values)
+S03,Y+,Planned,0,0.02,0,0,0,,,,,,,,,,Y positive perturbation (fill in measured values)
+S04,Y-,Planned,0,-0.02,0,0,0,,,,,,,,,,Y negative perturbation (fill in measured values)
+S05,Z+,Planned,0,0,0.05,0,0,,,,,,,,,,Z positive perturbation (fill in measured values)
+S06,Z-,Planned,0,0,-0.05,0,0,,,,,,,,,,Z negative perturbation (fill in measured values)
+S07,RX+,Planned,0,0,0,0.02,0,,,,,,,,,,RX positive perturbation (fill in measured values)
+S08,RX-,Planned,0,0,0,-0.02,0,,,,,,,,,,RX negative perturbation (fill in measured values)
+S09,RY+,Planned,0,0,0,0,0.02,,,,,,,,,,RY positive perturbation (fill in measured values)
+S10,RY-,Planned,0,0,0,0,-0.02,,,,,,,,,,RY negative perturbation (fill in measured values)

@@ -1,0 +1,12 @@
+Sample ID,Group,Status,X (mm),Y (mm),Z (mm),RX,RY,Z1 (nm),Z2 (nm),Z3 (nm),Z4 (nm),Z5 (nm),Z6 (nm),Z7 (nm),Z8 (nm),Surface RMS (nm),Note
+S00,Base,Planned,0,0,0,0,0,,,,,,,,,,Base point
+S01,X+,Planned,0.02,0,0,0,0,,,,,,,,,,X positive perturbation
+S02,X-,Planned,-0.02,0,0,0,0,,,,,,,,,,X negative perturbation
+S03,Y+,Planned,0,0.02,0,0,0,,,,,,,,,,Y positive perturbation
+S04,Y-,Planned,0,-0.02,0,0,0,,,,,,,,,,Y negative perturbation
+S05,Z+,Planned,0,0,0.05,0,0,,,,,,,,,,Z positive perturbation
+S06,Z-,Planned,0,0,-0.05,0,0,,,,,,,,,,Z negative perturbation
+S07,RX+,Planned,0,0,0,0.02,0,,,,,,,,,,RX positive perturbation
+S08,RX-,Planned,0,0,0,-0.02,0,,,,,,,,,,RX negative perturbation
+S09,RY+,Planned,0,0,0,0,0.02,,,,,,,,,,RY positive perturbation
+S10,RY-,Planned,0,0,0,0,-0.02,,,,,,,,,,RY negative perturbation
