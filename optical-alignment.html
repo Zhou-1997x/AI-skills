@@ -387,13 +387,13 @@ function multiply(A, B) {
 
 /** 3×3 矩阵逆（伴随矩阵法） */
 function inv3(M) {
-  const [[a,b,c],[d,e,f],[g,h,m22]] = M;  // m22 = M[2][2] element
-  const det = a*(e*m22 - f*h) - b*(d*m22 - f*g) + c*(d*h - e*g);
+  const [[a,b,c],[d,e,f],[g,h,m]] = M;  // m = M[2][2]
+  const det = a*(e*m - f*h) - b*(d*m - f*g) + c*(d*h - e*g);
   if (Math.abs(det) < 1e-14) throw new Error(`矩阵奇异，无法求逆（行列式: ${det}）`);
   return [
-    [ (e*m22-f*h)/det, -(b*m22-c*h)/det,  (b*f-c*e)/det ],
-    [-(d*m22-f*g)/det,  (a*m22-c*g)/det, -(a*f-c*d)/det ],
-    [ (d*h-e*g)/det,   -(a*h-b*g)/det,    (a*e-b*d)/det ],
+    [ (e*m-f*h)/det, -(b*m-c*h)/det,  (b*f-c*e)/det ],
+    [-(d*m-f*g)/det,  (a*m-c*g)/det, -(a*f-c*d)/det ],
+    [ (d*h-e*g)/det,  -(a*h-b*g)/det,  (a*e-b*d)/det ],
   ];
 }
 
@@ -456,11 +456,17 @@ try {
 })();
 
 // ─────────────────────────────────────────────
-//  距离归一化常量（基于数据集 Z7/Z8 实际范围）和
+//  距离归一化常量（基于数据集 Z7/Z8 实际范围，单次遍历）和
 //  最近邻可靠性阈值
 // ─────────────────────────────────────────────
-const Z7_RANGE = Math.max(...DATASET.map(d => d.z7)) - Math.min(...DATASET.map(d => d.z7)); // ≈ 134
-const Z8_RANGE = Math.max(...DATASET.map(d => d.z8)) - Math.min(...DATASET.map(d => d.z8)); // ≈ 199
+const { z7Min, z7Max, z8Min, z8Max } = DATASET.reduce((acc, d) => ({
+  z7Min: Math.min(acc.z7Min, d.z7),
+  z7Max: Math.max(acc.z7Max, d.z7),
+  z8Min: Math.min(acc.z8Min, d.z8),
+  z8Max: Math.max(acc.z8Max, d.z8),
+}), { z7Min: Infinity, z7Max: -Infinity, z8Min: Infinity, z8Max: -Infinity });
+const Z7_RANGE = z7Max - z7Min;  // 数据集 Z7 范围
+const Z8_RANGE = z8Max - z8Min;  // 数据集 Z8 范围
 
 const DISTANCE_THRESHOLD_RELIABLE = 0.25;  // 归一化距离 < 此值：可信度高
 const DISTANCE_THRESHOLD_MODERATE = 0.60;  // 归一化距离 < 此值：可信度中等
